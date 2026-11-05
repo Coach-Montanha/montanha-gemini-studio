@@ -25,17 +25,19 @@ jobs:
 
       - name: Build Standalone APK via Native Android Tools
         run: |
-          echo "==> Instalando build-tools e platform 34..."
-          yes | sdkmanager --licenses > /dev/null 2>&1 || true
-          sdkmanager "platforms;android-34" "build-tools;34.0.0" > /dev/null 2>&1
+          set -e
+          echo "==> Verificando Android SDK do runner..."
+          export ANDROID_HOME="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH"
 
+          # Obter diretórios das ferramentas já presentes no runner
           BUILD_TOOLS_DIR=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -n 1)
           PLATFORM_DIR=$(ls -d $ANDROID_HOME/platforms/* | sort -V | tail -n 1)
           ANDROID_JAR="$PLATFORM_DIR/android.jar"
           export PATH="$BUILD_TOOLS_DIR:$PATH"
 
-          echo "Usando Android JAR: $ANDROID_JAR"
-          echo "Usando Build Tools: $BUILD_TOOLS_DIR"
+          echo "Android JAR: $ANDROID_JAR"
+          echo "Build Tools: $BUILD_TOOLS_DIR"
 
           mkdir -p build_apk/src/com/montanhagemini/app
           mkdir -p build_apk/res/values
