@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Montanha Gemini Studio v3.0</title>
+    <title>Montanha Gemini Studio v4.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -51,18 +51,26 @@
             margin-bottom: 6px;
             color: #ffffff;
         }
+        /* Custom Switch */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #68D391;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #48BB78;
+        }
     </style>
 </head>
 <body class="h-screen w-screen flex overflow-hidden relative">
 
     <div id="sidebarBackdrop" onclick="closeSidebarMobile()" class="hidden md:hidden fixed inset-0 bg-black/60 z-30 transition-opacity"></div>
 
-    <!-- Sidebar: Multi-Chat & Context Memory (Graphify Ready) -->
+    <!-- Sidebar: Multi-Chat & Context Memory -->
     <aside id="sidebar" class="fixed md:static inset-y-0 left-0 w-72 bg-[#1e1f20] border-r border-[#282a2c] flex flex-col flex-shrink-0 transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0 z-40">
         <div class="h-14 border-b border-[#282a2c] flex items-center justify-between px-3">
             <button onclick="createNewChat()" class="flex-1 flex items-center justify-center space-x-2 py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-semibold border border-white/5 transition active:scale-95 shadow">
                 <i class="fa-solid fa-plus text-cyan-400"></i>
-                <span>Novo Chat / Contexto</span>
+                <span>Novo Chat</span>
             </button>
             <button onclick="closeSidebarMobile()" class="ml-2 p-2 rounded-lg hover:bg-white/10 text-white/50 hover:text-white md:hidden">
                 <i class="fa-solid fa-xmark"></i>
@@ -72,8 +80,11 @@
         <div class="flex-1 overflow-y-auto p-2 space-y-1" id="chatsListContainer"></div>
 
         <div class="p-3 border-t border-[#282a2c] bg-black/20 text-[11px] text-white/50 flex items-center justify-between">
-            <span class="flex items-center gap-1.5"><i class="fa-solid fa-diagram-project text-purple-400"></i> Graphify Ready</span>
-            <span class="text-emerald-400 font-mono">0 Tokens</span>
+            <button onclick="openSettingsModal()" class="flex items-center space-x-1.5 hover:text-white transition">
+                <i class="fa-solid fa-sliders text-cyan-400"></i>
+                <span>Configurações & APIs</span>
+            </button>
+            <span class="text-emerald-400 font-mono text-[10px] bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">v4.0 Harness</span>
         </div>
     </aside>
 
@@ -92,12 +103,18 @@
                 <div>
                     <h1 class="text-sm font-semibold tracking-wide flex items-center space-x-1.5">
                         <span id="currentChatTitle">Montanha Gemini Studio</span>
-                        <span class="text-[10px] uppercase tracking-wider bg-white/10 px-2 py-0.5 rounded-full text-purple-300 font-mono">v3.0 Pro</span>
+                        <span id="headerEngineTag" class="text-[10px] uppercase tracking-wider bg-white/10 px-2 py-0.5 rounded-full text-purple-300 font-mono">Gemini Flash</span>
                     </h1>
                 </div>
             </div>
 
             <div class="flex items-center space-x-2">
+                <!-- Settings Button -->
+                <button onclick="openSettingsModal()" title="Configurações, Plugins & Chaves de IA" class="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/80 hover:text-white text-xs flex items-center space-x-1.5 transition border border-white/5">
+                    <i class="fa-solid fa-gear text-cyan-400"></i>
+                    <span class="hidden sm:inline">Plugins & Ajustes</span>
+                </button>
+
                 <!-- Real-Time Live Audio Call Mode Button -->
                 <button id="liveAudioCallBtn" onclick="toggleLiveAudioMode()" title="Modo Conversa por Voz Contínua (Gemini Live)" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:brightness-110 text-white font-bold text-xs flex items-center space-x-1.5 transition shadow active:scale-95">
                     <i id="liveAudioIcon" class="fa-solid fa-phone"></i>
@@ -106,7 +123,7 @@
 
                 <button onclick="openPdfModal()" title="Ler Livro ou Artigo em PDF" class="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/80 hover:text-white text-xs flex items-center space-x-1 transition border border-white/5">
                     <i class="fa-solid fa-file-pdf text-red-400"></i>
-                    <span class="hidden sm:inline">Analisar PDF</span>
+                    <span class="hidden sm:inline">PDF</span>
                 </button>
                 <button onclick="deleteCurrentChat()" title="Excluir este chat" class="p-2 rounded-full hover:bg-white/10 text-white/60 hover:text-red-400 transition">
                     <i class="fa-regular fa-trash-can text-sm"></i>
@@ -128,7 +145,7 @@
                             Olá, <span class="gemini-gradient-text">Coach Montanha</span>
                         </h2>
                         <p class="text-sm text-white/50 mt-1 max-w-md mx-auto">
-                            Selecione a Skill desejada abaixo da barra de envio e comece a executar.
+                            Harness Multi-IA ativo com Plugins dinâmicos e Skills permanentes.
                         </p>
                     </div>
 
@@ -137,17 +154,17 @@
                             <i class="fa-solid fa-image text-purple-400 mt-0.5"></i>
                             <span>Gerar Imagem Flux 1024x1024</span>
                         </button>
-                        <button onclick="setPrompt('Escreva um roteiro de 20s para Reels sobre foco total na execução')" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
-                            <i class="fa-solid fa-clapperboard text-cyan-400 mt-0.5"></i>
-                            <span>Roteiro 10x com Minha Voz</span>
+                        <button onclick="setPrompt('Agende uma reunião de alinhamento com a equipe de marketing no Google Calendar para amanhã às 15h')" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
+                            <i class="fa-solid fa-calendar-check text-blue-400 mt-0.5"></i>
+                            <span>Ação Google Calendar Plugin</span>
                         </button>
-                        <button onclick="setPrompt('Como está o clima e a temperatura em João Pessoa hoje?')" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
+                        <button onclick="setPrompt('Como está o clima e a temperatura em João Pessoa agora?')" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
                             <i class="fa-solid fa-cloud-sun text-emerald-400 mt-0.5"></i>
-                            <span>Busca ao Vivo na Internet</span>
+                            <span>Busca Meteorológica ao Vivo</span>
                         </button>
-                        <button onclick="openPdfModal()" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
-                            <i class="fa-solid fa-book-open text-amber-400 mt-0.5"></i>
-                            <span>Subir Livro / Artigo em PDF</span>
+                        <button onclick="openSettingsModal()" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
+                            <i class="fa-solid fa-sliders text-cyan-400 mt-0.5"></i>
+                            <span>Gerenciar Plugins & Chaves de IA</span>
                         </button>
                     </div>
                 </div>
@@ -185,24 +202,28 @@
                     <i id="micIcon" class="fa-solid fa-microphone text-sm"></i>
                 </button>
 
-                <textarea id="promptInput" rows="1" placeholder="Converse com o Gemini, fale no microfone ou anexe arquivos..." onkeydown="handleKeyDown(event)" oninput="autoGrow(this)" class="flex-1 bg-transparent border-0 text-white placeholder-white/40 text-sm focus:outline-none resize-none max-h-40 leading-relaxed py-1.5 px-1"></textarea>
+                <textarea id="promptInput" rows="1" placeholder="Converse com o assistente, fale no microfone ou envie comandos..." onkeydown="handleKeyDown(event)" oninput="autoGrow(this)" class="flex-1 bg-transparent border-0 text-white placeholder-white/40 text-sm focus:outline-none resize-none max-h-40 leading-relaxed py-1.5 px-1"></textarea>
 
                 <button id="sendBtn" onclick="sendMessage()" class="w-9 h-9 rounded-xl bg-white text-black hover:bg-white/90 flex items-center justify-center transition disabled:opacity-30 disabled:cursor-not-allowed">
                     <i class="fa-solid fa-arrow-up text-sm"></i>
                 </button>
             </div>
 
-            <!-- Control Bar under Message Box: Skills Selector & Audio Speed -->
+            <!-- Control Bar under Message Box: Dynamic Skills & Audio Speed -->
             <div class="mt-2.5 px-1 flex flex-wrap items-center justify-between gap-2 text-xs">
                 <!-- Skill Selector -->
                 <div class="flex items-center space-x-1.5 bg-[#1e1f20] border border-[#37393b] rounded-xl px-2.5 py-1">
                     <i class="fa-solid fa-brain text-purple-400 text-[11px]"></i>
-                    <span class="text-white/60 text-[11px]">Skill:</span>
+                    <span class="text-white/60 text-[11px]">Habilidade Ativa:</span>
                     <select id="selectSkill" class="bg-transparent text-white text-[11px] font-semibold focus:outline-none cursor-pointer">
                         <option value="minha-voz" class="bg-[#1e1f20] text-white" selected>🔥 Minha Voz (Coach Montanha)</option>
                         <option value="roteiros-10x" class="bg-[#1e1f20] text-white">🎬 Roteiros 10x (Reels/Shorts)</option>
                         <option value="personal-trainer" class="bg-[#1e1f20] text-white">🏋️ Personal Trainer & Fisiologia</option>
-                        <option value="programador" class="bg-[#1e1f20] text-white">💻 Engenheiro Sênior (Karpathy)</option>
+                        <option value="programador" class="bg-[#1e1f20] text-white">💻 Engenheiro Sênior (Ponytail)</option>
+                        <option value="lpo-crosstraining" class="bg-[#1e1f20] text-white">🏋️ LPO Everett Biomecânica</option>
+                        <option value="lyle-mcdonald" class="bg-[#1e1f20] text-white">🥩 Nutrição Lyle McDonald & PSMF</option>
+                        <option value="stories-10x-copy" class="bg-[#1e1f20] text-white">📱 Copy Stories 10x (Ladeira)</option>
+                        <option value="matriz-anti-saas" class="bg-[#1e1f20] text-white">🛡️ Matriz Anti-SaaS Local</option>
                     </select>
                 </div>
 
@@ -223,6 +244,127 @@
 
     </div>
 
+    <!-- MODAL DE CONFIGURAÇÕES, PLUGINS & MULTI-IA HARNESS -->
+    <div id="settingsModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-[#1e1f20] border border-[#37393b] rounded-2xl max-w-xl w-full p-5 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between pb-3 border-b border-[#282a2c]">
+                <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                    <i class="fa-solid fa-sliders text-cyan-400"></i>
+                    <span>Painel de Ajustes, Plugins & Multi-IA</span>
+                </h3>
+                <button onclick="closeSettingsModal()" class="text-white/50 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+
+            <!-- 1. Motor de IA Principal (Harness) -->
+            <div class="space-y-2">
+                <label class="text-xs font-bold text-white/80 uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-microchip text-purple-400"></i> Motor Principal de IA
+                </label>
+                <select id="settingEngine" class="w-full bg-[#131314] border border-[#37393b] rounded-xl p-2.5 text-xs text-white font-medium focus:border-cyan-400 focus:outline-none">
+                    <option value="gemini-flash-lite-latest">Google Gemini Flash Lite (Ultra Rápido & Gratuito)</option>
+                    <option value="gemini-flash-latest">Google Gemini Flash (Padrão Multimodal)</option>
+                    <option value="groq-llama-3.3-70b">Groq Llama 3.3 70B (Velocidade Extrema < 500ms)</option>
+                    <option value="deepseek-chat">DeepSeek Chat V3 (Raciocínio & Código)</option>
+                </select>
+            </div>
+
+            <!-- 2. Chaves de APIs Externas -->
+            <div class="space-y-3 pt-2 border-t border-[#282a2c]">
+                <label class="text-xs font-bold text-white/80 uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-key text-amber-400"></i> Chaves de API das IAs
+                </label>
+                <div class="space-y-2">
+                    <div>
+                        <div class="text-[11px] text-white/50 mb-1">Google Gemini API Key:</div>
+                        <input type="password" id="settingGeminiKey" placeholder="AIzaSy..." class="w-full bg-[#131314] border border-[#37393b] rounded-xl p-2 text-xs text-white focus:outline-none font-mono">
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-white/50 mb-1">Groq API Key (Llama 3.3 70B Gratuito):</div>
+                        <input type="password" id="settingGroqKey" placeholder="gsk_..." class="w-full bg-[#131314] border border-[#37393b] rounded-xl p-2 text-xs text-white focus:outline-none font-mono">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Gerenciador de Plugins (Liga / Desliga) -->
+            <div class="space-y-3 pt-2 border-t border-[#282a2c]">
+                <label class="text-xs font-bold text-white/80 uppercase tracking-wider flex items-center justify-between">
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-plug text-cyan-400"></i> Plugins & Ferramentas (Toggles)</span>
+                    <span class="text-[10px] text-emerald-400 lowercase font-mono">on/off</span>
+                </label>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#131314] border border-[#37393b] cursor-pointer">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-calendar text-blue-400"></i> Google Calendar</span>
+                        <input type="checkbox" id="pluginGCalendar" class="w-4 h-4 rounded text-blue-500 accent-blue-500">
+                    </label>
+
+                    <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#131314] border border-[#37393b] cursor-pointer">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-table text-emerald-400"></i> Google Sheets</span>
+                        <input type="checkbox" id="pluginGSheets" class="w-4 h-4 rounded text-emerald-500 accent-emerald-500">
+                    </label>
+
+                    <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#131314] border border-[#37393b] cursor-pointer">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-cloud-sun text-amber-400"></i> Clima ao Vivo</span>
+                        <input type="checkbox" id="pluginWeather" class="w-4 h-4 rounded text-amber-500 accent-amber-500">
+                    </label>
+
+                    <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#131314] border border-[#37393b] cursor-pointer">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-globe text-cyan-400"></i> Busca Web Rápida</span>
+                        <input type="checkbox" id="pluginWebSearch" class="w-4 h-4 rounded text-cyan-500 accent-cyan-500">
+                    </label>
+
+                    <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#131314] border border-[#37393b] cursor-pointer">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-cloud text-purple-400"></i> Ações Cloud / Webhooks</span>
+                        <input type="checkbox" id="pluginCloud" class="w-4 h-4 rounded text-purple-500 accent-purple-500">
+                    </label>
+                </div>
+            </div>
+
+            <!-- 4. Habilidades Permanentes e Automáticas (Harness do Sistema) -->
+            <div class="space-y-3 pt-2 border-t border-[#282a2c]">
+                <label class="text-xs font-bold text-white/80 uppercase tracking-wider flex items-center justify-between">
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-purple-400"></i> Habilidades Permanentes Automáticas</span>
+                    <span class="text-[10px] text-purple-400 font-mono">Sempre Ativas</span>
+                </label>
+                <div class="space-y-1.5 text-xs">
+                    <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#131314] border border-[#37393b]">
+                        <div>
+                            <div class="font-semibold text-white">🔥 Identidade Coach Montanha (Minha Voz)</div>
+                            <div class="text-[10px] text-white/50">Direto ao ponto, zero enrolação corporativa</div>
+                        </div>
+                        <input type="checkbox" id="permMinhaVoz" checked class="w-4 h-4 rounded accent-purple-500">
+                    </label>
+
+                    <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#131314] border border-[#37393b]">
+                        <div>
+                            <div class="font-semibold text-white">⚖️ Regra do [CONFERIR]</div>
+                            <div class="text-[10px] text-white/50">Proíbe invenção de métricas financeiras não confirmadas</div>
+                        </div>
+                        <input type="checkbox" id="permConferir" checked class="w-4 h-4 rounded accent-purple-500">
+                    </label>
+
+                    <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#131314] border border-[#37393b]">
+                        <div>
+                            <div class="font-semibold text-white">💻 Disciplina Ponytail & Karpathy</div>
+                            <div class="text-[10px] text-white/50">Simplicidade radical, zero pacotes desnecessários</div>
+                        </div>
+                        <input type="checkbox" id="permPonytail" checked class="w-4 h-4 rounded accent-purple-500">
+                    </label>
+                </div>
+            </div>
+
+            <!-- Botão Salvar Configurações -->
+            <div class="pt-2 border-t border-[#282a2c] flex items-center justify-end space-x-2">
+                <button onclick="closeSettingsModal()" class="px-4 py-2 rounded-xl text-xs text-white/60 hover:text-white transition">Cancelar</button>
+                <button onclick="saveAllSettings()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-xs shadow hover:brightness-110 active:scale-95 transition">
+                    <i class="fa-solid fa-check mr-1.5"></i> Salvar Preferências
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal PDF Upload -->
     <div id="pdfModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-[#1e1f20] border border-[#37393b] rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
@@ -236,7 +378,7 @@
                 </button>
             </div>
             <p class="text-xs text-white/60">
-                Envie livros, apostilas ou artigos científicos. O estúdio extrai o conteúdo e injeta o texto diretamente no contexto deste chat.
+                Envie livros, apostilas ou artigos científicos. O estúdio extrai o texto e injeta diretamente no contexto deste chat.
             </p>
             <input type="file" id="pdfFileInput" accept="application/pdf" class="w-full text-xs text-white/70 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-white/10 file:text-white file:text-xs hover:file:bg-white/20">
             <button id="btnProcessPdf" onclick="processPdfUpload()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold text-xs flex items-center justify-center space-x-2 shadow hover:brightness-110 active:scale-95 transition">
@@ -251,132 +393,125 @@
         let attachedImageBase64 = null;
         let attachedImageMime = null;
         let recognition = null;
-        let isRecording = false;
+        let isRecognizing = false;
         let isLiveAudioActive = false;
 
-        // Modo Conversa em Tempo Real (Bidirecional Contínuo)
-        function toggleLiveAudioMode() {
-            isLiveAudioActive = !isLiveAudioActive;
-            const btn = document.getElementById('liveAudioCallBtn');
-            const icon = document.getElementById('liveAudioIcon');
-            const txt = document.getElementById('liveAudioText');
-
-            if (isLiveAudioActive) {
-                btn.className = 'px-3 py-1.5 rounded-xl bg-red-600 animate-pulse text-white font-bold text-xs flex items-center space-x-1.5 transition shadow active:scale-95';
-                icon.className = 'fa-solid fa-phone-slash';
-                txt.innerText = 'Desligar Live';
-                startLiveListening();
-            } else {
-                btn.className = 'px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:brightness-110 text-white font-bold text-xs flex items-center space-x-1.5 transition shadow active:scale-95';
-                icon.className = 'fa-solid fa-phone';
-                txt.innerText = 'Conversa Live';
-                stopSpeechRecognition();
-                window.speechSynthesis?.cancel();
+        // Settings State
+        let appSettings = {
+            engine: "gemini-flash-lite-latest",
+            gemini_api_key: "",
+            groq_api_key: "",
+            plugins: {
+                gcalendar: true,
+                gsheets: true,
+                live_weather: true,
+                web_search: true,
+                cloud_actions: true
+            },
+            permanent_skills: {
+                minha_voz: true,
+                conferir_rule: true,
+                karpathy_ponytail: true
             }
-        }
+        };
 
-        function startLiveListening() {
-            if (!recognition) initSpeechRecognition();
-            if (!recognition) return alert("Microfone não suportado no navegador.");
+        // Load Settings on Start
+        async function fetchSettings() {
             try {
-                recognition.start();
-            } catch (e) {
-                recognition.stop();
-            }
-        }
-
-        function speakTextAndListenNext(text) {
-            if (!text || !isLiveAudioActive) return;
-            const cleanText = text.replace(/[*#_`]/g, '').substring(0, 500);
-
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                const utter = new SpeechSynthesisUtterance(cleanText);
-                utter.lang = 'pt-BR';
-                utter.rate = parseFloat(document.getElementById('selectAudioSpeed')?.value || 1.06);
-                
-                utter.onend = function() {
-                    if (isLiveAudioActive) {
-                        setTimeout(() => { startLiveListening(); }, 400);
-                    }
-                };
-
-                window.speechSynthesis.speak(utter);
-            }
-        }
-
-        // Inicializar Reconhecimento de Voz (Web Speech API)
-        function initSpeechRecognition() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (SpeechRecognition) {
-                recognition = new SpeechRecognition();
-                recognition.lang = 'pt-BR';
-                recognition.continuous = false;
-                recognition.interimResults = false;
-
-                recognition.onstart = function() {
-                    isRecording = true;
-                    const micBtn = document.getElementById('micBtn');
-                    const micIcon = document.getElementById('micIcon');
-                    if (micBtn) micBtn.classList.add('bg-red-500/20', 'text-red-400', 'animate-pulse');
-                    if (micIcon) micIcon.className = 'fa-solid fa-microphone-slash text-sm';
-                };
-
-                recognition.onresult = function(event) {
-                    const transcript = event.results[0][0].transcript;
-                    const input = document.getElementById('promptInput');
-                    input.value = transcript;
-                    autoGrow(input);
-                    if (isLiveAudioActive) {
-                        sendMessage();
-                    }
-                };
-
-                recognition.onerror = function(event) {
-                    console.warn("Erro no microfone:", event.error);
-                    stopSpeechRecognition();
-                };
-
-                recognition.onend = function() {
-                    stopSpeechRecognition();
-                };
-            }
-        }
-
-        function toggleSpeechRecognition() {
-            if (!recognition) initSpeechRecognition();
-            if (!recognition) return alert("Seu navegador ou aparelho não suporta reconhecimento de voz direto. Use o teclado do celular com ditado por voz!");
-            if (isRecording) {
-                recognition.stop();
-            } else {
-                try {
-                    recognition.start();
-                } catch (e) {
-                    recognition.stop();
+                // Try from local storage first
+                const local = localStorage.getItem('montanha_gemini_settings');
+                if (local) {
+                    appSettings = JSON.parse(local);
                 }
-            }
+                const res = await fetch('/api/settings');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.status === 'success' && data.settings) {
+                        appSettings = Object.assign(appSettings, data.settings);
+                    }
+                }
+            } catch (e) {}
+            applySettingsToUI();
         }
 
-        function stopSpeechRecognition() {
-            isRecording = false;
-            const micBtn = document.getElementById('micBtn');
-            const micIcon = document.getElementById('micIcon');
-            if (micBtn) micBtn.classList.remove('bg-red-500/20', 'text-red-400', 'animate-pulse');
-            if (micIcon) micIcon.className = 'fa-solid fa-microphone text-sm';
+        function applySettingsToUI() {
+            const engineTag = document.getElementById('headerEngineTag');
+            if (engineTag) {
+                if (appSettings.engine.includes('groq')) engineTag.innerText = "Groq Llama 70B";
+                else if (appSettings.engine.includes('deepseek')) engineTag.innerText = "DeepSeek V3";
+                else engineTag.innerText = "Gemini Flash";
+            }
+            if (document.getElementById('settingEngine')) document.getElementById('settingEngine').value = appSettings.engine || "gemini-flash-lite-latest";
+            if (document.getElementById('settingGeminiKey') && appSettings.gemini_api_key) document.getElementById('settingGeminiKey').value = appSettings.gemini_api_key;
+            if (document.getElementById('settingGroqKey') && appSettings.groq_api_key) document.getElementById('settingGroqKey').value = appSettings.groq_api_key;
+            
+            // Plugins Toggles
+            if (document.getElementById('pluginGCalendar')) document.getElementById('pluginGCalendar').checked = !!appSettings.plugins.gcalendar;
+            if (document.getElementById('pluginGSheets')) document.getElementById('pluginGSheets').checked = !!appSettings.plugins.gsheets;
+            if (document.getElementById('pluginWeather')) document.getElementById('pluginWeather').checked = !!appSettings.plugins.live_weather;
+            if (document.getElementById('pluginWebSearch')) document.getElementById('pluginWebSearch').checked = !!appSettings.plugins.web_search;
+            if (document.getElementById('pluginCloud')) document.getElementById('pluginCloud').checked = !!appSettings.plugins.cloud_actions;
+
+            // Permanent Skills
+            if (document.getElementById('permMinhaVoz')) document.getElementById('permMinhaVoz').checked = !!appSettings.permanent_skills.minha_voz;
+            if (document.getElementById('permConferir')) document.getElementById('permConferir').checked = !!appSettings.permanent_skills.conferir_rule;
+            if (document.getElementById('permPonytail')) document.getElementById('permPonytail').checked = !!appSettings.permanent_skills.karpathy_ponytail;
+        }
+
+        function openSettingsModal() {
+            applySettingsToUI();
+            document.getElementById('settingsModal').classList.remove('hidden');
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').classList.add('hidden');
+        }
+
+        async function saveAllSettings() {
+            appSettings.engine = document.getElementById('settingEngine').value;
+            const gemKey = document.getElementById('settingGeminiKey').value.trim();
+            const groqKey = document.getElementById('settingGroqKey').value.trim();
+            if (gemKey) appSettings.gemini_api_key = gemKey;
+            if (groqKey) appSettings.groq_api_key = groqKey;
+
+            appSettings.plugins = {
+                gcalendar: document.getElementById('pluginGCalendar').checked,
+                gsheets: document.getElementById('pluginGSheets').checked,
+                live_weather: document.getElementById('pluginWeather').checked,
+                web_search: document.getElementById('pluginWebSearch').checked,
+                cloud_actions: document.getElementById('pluginCloud').checked
+            };
+
+            appSettings.permanent_skills = {
+                minha_voz: document.getElementById('permMinhaVoz').checked,
+                conferir_rule: document.getElementById('permConferir').checked,
+                karpathy_ponytail: document.getElementById('permPonytail').checked
+            };
+
+            localStorage.setItem('montanha_gemini_settings', JSON.stringify(appSettings));
+
+            try {
+                await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(appSettings)
+                });
+            } catch (e) {}
+
+            applySettingsToUI();
+            closeSettingsModal();
+            alert("Configurações e Plugins salvos com sucesso!");
         }
 
         function toggleSidebar() {
             const sb = document.getElementById('sidebar');
             const backdrop = document.getElementById('sidebarBackdrop');
-            if (window.innerWidth < 768) {
-                const isOpen = !sb.classList.contains('-translate-x-full');
-                if (isOpen) { closeSidebarMobile(); }
-                else {
-                    sb.classList.remove('-translate-x-full');
-                    if (backdrop) backdrop.classList.remove('hidden');
-                }
+            if (sb.classList.contains('-translate-x-full')) {
+                sb.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
             } else {
-                sb.classList.toggle('md:hidden');
+                sb.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
             }
         }
 
@@ -439,7 +574,7 @@
                     const d = await res.json();
                     if (d.status === 'success') {
                         closePdfModal();
-                        const prompt = `Analise o seguinte documento "${d.filename}" com ${d.total_pages} páginas:\n\n${d.extracted_text}\n\nFaça um resumo executivo com os 5 principais ensinamentos e aplicações práticas imediatas.`;
+                        const prompt = `Analise o documento "${d.filename}" (${d.total_pages} páginas):\n\n${d.extracted_text}\n\nFaça um resumo executivo com os 5 principais ensinamentos e planos de ação práticos.`;
                         setPrompt(prompt);
                         sendMessage();
                     } else {
@@ -500,16 +635,10 @@
                         `;
                         container.appendChild(item);
                     });
-
-                    if (!currentChatId && data.chats.length > 0) {
-                        selectChat(data.chats[0].id, data.chats[0].title);
-                    }
                 } else {
-                    container.innerHTML = '<div class="text-[11px] text-white/40 p-3 text-center">Nenhuma conversa salva</div>';
+                    container.innerHTML = '<div class="p-3 text-xs text-white/40 text-center">Nenhum chat salvo ainda.</div>';
                 }
-            } catch (err) {
-                console.warn("Erro ao listar chats", err);
-            }
+            } catch (err) {}
         }
 
         async function createNewChat() {
@@ -517,319 +646,434 @@
                 const res = await fetch('/api/chats/new', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ title: 'Nova Conversa' })
+                    body: JSON.stringify({ title: "Nova Conversa" })
                 });
                 const d = await res.json();
                 if (d.status === 'success') {
-                    await loadChatsIndex();
                     selectChat(d.chat.id, d.chat.title);
+                    loadChatsIndex();
                 }
-            } catch (e) {
-                console.error(e);
+            } catch (err) {
+                currentChatId = 'chat_' + Date.now();
+                document.getElementById('messagesList').innerHTML = '';
+                document.getElementById('welcomeScreen').classList.remove('hidden');
             }
         }
 
         async function selectChat(chatId, title) {
-            closeSidebarMobile();
             currentChatId = chatId;
-            document.getElementById('currentChatTitle').innerText = title || 'Conversa';
-            const list = document.getElementById('messagesList');
-            list.innerHTML = '';
+            document.getElementById('currentChatTitle').innerText = title || "Conversa";
+            closeSidebarMobile();
 
             try {
-                const res = await fetch(`/api/chat/${chatId}`);
-                const data = await res.json();
-                if (data.status === 'success' && data.messages && data.messages.length > 0) {
-                    document.getElementById('welcomeScreen')?.classList.add('hidden');
-                    data.messages.forEach(m => {
-                        appendMessageUI('user', m.prompt);
-                        appendMessageUI('gemini', m.response);
-                    });
-                } else {
-                    showWelcomeScreen();
-                }
-            } catch (err) {
-                showWelcomeScreen();
-            }
-            loadChatsIndex();
-            scrollToBottom();
-        }
+                const res = await fetch(`/api/chats/${chatId}`);
+                const d = await res.json();
+                const container = document.getElementById('messagesList');
+                container.innerHTML = '';
 
-        function showWelcomeScreen() {
-            const list = document.getElementById('messagesList');
-            list.innerHTML = `
-                <div id="welcomeScreen" class="flex-1 flex flex-col items-center justify-center text-center my-auto py-12 space-y-4">
-                    <div class="w-16 h-16 rounded-2xl flex items-center justify-center bg-gradient-to-tr from-blue-600 via-indigo-600 to-pink-500 shadow-xl">
-                        <i class="fa-solid fa-sparkles text-2xl text-white"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-2xl md:text-3xl font-bold">
-                            Olá, <span class="gemini-gradient-text">Coach Montanha</span>
-                        </h2>
-                        <p class="text-sm text-white/50 mt-1 max-w-md mx-auto">
-                            Inicie sua consulta neste contexto selecionado.
-                        </p>
-                    </div>
-                </div>
-            `;
+                if (d.status === 'success' && d.messages && d.messages.length > 0) {
+                    document.getElementById('welcomeScreen').classList.add('hidden');
+                    d.messages.forEach(msg => {
+                        if (msg.role === 'user') {
+                            appendUserMessage(msg.prompt, msg.image);
+                        } else {
+                            appendBotMessage(msg.response);
+                        }
+                    });
+                    scrollToBottom();
+                } else {
+                    document.getElementById('welcomeScreen').classList.remove('hidden');
+                }
+                loadChatsIndex();
+            } catch (err) {}
         }
 
         async function deleteCurrentChat() {
             if (!currentChatId) return;
-            if (!confirm("Excluir esta conversa?")) return;
+            if (!confirm("Excluir este chat e histórico?")) return;
             await deleteChatById(currentChatId);
+            currentChatId = null;
+            document.getElementById('messagesList').innerHTML = '';
+            document.getElementById('welcomeScreen').classList.remove('hidden');
+            loadChatsIndex();
         }
 
         async function deleteChatById(chatId) {
-            await fetch('/api/chats/delete', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ chat_id: chatId })
-            });
-            if (currentChatId === chatId) currentChatId = null;
-            await loadChatsIndex();
-            if (!currentChatId) showWelcomeScreen();
+            try {
+                await fetch('/api/chats/delete', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ chat_id: chatId })
+                });
+                if (currentChatId === chatId) {
+                    currentChatId = null;
+                    document.getElementById('messagesList').innerHTML = '';
+                    document.getElementById('welcomeScreen').classList.remove('hidden');
+                }
+                loadChatsIndex();
+            } catch (e) {}
         }
 
-        function appendMessageUI(role, text, imageUrl = null) {
-            const welcome = document.getElementById('welcomeScreen');
-            if (welcome) welcome.classList.add('hidden');
+        function scrollToBottom() {
+            const sc = document.getElementById('scrollContainer');
+            sc.scrollTop = sc.scrollHeight;
+        }
 
-            const list = document.getElementById('messagesList');
-            const row = document.createElement('div');
-            row.className = `flex items-start space-x-3 w-full ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+        function escapeHtml(text) {
+            if (!text) return '';
+            const map = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'};
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
 
-            if (role === 'user') {
-                row.innerHTML = `
-                    <div class="max-w-[85%] bg-[#282a2c] text-white p-3.5 rounded-2xl rounded-tr-sm text-sm border border-white/5 break-words whitespace-pre-wrap">
-                        ${escapeHtml(text)}
-                    </div>
-                `;
-            } else {
-                let formattedHtml = marked.parse(text || '');
-                if (imageUrl) {
-                    formattedHtml += `
-                        <div class="mt-3">
-                            <img src="${imageUrl}" class="rounded-xl max-h-96 object-cover border border-[#37393b] shadow-lg hover:scale-105 transition" />
-                            <div class="flex items-center space-x-3 mt-2">
-                                <a href="${imageUrl}" target="_blank" class="text-xs text-cyan-400 hover:underline flex items-center gap-1">
-                                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir HD
-                                </a>
-                                <a href="${imageUrl}" download="imagem_montanha.png" class="text-xs text-purple-400 hover:underline flex items-center gap-1">
-                                    <i class="fa-solid fa-download"></i> Baixar PNG
-                                </a>
-                            </div>
-                        </div>
-                    `;
-                }
-
-                const msgId = 'msg_' + Math.random().toString(36).substring(2, 9);
-                row.innerHTML = `
-                    <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center bg-gradient-to-tr from-blue-500 to-purple-600 shadow-md mt-1">
-                        <i class="fa-solid fa-sparkles text-xs text-white"></i>
-                    </div>
-                    <div class="flex-1 max-w-[90%] bg-transparent text-white/90 text-sm markdown-body overflow-x-auto leading-relaxed" id="${msgId}">
-                        <div class="msg-content">${formattedHtml}</div>
-                        
-                        <!-- Actions Bar under message -->
-                        <div class="mt-3 pt-2 border-t border-white/5 flex flex-wrap items-center gap-3 text-xs text-white/60">
-                            <!-- TTS Speech Button -->
-                            <button onclick="synthesizeSpeech('${msgId}')" class="hover:text-cyan-400 flex items-center gap-1 bg-white/5 hover:bg-white/10 px-2 py-1 rounded-lg transition">
-                                <i class="fa-solid fa-volume-high text-cyan-400"></i>
-                                <span>Ouvir Voz</span>
-                            </button>
-
-                            <!-- Native PDF Export Button -->
-                            <button onclick="downloadAsPdf('${msgId}')" class="hover:text-red-400 flex items-center gap-1 bg-white/5 hover:bg-white/10 px-2 py-1 rounded-lg transition">
-                                <i class="fa-solid fa-file-pdf text-red-400"></i>
-                                <span>Baixar PDF</span>
-                            </button>
-
-                            <!-- Copy Button -->
-                            <button onclick="copyMessageText('${msgId}')" class="hover:text-white flex items-center gap-1 bg-white/5 hover:bg-white/10 px-2 py-1 rounded-lg transition">
-                                <i class="fa-regular fa-copy"></i>
-                                <span>Copiar</span>
-                            </button>
-
-                            <!-- Dynamic Audio Player container if synthesized -->
-                            <div id="playerContainer_${msgId}" class="w-full hidden mt-2"></div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            list.appendChild(row);
+        function appendUserMessage(text, hasImage=false) {
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            const container = document.getElementById('messagesList');
+            const div = document.createElement('div');
+            div.className = "w-full flex justify-end";
+            div.innerHTML = `
+                <div class="max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-3 bg-[#282a2c] text-white text-sm shadow-md border border-white/5 space-y-2">
+                    ${hasImage ? '<div class="text-[11px] text-purple-300 font-semibold mb-1"><i class="fa-solid fa-paperclip mr-1"></i> [Arquivo Anexado]</div>' : ''}
+                    <div class="whitespace-pre-wrap">${escapeHtml(text)}</div>
+                </div>
+            `;
+            container.appendChild(div);
             scrollToBottom();
         }
 
-        async function synthesizeSpeech(elemId) {
-            const container = document.getElementById(elemId);
-            const contentDiv = container.querySelector('.msg-content');
-            const text = contentDiv ? contentDiv.innerText : container.innerText;
-            if (!text) return;
+        function appendBotMessage(markdownText) {
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            const container = document.getElementById('messagesList');
+            const div = document.createElement('div');
+            div.className = "w-full flex space-x-3 items-start";
+            
+            const rawId = 'raw_' + Math.random().toString(36).substr(2, 9);
+            window[rawId] = markdownText;
 
-            const speed = parseFloat(document.getElementById('selectAudioSpeed').value || 1.0);
-            const playerDiv = document.getElementById(`playerContainer_${elemId}`);
-            if (playerDiv) {
-                playerDiv.classList.remove('hidden');
-                playerDiv.innerHTML = '<span class="text-xs text-cyan-400 flex items-center gap-1.5"><i class="fa-solid fa-spinner fa-spin"></i> Sintetizando locução em ' + speed + 'x...</span>';
-            }
+            div.innerHTML = `
+                <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500 shadow mt-0.5">
+                    <i class="fa-solid fa-sparkles text-white text-xs"></i>
+                </div>
+                <div class="flex-1 overflow-hidden space-y-2">
+                    <div class="markdown-body text-sm text-[#e3e3e3] leading-relaxed">
+                        ${marked.parse(markdownText)}
+                    </div>
+                    <!-- Action Buttons: Audio TTS & PDF Export -->
+                    <div class="flex items-center space-x-2 pt-1">
+                        <button onclick="speakText(window['${rawId}'])" title="Ouvir Resposta em Voz Alta" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-cyan-400 text-xs flex items-center space-x-1.5 transition border border-white/5">
+                            <i class="fa-solid fa-volume-high text-[11px]"></i>
+                            <span>Ouvir</span>
+                        </button>
+                        <button onclick="downloadAsPdf(window['${rawId}'])" title="Baixar como Documento PDF Formatado" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-emerald-400 text-xs flex items-center space-x-1.5 transition border border-white/5">
+                            <i class="fa-solid fa-file-pdf text-[11px]"></i>
+                            <span>Baixar PDF</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+            scrollToBottom();
+        }
 
-            try {
-                const res = await fetch('/api/tts', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        text: text.substring(0, 1500),
-                        voice: 'pt-BR-AntonioNeural',
-                        speed: speed
-                    })
-                });
-                const d = await res.json();
-                if (d.status === 'success') {
-                    if (playerDiv) {
-                        playerDiv.innerHTML = `
-                            <div class="p-2 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between gap-2">
-                                <audio controls autoplay src="${d.audio_url}" class="h-8 flex-1"></audio>
-                                <a href="${d.audio_url}" download="${d.filename}" class="px-2.5 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 text-xs flex items-center gap-1 font-semibold">
-                                    <i class="fa-solid fa-download"></i> Baixar MP3
-                                </a>
+        function appendImageMessage(imageUrl, prompt, provider) {
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            const container = document.getElementById('messagesList');
+            const div = document.createElement('div');
+            div.className = "w-full flex space-x-3 items-start";
+            div.innerHTML = `
+                <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center bg-gradient-to-tr from-purple-500 to-pink-500 shadow mt-0.5">
+                    <i class="fa-solid fa-image text-white text-xs"></i>
+                </div>
+                <div class="flex-1 space-y-2">
+                    <div class="rounded-2xl overflow-hidden border border-[#37393b] bg-[#1e1f20] max-w-lg shadow-2xl">
+                        <img src="${imageUrl}" alt="${escapeHtml(prompt)}" class="w-full h-auto object-cover hover:scale-[1.01] transition duration-300">
+                        <div class="p-3 bg-[#1e1f20] flex items-center justify-between border-t border-[#37393b]">
+                            <div>
+                                <span class="text-[11px] font-bold text-purple-400 uppercase tracking-wider">${provider || 'Flux.1 Ultra HD'}</span>
+                                <p class="text-xs text-white/70 truncate max-w-xs mt-0.5">${escapeHtml(prompt)}</p>
                             </div>
-                        `;
-                    }
-                } else {
-                    if (playerDiv) playerDiv.innerHTML = '<span class="text-xs text-red-400">Erro: ' + d.message + '</span>';
-                }
-            } catch (e) {
-                if (playerDiv) playerDiv.innerHTML = '<span class="text-xs text-red-400">Erro de conexão com o sintetizador.</span>';
-            }
+                            <a href="${imageUrl}" target="_blank" download="gemini_art.jpg" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs flex items-center space-x-1 transition">
+                                <i class="fa-solid fa-download"></i>
+                                <span>Salvar</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+            scrollToBottom();
         }
 
-        async function downloadAsPdf(elemId) {
-            const container = document.getElementById(elemId);
-            const contentDiv = container.querySelector('.msg-content');
-            const text = contentDiv ? contentDiv.innerText : container.innerText;
-            if (!text) return;
-
-            const chatTitle = document.getElementById('currentChatTitle').innerText || 'Documento';
-            try {
-                const res = await fetch('/api/export-pdf', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        title: chatTitle,
-                        text: text
-                    })
-                });
-                const d = await res.json();
-                if (d.status === 'success') {
-                    const dlLink = document.createElement('a');
-                    dlLink.href = d.pdf_url;
-                    dlLink.download = d.filename;
-                    document.body.appendChild(dlLink);
-                    dlLink.click();
-                    document.body.removeChild(dlLink);
-                } else {
-                    alert('Erro ao gerar PDF: ' + d.message);
-                }
-            } catch (e) {
-                alert('Erro de conexão ao gerar PDF.');
-            }
+        function appendLoadingSkeleton() {
+            const container = document.getElementById('messagesList');
+            const div = document.createElement('div');
+            div.id = "loadingSkeleton";
+            div.className = "w-full flex space-x-3 items-start";
+            div.innerHTML = `
+                <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center bg-white/10 animate-pulse mt-0.5">
+                    <i class="fa-solid fa-sparkles text-white/40 text-xs"></i>
+                </div>
+                <div class="flex-1 space-y-2 max-w-md pt-1">
+                    <div class="h-3 bg-white/10 rounded-full w-3/4 animate-pulse"></div>
+                    <div class="h-3 bg-white/10 rounded-full w-1/2 animate-pulse"></div>
+                </div>
+            `;
+            container.appendChild(div);
+            scrollToBottom();
         }
 
-        function copyMessageText(elemId) {
-            const container = document.getElementById(elemId);
-            const contentDiv = container.querySelector('.msg-content');
-            const text = contentDiv ? contentDiv.innerText : container.innerText;
-            navigator.clipboard.writeText(text);
-            alert('Texto copiado com sucesso!');
+        function removeLoadingSkeleton() {
+            const el = document.getElementById('loadingSkeleton');
+            if (el) el.remove();
         }
 
+        // Send Message Handler
         async function sendMessage() {
             const input = document.getElementById('promptInput');
             const prompt = input.value.trim();
-            if (!prompt && !attachedImageBase64) return;
-
+            const skill = document.getElementById('selectSkill').value;
             const sendBtn = document.getElementById('sendBtn');
-            sendBtn.disabled = true;
 
-            const currentPrompt = prompt;
-            const currentImg = attachedImageBase64;
-            const currentMime = attachedImageMime;
-            const selectedSkill = document.getElementById('selectSkill').value;
+            if (!prompt && !attachedImageBase64) return;
 
             input.value = '';
             input.style.height = 'auto';
-            removeAttachedImage();
+            sendBtn.disabled = true;
 
-            appendMessageUI('user', currentPrompt);
+            const isImagePrompt = prompt.startsWith('/imagem ') || prompt.startsWith('/image ');
 
-            // Geração de Imagem
-            if (currentPrompt.startsWith('/imagem') || currentPrompt.startsWith('/image') || currentPrompt.startsWith('/foto')) {
-                const imgQuery = currentPrompt.replace(/^(\/imagem|\/image|\/foto)/i, '').trim();
-                appendMessageUI('gemini', `*Gerando imagem artística via Flux Neural: "${imgQuery}"...*`);
+            if (isImagePrompt) {
+                const imgPrompt = prompt.replace(/^\/(imagem|image)\s+/, '').trim();
+                appendUserMessage(prompt);
+                appendLoadingSkeleton();
                 try {
                     const res = await fetch('/api/generate-image', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ prompt: imgQuery })
+                        body: JSON.stringify({ prompt: imgPrompt, engine: "flux" })
                     });
                     const d = await res.json();
+                    removeLoadingSkeleton();
                     if (d.status === 'success') {
-                        appendMessageUI('gemini', `Aqui está a sua imagem gerada em 1024x1024:`, d.image_url);
+                        appendImageMessage(d.image_url, imgPrompt, d.provider);
                     } else {
-                        appendMessageUI('gemini', `Erro ao gerar imagem: ${d.message}`);
+                        appendBotMessage("⚠️ Erro ao gerar imagem: " + (d.message || "Tente novamente."));
                     }
                 } catch (e) {
-                    appendMessageUI('gemini', `Erro ao conectar ao gerador de imagens.`);
+                    removeLoadingSkeleton();
+                    appendBotMessage("⚠️ Falha de conexão ao gerar imagem.");
+                } finally {
+                    sendBtn.disabled = false;
                 }
-                sendBtn.disabled = false;
                 return;
             }
 
-            // Conversa padrão com Skill Selecionada e Memória
+            appendUserMessage(prompt, !!attachedImageBase64);
+            appendLoadingSkeleton();
+
+            const payload = {
+                chat_id: currentChatId,
+                prompt: prompt,
+                skill: skill,
+                engine: appSettings.engine,
+                plugins: appSettings.plugins,
+                permanent_skills: appSettings.permanent_skills,
+                image_base64: attachedImageBase64 || "",
+                mime_type: attachedImageMime || "image/jpeg"
+            };
+
+            removeAttachedImage();
+
             try {
                 const res = await fetch('/api/chat', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        chat_id: currentChatId,
-                        prompt: currentPrompt,
-                        skill: selectedSkill,
-                        image_base64: currentImg,
-                        mime_type: currentMime
-                    })
+                    body: JSON.stringify(payload)
                 });
                 const data = await res.json();
+                removeLoadingSkeleton();
+
                 if (data.status === 'success') {
-                    currentChatId = data.chat_id;
-                    appendMessageUI('gemini', data.response);
+                    if (!currentChatId && data.chat_id) {
+                        currentChatId = data.chat_id;
+                    }
+                    appendBotMessage(data.response);
                     loadChatsIndex();
+
+                    if (isLiveAudioActive) {
+                        speakTextAndListenNext(data.response);
+                    }
                 } else {
-                    appendMessageUI('gemini', `⚠️ **Erro**: ${data.message}`);
+                    appendBotMessage("⚠️ " + (data.message || "Erro no processamento. Verifique suas chaves de API nas Configurações."));
+                    if (isLiveAudioActive) {
+                        isLiveAudioActive = false;
+                        updateLiveAudioButtonUI();
+                    }
                 }
             } catch (err) {
-                appendMessageUI('gemini', `⚠️ **Falha de Conexão**: Não foi possível comunicar com o servidor do Gemini Studio.`);
+                removeLoadingSkeleton();
+                appendBotMessage("⚠️ Falha de comunicação com o servidor.");
+                if (isLiveAudioActive) {
+                    isLiveAudioActive = false;
+                    updateLiveAudioButtonUI();
+                }
             } finally {
                 sendBtn.disabled = false;
             }
         }
 
-        function scrollToBottom() {
-            const scroller = document.getElementById('scrollContainer');
-            scroller.scrollTop = scroller.scrollHeight;
+        // Live Audio Conversation Mode Loop (Speak -> Listen -> Speak)
+        function toggleLiveAudioMode() {
+            isLiveAudioActive = !isLiveAudioActive;
+            updateLiveAudioButtonUI();
+
+            if (isLiveAudioActive) {
+                startSpeechRecognition();
+            } else {
+                if (window.speechSynthesis) window.speechSynthesis.cancel();
+                if (recognition) recognition.stop();
+            }
         }
 
-        function escapeHtml(text) {
-            return text
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+        function updateLiveAudioButtonUI() {
+            const btn = document.getElementById('liveAudioCallBtn');
+            const icon = document.getElementById('liveAudioIcon');
+            const text = document.getElementById('liveAudioText');
+
+            if (isLiveAudioActive) {
+                btn.className = "px-3 py-1.5 rounded-xl bg-gradient-to-r from-red-600 to-pink-600 text-white font-bold text-xs flex items-center space-x-1.5 shadow animate-pulse transition";
+                icon.className = "fa-solid fa-phone-slash";
+                text.innerText = "Encerrar Chamada";
+            } else {
+                btn.className = "px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:brightness-110 text-white font-bold text-xs flex items-center space-x-1.5 transition shadow active:scale-95";
+                icon.className = "fa-solid fa-phone";
+                text.innerText = "Conversa Live";
+            }
         }
 
-        window.onload = loadChatsIndex;
+        function toggleSpeechRecognition() {
+            if (isRecognizing) {
+                if (recognition) recognition.stop();
+            } else {
+                startSpeechRecognition();
+            }
+        }
+
+        function startSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert("Reconhecimento de voz não suportado pelo seu navegador.");
+                isLiveAudioActive = false;
+                updateLiveAudioButtonUI();
+                return;
+            }
+
+            if (!recognition) {
+                recognition = new SpeechRecognition();
+                recognition.lang = 'pt-BR';
+                recognition.interimResults = false;
+                recognition.continuous = false;
+
+                recognition.onstart = function() {
+                    isRecognizing = true;
+                    document.getElementById('micBtn').classList.add('bg-red-500/20', 'text-red-400', 'animate-pulse');
+                };
+
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    const input = document.getElementById('promptInput');
+                    input.value = transcript;
+                    autoGrow(input);
+                    if (isLiveAudioActive) {
+                        sendMessage();
+                    }
+                };
+
+                recognition.onerror = function() {
+                    isRecognizing = false;
+                    document.getElementById('micBtn').classList.remove('bg-red-500/20', 'text-red-400', 'animate-pulse');
+                };
+
+                recognition.onend = function() {
+                    isRecognizing = false;
+                    document.getElementById('micBtn').classList.remove('bg-red-500/20', 'text-red-400', 'animate-pulse');
+                };
+            }
+
+            try {
+                recognition.start();
+            } catch (e) {}
+        }
+
+        function speakTextAndListenNext(text) {
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+
+            const cleanText = text.replace(/```[\s\S]*?```/g, 'Bloco de código omitido.')
+                                  .replace(/[#*`_~\[\]()]/g, '');
+
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'pt-BR';
+            const speed = parseFloat(document.getElementById('selectAudioSpeed').value) || 1.06;
+            utterance.rate = speed;
+
+            utterance.onend = function() {
+                if (isLiveAudioActive) {
+                    setTimeout(() => {
+                        startSpeechRecognition();
+                    }, 400);
+                }
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function speakText(text) {
+            if (!('speechSynthesis' in window)) return alert("Seu navegador não suporta síntese de voz.");
+            window.speechSynthesis.cancel();
+            const cleanText = text.replace(/```[\s\S]*?```/g, 'Bloco de código omitido.').replace(/[#*`_~\[\]()]/g, '');
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'pt-BR';
+            const speed = parseFloat(document.getElementById('selectAudioSpeed').value) || 1.06;
+            utterance.rate = speed;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        async function downloadAsPdf(text) {
+            try {
+                const res = await fetch('/api/export-pdf', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ text: text, title: "Montanha Studio Documento" })
+                });
+                const d = await res.json();
+                if (d.status === 'success' && d.pdf_base64) {
+                    const link = document.createElement('a');
+                    link.href = 'data:application/pdf;base64,' + d.pdf_base64;
+                    link.download = d.filename || 'documento.pdf';
+                    link.click();
+                } else {
+                    fallbackClientPdf(text);
+                }
+            } catch (e) {
+                fallbackClientPdf(text);
+            }
+        }
+
+        function fallbackClientPdf(text) {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html><head><title>Documento Montanha Studio</title>
+                <style>body{font-family:sans-serif;padding:30px;line-height:1.6;color:#222;} pre{background:#f4f4f4;padding:10px;border-radius:5px;}</style>
+                </head><body>${marked.parse(text)}</body></html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        window.onload = function() {
+            fetchSettings();
+            loadChatsIndex();
+        };
     </script>
 </body>
 </html>
