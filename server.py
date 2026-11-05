@@ -1,6 +1,12 @@
 """
-Montanha Gemini Studio v3.0 - Multi-Skill, PDF Engine, Audio Speed Control & Web Intelligence
+Montanha Gemini Studio v3.5 - Real-Time Live Audio & Workspace Tools
 Zero-token local costs, official Gemini API free-tier.
+Features:
+- Live Voice Conversation (Auto-listen & Auto-speak)
+- Google Workspace Tools Hook (Calendar, Sheets, Docs via JSON actions)
+- Google Imagen / Flux Dual-Engine
+- Skills Ingestion (Coach Montanha, Roteiros 10x, Personal Trainer, Dev)
+- Native PDF Export & Multi-Chat Memory
 """
 
 import os
@@ -51,7 +57,6 @@ if not INDEX_FILE.exists():
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 
-# Catálogo Oficial de Skills do Ecossistema Montanha
 SKILLS_PROMPTS = {
     "minha-voz": (
         "Você é o Coach Montanha, operando sob a diretriz MINHA VOZ.\n"
@@ -79,6 +84,19 @@ SKILLS_PROMPTS = {
         "2. Código limpo, testável, bem comentado apenas no essencial e pronto para produção."
     )
 }
+
+WORKSPACE_TOOLS_PROMPT = """
+CAPACIDADE DE PLUGINS & FERRAMENTAS DO GOOGLE WORKSPACE:
+Se o usuário solicitar ações no Google Calendar ou Google Sheets, responda normalmente e inclua no final da resposta um bloco de ação estruturado:
+Exemplo para Calendar:
+```workspace_action
+{"tool": "calendar_create_event", "summary": "Reunião de Alinhamento", "date": "2026-11-06", "time": "15:00"}
+```
+Exemplo para Sheets:
+```workspace_action
+{"tool": "sheets_append_row", "sheet": "Alunos", "data": ["Lucas", "85kg", "Hipertrofia", "2026-11-05"]}
+```
+"""
 
 def get_live_web_context(query):
     ql = query.lower()
@@ -187,10 +205,10 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
         elif parsed.path == "/api/status":
             self._send_json({
                 "status": "online",
-                "app": "Montanha Gemini Studio v3.0",
+                "app": "Montanha Gemini Studio v3.5",
                 "gemini_key_configured": bool(GEMINI_API_KEY),
                 "model": "gemini-flash-lite-latest",
-                "features": ["multi_skill_selector", "pdf_generator", "audio_speed_control", "live_web_search", "graphify_ready"]
+                "features": ["live_audio_mode", "workspace_plugins", "multi_skill_selector", "pdf_generator", "image_dual_engine"]
             })
             return
 
@@ -281,7 +299,8 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
             chat_id = body.get("chat_id")
             prompt = body.get("prompt", "").strip()
             skill_key = body.get("skill", "minha-voz")
-            system_prompt = SKILLS_PROMPTS.get(skill_key, SKILLS_PROMPTS["minha-voz"])
+            base_skill = SKILLS_PROMPTS.get(skill_key, SKILLS_PROMPTS["minha-voz"])
+            system_prompt = f"{base_skill}\n\n{WORKSPACE_TOOLS_PROMPT}"
             image_b64 = body.get("image_base64", "")
             mime_type = body.get("mime_type", "image/jpeg")
 
@@ -394,7 +413,6 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
                 self._send_json({"status": "error", "message": f"Erro Gemini API: {last_err}"}, 500)
             return
 
-        # Gerador Nativo de PDF em Alta Qualidade para Download
         elif parsed.path == "/api/export-pdf":
             text = body.get("text", "").strip()
             title = body.get("title", "Documento Montanha Studio").strip()
@@ -436,11 +454,10 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
                 self._send_json({"status": "error", "message": "ReportLab indisponível"}, 500)
                 return
 
-        # Geração de Áudio TTS com Controle de Velocidade e Download
         elif parsed.path == "/api/tts":
             text = body.get("text", "").strip()
             voice = body.get("voice", "pt-BR-AntonioNeural")
-            speed = body.get("speed", 1.0) # ex: 0.9, 1.0, 1.1, 1.25
+            speed = body.get("speed", 1.0)
 
             if not text:
                 self._send_json({"status": "error", "message": "Texto vazio para TTS"}, 400)
@@ -544,7 +561,7 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
 def run_server(port=4192):
     server_address = ("0.0.0.0", port)
     httpd = ThreadingHTTPServer(server_address, GeminiStudioHandler)
-    print(f"[*] Montanha Gemini Studio v3.0 ativo na porta {port}")
+    print(f"[*] Montanha Gemini Studio v3.5 ativo na porta {port}")
     print(f"[*] Acesso Local: http://localhost:{port}")
     httpd.serve_forever()
 

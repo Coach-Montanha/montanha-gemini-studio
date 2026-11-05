@@ -1,6 +1,6 @@
 """
-Vercel Serverless Function Handler for Montanha Gemini Studio v2.5
-With Web Search Hook & Coach Montanha Identity Skills
+Vercel Serverless Function Handler for Montanha Gemini Studio v3.5
+Live Voice Ready, Multi-Skill & Google Workspace Tools Hook
 """
 
 import os
@@ -13,13 +13,42 @@ from http.server import BaseHTTPRequestHandler
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 
-DEFAULT_SYSTEM_PROMPT = """Você é o Montanha Gemini Studio, o assistente oficial de inteligência do Ecossistema Coach Montanha.
-DIRETRIZES DA PERSONA (SKILL: MINHA VOZ):
-1. Tom de Voz: Direto, firme, de quem opera no campo de batalha, sem enrolação e sem rodeios.
-2. Abertura: Vá direto ao ponto, gancho forte ou constatação crua da realidade. Zero saudações corporativas protocolares.
-3. Vocabulário Ativo: na prática, execução, campo de batalha, resultado, esteira, métrica, processo, consistência, ROI, validação.
-4. Vocabulário Proibido: mergulhar fundo, revolucionário, no mundo acelerado de hoje, disruptivo, quiçá, em suma, dessarte.
-5. Regra do [CONFERIR]: Nunca invente números ou dados não fornecidos. Se faltar dado exato, use [CONFERIR].
+SKILLS_PROMPTS = {
+    "minha-voz": (
+        "Você é o Coach Montanha, operando sob a diretriz MINHA VOZ.\n"
+        "1. Tom: Direto, firme, de quem opera no campo de batalha, sem enrolação e sem rodeios corporativos.\n"
+        "2. Abertura: Gancho forte ou constatação crua da realidade. Zero 'olá pessoal'.\n"
+        "3. Vocabulário: na prática, execução, campo de batalha, resultado, esteira, métrica, consistência, ROI.\n"
+        "4. Proibido: mergulhar fundo, revolucionário, disruptivo, quiçá, em suma, dessarte.\n"
+        "5. Regra [CONFERIR]: Se faltar métrica, escreva [CONFERIR]."
+    ),
+    "roteiros-10x": (
+        "Você é o especialista em Roteiros de Alta Conversão (Stories & Reels 10x) do Ecossistema Montanha.\n"
+        "1. Escreva roteiros com gancho nos primeiros 3 segundos, quebra de padrão, desenvolvimento em 3 atos e CTA clara.\n"
+        "2. Indique cortes visuais entre colchetes [Corte para cena de treino] e o texto exato da fala do locutor."
+    ),
+    "personal-trainer": (
+        "Você é o Consultor Técnico de Fisiologia e Treino de Alta Performance do Ecossistema Montanha.\n"
+        "1. Prescreva treinos fundamentados em biomecânica real, progressão de carga e recomposição corporal.\n"
+        "2. Para atendimento: escreva scripts diretos de WhatsApp para onboarding, combate a objeções e retenção."
+    ),
+    "programador": (
+        "Você é o Engenheiro de Software Sênior do Ecossistema Montanha.\n"
+        "1. Princípio Ponytail & Karpathy: Simplicidade radical, zero sobre-engenharia, cirúrgico, sem instalar dependências redundantes."
+    )
+}
+
+WORKSPACE_TOOLS_PROMPT = """
+CAPACIDADE DE PLUGINS & FERRAMENTAS DO GOOGLE WORKSPACE:
+Se o usuário solicitar ações no Google Calendar ou Google Sheets, responda normalmente e inclua no final da resposta um bloco de ação estruturado:
+Exemplo para Calendar:
+```workspace_action
+{"tool": "calendar_create_event", "summary": "Reunião de Alinhamento", "date": "2026-11-06", "time": "15:00"}
+```
+Exemplo para Sheets:
+```workspace_action
+{"tool": "sheets_append_row", "sheet": "Alunos", "data": ["Lucas", "85kg", "Hipertrofia", "2026-11-05"]}
+```
 """
 
 def get_live_web_context(query):
@@ -83,7 +112,7 @@ class handler(BaseHTTPRequestHandler):
             self._send_json({
                 "status": "online",
                 "platform": "Vercel Serverless Cloud",
-                "app": "Montanha Gemini Studio v2.5",
+                "app": "Montanha Gemini Studio v3.5",
                 "model": "gemini-flash-lite-latest",
                 "gemini_key_configured": bool(GEMINI_API_KEY)
             })
@@ -106,7 +135,9 @@ class handler(BaseHTTPRequestHandler):
 
         if parsed.path.endswith("/chat"):
             prompt = body.get("prompt", "").strip()
-            system_prompt = body.get("system_prompt", DEFAULT_SYSTEM_PROMPT).strip()
+            skill_key = body.get("skill", "minha-voz")
+            base_skill = SKILLS_PROMPTS.get(skill_key, SKILLS_PROMPTS["minha-voz"])
+            system_prompt = f"{base_skill}\n\n{WORKSPACE_TOOLS_PROMPT}"
             image_b64 = body.get("image_base64", "")
             mime_type = body.get("mime_type", "image/jpeg")
 

@@ -98,7 +98,13 @@
             </div>
 
             <div class="flex items-center space-x-2">
-                <button onclick="openPdfModal()" title="Ler Livro ou Artigo em PDF" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-white/80 hover:text-white text-xs flex items-center space-x-1 transition border border-white/5">
+                <!-- Real-Time Live Audio Call Mode Button -->
+                <button id="liveAudioCallBtn" onclick="toggleLiveAudioMode()" title="Modo Conversa por Voz Contínua (Gemini Live)" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:brightness-110 text-white font-bold text-xs flex items-center space-x-1.5 transition shadow active:scale-95">
+                    <i id="liveAudioIcon" class="fa-solid fa-phone"></i>
+                    <span id="liveAudioText">Conversa Live</span>
+                </button>
+
+                <button onclick="openPdfModal()" title="Ler Livro ou Artigo em PDF" class="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/80 hover:text-white text-xs flex items-center space-x-1 transition border border-white/5">
                     <i class="fa-solid fa-file-pdf text-red-400"></i>
                     <span class="hidden sm:inline">Analisar PDF</span>
                 </button>
@@ -246,6 +252,58 @@
         let attachedImageMime = null;
         let recognition = null;
         let isRecording = false;
+        let isLiveAudioActive = false;
+
+        // Modo Conversa em Tempo Real (Bidirecional Contínuo)
+        function toggleLiveAudioMode() {
+            isLiveAudioActive = !isLiveAudioActive;
+            const btn = document.getElementById('liveAudioCallBtn');
+            const icon = document.getElementById('liveAudioIcon');
+            const txt = document.getElementById('liveAudioText');
+
+            if (isLiveAudioActive) {
+                btn.className = 'px-3 py-1.5 rounded-xl bg-red-600 animate-pulse text-white font-bold text-xs flex items-center space-x-1.5 transition shadow active:scale-95';
+                icon.className = 'fa-solid fa-phone-slash';
+                txt.innerText = 'Desligar Live';
+                startLiveListening();
+            } else {
+                btn.className = 'px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:brightness-110 text-white font-bold text-xs flex items-center space-x-1.5 transition shadow active:scale-95';
+                icon.className = 'fa-solid fa-phone';
+                txt.innerText = 'Conversa Live';
+                stopSpeechRecognition();
+                window.speechSynthesis?.cancel();
+            }
+        }
+
+        function startLiveListening() {
+            if (!recognition) initSpeechRecognition();
+            if (!recognition) return alert("Microfone não suportado no navegador.");
+            try {
+                recognition.start();
+            } catch (e) {
+                recognition.stop();
+            }
+        }
+
+        function speakTextAndListenNext(text) {
+            if (!text || !isLiveAudioActive) return;
+            const cleanText = text.replace(/[*#_`]/g, '').substring(0, 500);
+
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utter = new SpeechSynthesisUtterance(cleanText);
+                utter.lang = 'pt-BR';
+                utter.rate = parseFloat(document.getElementById('selectAudioSpeed')?.value || 1.06);
+                
+                utter.onend = function() {
+                    if (isLiveAudioActive) {
+                        setTimeout(() => { startLiveListening(); }, 400);
+                    }
+                };
+
+                window.speechSynthesis.speak(utter);
+            }
+        }
 
         // Inicializar Reconhecimento de Voz (Web Speech API)
         function initSpeechRecognition() {
@@ -267,9 +325,11 @@
                 recognition.onresult = function(event) {
                     const transcript = event.results[0][0].transcript;
                     const input = document.getElementById('promptInput');
-                    input.value = (input.value ? input.value + ' ' : '') + transcript;
+                    input.value = transcript;
                     autoGrow(input);
-                    input.focus();
+                    if (isLiveAudioActive) {
+                        sendMessage();
+                    }
                 };
 
                 recognition.onerror = function(event) {
