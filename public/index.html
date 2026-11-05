@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Montanha Gemini Studio</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Marked.js para renderizar Markdown do Gemini -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg-base: #131314;
+            --bg-surface: #1e1f20;
+            --bg-input: #282a2c;
+            --border-gemini: #37393b;
+            --gemini-sparkle: linear-gradient(135deg, #4285f4, #9b72cb, #d96570);
+        }
+        body {
+            background-color: var(--bg-base);
+            color: #e3e3e3;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #37393b; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4a4d51; }
+
+        .gemini-gradient-text {
+            background: var(--gemini-sparkle);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .markdown-body pre {
+            background-color: #1e1f20;
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 8px 0;
+            border: 1px solid #37393b;
+        }
+        .markdown-body code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 13px;
+        }
+        .markdown-body p { margin-bottom: 8px; line-height: 1.6; }
+        .markdown-body ul, .markdown-body ol { margin-left: 20px; margin-bottom: 8px; }
+        .markdown-body li { margin-bottom: 4px; }
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+            font-weight: 700;
+            margin-top: 14px;
+            margin-bottom: 6px;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex overflow-hidden relative">
+
+    <!-- Mobile Overlay Backdrop when Sidebar is Open -->
+    <div id="sidebarBackdrop" onclick="closeSidebarMobile()" class="hidden md:hidden fixed inset-0 bg-black/60 z-30 transition-opacity"></div>
+
+    <!-- Left Sidebar: Drawer responsivo no Mobile -->
+    <aside id="sidebar" class="fixed md:static inset-y-0 left-0 w-72 bg-[#1e1f20] border-r border-[#282a2c] flex flex-col flex-shrink-0 transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0 z-40">
+        <!-- Sidebar Header -->
+        <div class="h-14 border-b border-[#282a2c] flex items-center justify-between px-3">
+            <button onclick="createNewChat()" class="flex-1 flex items-center justify-center space-x-2 py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-semibold border border-white/5 transition active:scale-95 shadow">
+                <i class="fa-solid fa-plus text-cyan-400"></i>
+                <span>Novo Chat / Contexto</span>
+            </button>
+            <button onclick="closeSidebarMobile()" class="ml-2 p-2 rounded-lg hover:bg-white/10 text-white/50 hover:text-white md:hidden">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Chats List -->
+        <div class="flex-1 overflow-y-auto p-2 space-y-1" id="chatsListContainer">
+            <!-- Dynamic chats injected here -->
+        </div>
+
+        <!-- Sidebar Footer: Stats & Zero Cost Indicator -->
+        <div class="p-3 border-t border-[#282a2c] bg-black/20 text-[11px] text-white/50 flex items-center justify-between">
+            <span class="flex items-center gap-1.5"><i class="fa-solid fa-database text-purple-400"></i> Memória Isolada</span>
+            <span class="text-emerald-400 font-mono">0 Tokens</span>
+        </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <div class="flex-1 flex flex-col h-full w-full overflow-hidden relative min-w-0">
+
+        <!-- Top Header -->
+        <header class="h-14 border-b border-[#282a2c] flex items-center justify-between px-4 bg-[#131314]/90 backdrop-blur z-20">
+            <div class="flex items-center space-x-3">
+                <button onclick="toggleSidebar()" class="p-2 rounded-lg hover:bg-white/10 text-white/60 hover:text-white transition">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500 shadow-md">
+                    <i class="fa-solid fa-sparkles text-white text-xs"></i>
+                </div>
+                <div>
+                    <h1 class="text-sm font-semibold tracking-wide flex items-center space-x-1.5">
+                        <span id="currentChatTitle">Montanha Gemini Studio</span>
+                        <span class="text-[10px] uppercase tracking-wider bg-white/10 px-2 py-0.5 rounded-full text-purple-300 font-mono">Flash Lite</span>
+                    </h1>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <button onclick="openPdfModal()" title="Ler Livro ou Artigo em PDF" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-white/80 hover:text-white text-xs flex items-center space-x-1 transition border border-white/5">
+                    <i class="fa-solid fa-file-pdf text-red-400"></i>
+                    <span class="hidden sm:inline">Analisar PDF</span>
+                </button>
+                <button onclick="deleteCurrentChat()" title="Excluir este chat" class="p-2 rounded-full hover:bg-white/10 text-white/60 hover:text-red-400 transition">
+                    <i class="fa-regular fa-trash-can text-sm"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Messages Scroll Area -->
+        <main class="flex-1 overflow-y-auto p-4 md:px-0 flex flex-col items-center" id="scrollContainer">
+            <div class="w-full max-w-3xl flex-1 flex flex-col justify-start space-y-6 pb-28" id="messagesList">
+
+                <!-- Welcome Screen -->
+                <div id="welcomeScreen" class="flex-1 flex flex-col items-center justify-center text-center my-auto py-12 space-y-4">
+                    <div class="w-16 h-16 rounded-2xl flex items-center justify-center bg-gradient-to-tr from-blue-600 via-indigo-600 to-pink-500 shadow-xl">
+                        <i class="fa-solid fa-sparkles text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-bold">
+                            Olá, <span class="gemini-gradient-text">Coach Montanha</span>
+                        </h2>
+                        <p class="text-sm text-white/50 mt-1 max-w-md mx-auto">
+                            Chats independentes, leitura de PDFs, geração de imagens sem limites e síntese de voz neural.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-lg pt-4 text-left">
+                        <button onclick="setPrompt('/imagem Guerreiro espartano com capa vermelha em corrida na chuva iluminação cinematográfica')" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
+                            <i class="fa-solid fa-image text-purple-400 mt-0.5"></i>
+                            <span>Gerar Imagem Flux 1024x1024</span>
+                        </button>
+                        <button onclick="setPrompt('Crie um roteiro magnético de 30 segundos para Reels sobre perda de gordura sem perda de massa magra')" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
+                            <i class="fa-solid fa-clapperboard text-cyan-400 mt-0.5"></i>
+                            <span>Roteiro de Reels 10x</span>
+                        </button>
+                        <button onclick="openPdfModal()" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
+                            <i class="fa-solid fa-book-open text-amber-400 mt-0.5"></i>
+                            <span>Subir Livro / Artigo em PDF</span>
+                        </button>
+                        <button onclick="setPrompt('Escreva uma sequência direta de 3 mensagens para WhatsApp convertendo lead frio em aluno')" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
+                            <i class="fa-brands fa-whatsapp text-emerald-400 mt-0.5"></i>
+                            <span>Conversão WhatsApp Anti-Objeção</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <!-- Bottom Input Dock -->
+        <div class="w-full max-w-3xl mx-auto px-4 pb-4">
+            <!-- Image Attachment Preview -->
+            <div id="imagePreviewBar" class="hidden mb-2 p-2 rounded-xl bg-[#1e1f20] border border-[#37393b] flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <img id="imgPreviewThumb" class="w-10 h-10 object-cover rounded-lg border border-white/10" src="">
+                    <span id="imgPreviewName" class="text-xs text-white/80 truncate max-w-xs">imagem.jpg</span>
+                </div>
+                <button onclick="removeAttachedImage()" class="p-1.5 rounded-full hover:bg-white/10 text-white/60 hover:text-red-400">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="relative bg-[#1e1f20] rounded-2xl border border-[#37393b] focus-within:border-white/30 transition shadow-2xl p-2.5 flex items-end space-x-2">
+                <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+                
+                <button onclick="document.getElementById('fileInput').click()" title="Anexar Imagem para Análise" class="w-9 h-9 rounded-xl hover:bg-white/10 text-white/60 hover:text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-paperclip text-sm"></i>
+                </button>
+
+                <textarea id="promptInput" rows="1" placeholder="Converse com o Gemini ou digite /imagem..." onkeydown="handleKeyDown(event)" oninput="autoGrow(this)" class="flex-1 bg-transparent border-0 text-white placeholder-white/40 text-sm focus:outline-none resize-none max-h-40 leading-relaxed py-1.5 px-1"></textarea>
+
+                <button id="sendBtn" onclick="sendMessage()" class="w-9 h-9 rounded-xl bg-white text-black hover:bg-white/90 flex items-center justify-center transition disabled:opacity-30 disabled:cursor-not-allowed">
+                    <i class="fa-solid fa-arrow-up text-sm"></i>
+                </button>
+            </div>
+            <div class="text-center mt-2 flex items-center justify-center space-x-2 text-[11px] text-white/40">
+                <span>Montanha Gemini Studio v2.0 • Contextos Isolados • Zero Custo</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal PDF Upload & Intelligence -->
+    <div id="pdfModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-[#1e1f20] border border-[#37393b] rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between pb-2 border-b border-[#282a2c]">
+                <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                    <i class="fa-solid fa-file-pdf text-red-400"></i>
+                    <span>Ingestão de Livros & Artigos PDF</span>
+                </h3>
+                <button onclick="closePdfModal()" class="text-white/50 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <p class="text-xs text-white/60">
+                Envie livros, apostilas ou artigos científicos. O estúdio extrai o conteúdo e injeta o texto diretamente no contexto deste chat.
+            </p>
+            <input type="file" id="pdfFileInput" accept="application/pdf" class="w-full text-xs text-white/70 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-white/10 file:text-white file:text-xs hover:file:bg-white/20">
+            <button id="btnProcessPdf" onclick="processPdfUpload()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold text-xs flex items-center justify-center space-x-2 shadow hover:brightness-110 active:scale-95 transition">
+                <i class="fa-solid fa-bolt"></i>
+                <span>Extrair & Injetar no Chat</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentChatId = null;
+        let attachedImageBase64 = null;
+        let attachedImageMime = null;
+
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            if (window.innerWidth < 768) {
+                // Mobile Drawer
+                const isOpen = !sb.classList.contains('-translate-x-full');
+                if (isOpen) {
+                    closeSidebarMobile();
+                } else {
+                    sb.classList.remove('-translate-x-full');
+                    if (backdrop) backdrop.classList.remove('hidden');
+                }
+            } else {
+                // Desktop Toggle
+                sb.classList.toggle('md:hidden');
+            }
+        }
+
+        function closeSidebarMobile() {
+            const sb = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            if (sb) sb.classList.add('-translate-x-full');
+            if (backdrop) backdrop.classList.add('hidden');
+        }
+
+        function autoGrow(el) {
+            el.style.height = 'auto';
+            el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+        }
+
+        function handleKeyDown(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function setPrompt(text) {
+            const input = document.getElementById('promptInput');
+            input.value = text;
+            input.focus();
+            autoGrow(input);
+        }
+
+        function openPdfModal() { document.getElementById('pdfModal').classList.remove('hidden'); }
+        function closePdfModal() { document.getElementById('pdfModal').classList.add('hidden'); }
+
+        async function processPdfUpload() {
+            const fileInput = document.getElementById('pdfFileInput');
+            const file = fileInput.files[0];
+            if (!file) return alert("Selecione um arquivo PDF primeiro!");
+
+            const btn = document.getElementById('btnProcessPdf');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Extraindo Páginas...';
+
+            const reader = new FileReader();
+            reader.onload = async function(evt) {
+                const b64 = evt.target.result.split(',')[1];
+                try {
+                    const res = await fetch('/api/read-pdf', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ pdf_base64: b64, filename: file.name })
+                    });
+                    const d = await res.json();
+                    if (d.status === 'success') {
+                        closePdfModal();
+                        const prompt = `Analise o seguinte livro/documento "${d.filename}" com ${d.total_pages} páginas:\n\n${d.extracted_text}\n\nFaça um resumo executivo com os 5 principais ensinamentos e aplicações práticas imediatas.`;
+                        setPrompt(prompt);
+                        sendMessage();
+                    } else {
+                        alert("Erro ao extrair PDF: " + d.message);
+                    }
+                } catch (e) {
+                    alert("Erro na conexão com o extrator de PDF.");
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-bolt"></i><span>Extrair & Injetar no Chat</span>';
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const fullDataUrl = evt.target.result;
+                attachedImageMime = file.type;
+                attachedImageBase64 = fullDataUrl.split(',')[1];
+                document.getElementById('imgPreviewThumb').src = fullDataUrl;
+                document.getElementById('imgPreviewName').innerText = file.name;
+                document.getElementById('imagePreviewBar').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeAttachedImage() {
+            attachedImageBase64 = null;
+            attachedImageMime = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('imagePreviewBar').classList.add('hidden');
+        }
+
+        async function loadChatsIndex() {
+            try {
+                const res = await fetch('/api/chats');
+                const data = await res.json();
+                const container = document.getElementById('chatsListContainer');
+                container.innerHTML = '';
+
+                if (data.status === 'success' && data.chats && data.chats.length > 0) {
+                    data.chats.forEach(chat => {
+                        const item = document.createElement('div');
+                        item.className = `p-2.5 rounded-xl cursor-pointer text-xs flex items-center justify-between group transition ${chat.id === currentChatId ? 'bg-white/10 text-white font-semibold' : 'text-white/70 hover:bg-white/5 hover:text-white'}`;
+                        item.onclick = () => selectChat(chat.id, chat.title);
+                        item.innerHTML = `
+                            <div class="flex items-center space-x-2 truncate">
+                                <i class="fa-regular fa-message text-[10px] text-purple-400"></i>
+                                <span class="truncate">${escapeHtml(chat.title)}</span>
+                            </div>
+                            <button onclick="event.stopPropagation(); deleteChatById('${chat.id}')" class="opacity-0 group-hover:opacity-100 text-white/40 hover:text-red-400 p-1">
+                                <i class="fa-solid fa-xmark text-xs"></i>
+                            </button>
+                        `;
+                        container.appendChild(item);
+                    });
+
+                    if (!currentChatId && data.chats.length > 0) {
+                        selectChat(data.chats[0].id, data.chats[0].title);
+                    }
+                } else {
+                    container.innerHTML = '<div class="text-[11px] text-white/40 p-3 text-center">Nenhuma conversa salva</div>';
+                }
+            } catch (err) {
+                console.warn("Erro ao listar chats", err);
+            }
+        }
+
+        async function createNewChat() {
+            try {
+                const res = await fetch('/api/chats/new', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ title: 'Nova Conversa' })
+                });
+                const d = await res.json();
+                if (d.status === 'success') {
+                    await loadChatsIndex();
+                    selectChat(d.chat.id, d.chat.title);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function selectChat(chatId, title) {
+            closeSidebarMobile();
+            currentChatId = chatId;
+            document.getElementById('currentChatTitle').innerText = title || 'Conversa';
+            const list = document.getElementById('messagesList');
+            list.innerHTML = '';
+
+            try {
+                const res = await fetch(`/api/chat/${chatId}`);
+                const data = await res.json();
+                if (data.status === 'success' && data.messages && data.messages.length > 0) {
+                    document.getElementById('welcomeScreen')?.classList.add('hidden');
+                    data.messages.forEach(m => {
+                        appendMessageUI('user', m.prompt);
+                        appendMessageUI('gemini', m.response);
+                    });
+                } else {
+                    showWelcomeScreen();
+                }
+            } catch (err) {
+                showWelcomeScreen();
+            }
+            loadChatsIndex();
+            scrollToBottom();
+        }
+
+        function showWelcomeScreen() {
+            const list = document.getElementById('messagesList');
+            list.innerHTML = `
+                <div id="welcomeScreen" class="flex-1 flex flex-col items-center justify-center text-center my-auto py-12 space-y-4">
+                    <div class="w-16 h-16 rounded-2xl flex items-center justify-center bg-gradient-to-tr from-blue-600 via-indigo-600 to-pink-500 shadow-xl">
+                        <i class="fa-solid fa-sparkles text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-bold">
+                            Olá, <span class="gemini-gradient-text">Coach Montanha</span>
+                        </h2>
+                        <p class="text-sm text-white/50 mt-1 max-w-md mx-auto">
+                            Inicie sua consulta, roteiro ou comando /imagem neste novo contexto.
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function deleteCurrentChat() {
+            if (!currentChatId) return;
+            if (!confirm("Excluir esta conversa?")) return;
+            await deleteChatById(currentChatId);
+        }
+
+        async function deleteChatById(chatId) {
+            await fetch('/api/chats/delete', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ chat_id: chatId })
+            });
+            if (currentChatId === chatId) currentChatId = null;
+            await loadChatsIndex();
+            if (!currentChatId) showWelcomeScreen();
+        }
+
+        function appendMessageUI(role, text, imageUrl = null) {
+            const welcome = document.getElementById('welcomeScreen');
+            if (welcome) welcome.classList.add('hidden');
+
+            const list = document.getElementById('messagesList');
+            const row = document.createElement('div');
+            row.className = `flex items-start space-x-3 w-full ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+
+            if (role === 'user') {
+                row.innerHTML = `
+                    <div class="max-w-[85%] bg-[#282a2c] text-white p-3.5 rounded-2xl rounded-tr-sm text-sm border border-white/5 break-words whitespace-pre-wrap">
+                        ${escapeHtml(text)}
+                    </div>
+                `;
+            } else {
+                let formattedHtml = marked.parse(text || '');
+                if (imageUrl) {
+                    formattedHtml += `
+                        <div class="mt-3">
+                            <img src="${imageUrl}" class="rounded-xl max-h-96 object-cover border border-[#37393b] shadow-lg hover:scale-105 transition" />
+                            <div class="flex items-center space-x-3 mt-2">
+                                <a href="${imageUrl}" target="_blank" class="text-xs text-cyan-400 hover:underline flex items-center gap-1">
+                                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir HD
+                                </a>
+                                <a href="${imageUrl}" download="imagem_montanha.png" class="text-xs text-purple-400 hover:underline flex items-center gap-1">
+                                    <i class="fa-solid fa-download"></i> Baixar PNG
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                const msgId = 'msg_' + Math.random().toString(36).substring(2, 9);
+                row.innerHTML = `
+                    <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center bg-gradient-to-tr from-blue-500 to-purple-600 shadow-md mt-1">
+                        <i class="fa-solid fa-sparkles text-xs text-white"></i>
+                    </div>
+                    <div class="flex-1 max-w-[90%] bg-transparent text-white/90 text-sm markdown-body overflow-x-auto leading-relaxed" id="${msgId}">
+                        ${formattedHtml}
+                        <div class="mt-2.5 pt-2 border-t border-white/5 flex items-center space-x-3 text-xs text-white/50">
+                            <button onclick="synthesizeSpeech('${msgId}')" class="hover:text-cyan-400 flex items-center gap-1">
+                                <i class="fa-solid fa-volume-high"></i> Ouvir Voz Neural
+                            </button>
+                            <button onclick="navigator.clipboard.writeText(document.getElementById('${msgId}').innerText); alert('Copiado!');" class="hover:text-white flex items-center gap-1">
+                                <i class="fa-regular fa-copy"></i> Copiar
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            list.appendChild(row);
+            scrollToBottom();
+        }
+
+        async function synthesizeSpeech(elemId) {
+            const text = document.getElementById(elemId)?.innerText || '';
+            if (!text) return;
+            const cleanText = text.replace(/Ouvir Voz Neural|Copiar/g, '').trim().substring(0, 600);
+            
+            try {
+                const res = await fetch('/api/tts', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ text: cleanText, voice: 'pt-BR-AntonioNeural' })
+                });
+                const d = await res.json();
+                if (d.status === 'success') {
+                    const audio = new Audio(d.audio_url);
+                    audio.play();
+                } else {
+                    alert('Erro na voz: ' + d.message);
+                }
+            } catch (e) {
+                alert('Erro ao conectar ao TTS.');
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('promptInput');
+            const prompt = input.value.trim();
+            if (!prompt && !attachedImageBase64) return;
+
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.disabled = true;
+
+            const currentPrompt = prompt;
+            const currentImg = attachedImageBase64;
+            const currentMime = attachedImageMime;
+
+            input.value = '';
+            input.style.height = 'auto';
+            removeAttachedImage();
+
+            appendMessageUI('user', currentPrompt);
+
+            // Gerador de Imagens
+            if (currentPrompt.startsWith('/imagem') || currentPrompt.startsWith('/image') || currentPrompt.startsWith('/foto')) {
+                const imgQuery = currentPrompt.replace(/^(\/imagem|\/image|\/foto)/i, '').trim();
+                appendMessageUI('gemini', `*Gerando imagem artística via Flux Neural: "${imgQuery}"...*`);
+                try {
+                    const res = await fetch('/api/generate-image', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ prompt: imgQuery })
+                    });
+                    const d = await res.json();
+                    if (d.status === 'success') {
+                        appendMessageUI('gemini', `Aqui está a sua imagem gerada em 1024x1024:`, d.image_url);
+                    } else {
+                        appendMessageUI('gemini', `Erro ao gerar imagem: ${d.message}`);
+                    }
+                } catch (e) {
+                    appendMessageUI('gemini', `Erro ao conectar ao gerador de imagens.`);
+                }
+                sendBtn.disabled = false;
+                return;
+            }
+
+            // Conversa padrão no chat selecionado
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        chat_id: currentChatId,
+                        prompt: currentPrompt,
+                        image_base64: currentImg,
+                        mime_type: currentMime
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    currentChatId = data.chat_id;
+                    appendMessageUI('gemini', data.response);
+                    loadChatsIndex();
+                } else {
+                    appendMessageUI('gemini', `⚠️ **Erro**: ${data.message}`);
+                }
+            } catch (err) {
+                appendMessageUI('gemini', `⚠️ **Falha de Conexão**: Não foi possível comunicar com o servidor do Gemini Studio.`);
+            } finally {
+                sendBtn.disabled = false;
+            }
+        }
+
+        function scrollToBottom() {
+            const scroller = document.getElementById('scrollContainer');
+            scroller.scrollTop = scroller.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        window.onload = loadChatsIndex;
+    </script>
+</body>
+</html>
