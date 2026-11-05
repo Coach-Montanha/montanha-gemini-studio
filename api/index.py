@@ -1,14 +1,18 @@
 """
-Vercel Serverless Function Handler for Montanha Gemini Studio v4.5 (Antigravity-Grade)
+Vercel Serverless Function Handler for Montanha Gemini Studio v4.6
 - Zero-Leak Security (Keys from client headers)
 - Online Sources & Real Grounding Links
 - Offline Indicator when answering from internal knowledge
-- Multi-Engine Dispatch (Gemini, Groq, DeepSeek)
+- Multi-Engine Dispatch (Gemini, Groq Llama 3.3)
+- Multi-Modal Image Auto-Fallback (Se o usuário estiver no Groq e anexar imagem, chaveia automaticamente para o Gemini Vision)
+- PDF Extraction (/api/read-pdf) & Export (/api/export-pdf)
 """
 
 import os
 import json
+import base64
 import time
+import io
 import urllib.request
 import urllib.parse
 from http.server import BaseHTTPRequestHandler
@@ -85,7 +89,6 @@ def get_live_web_context(query, plugins_config):
     snippets = []
     sources = []
 
-    # 1. Weather Hook com Open-Meteo
     if plugins_config.get("live_weather", True) and any(k in ql for k in ["clima", "tempo", "temperatura", "previsão"]):
         city = "Joao Pessoa"
         for candidate in ["joao pessoa", "joão pessoa", "são paulo", "sao paulo", "rio de janeiro", "recife", "fortaleza", "curitiba", "brasília", "salvador"]:
@@ -109,13 +112,12 @@ def get_live_web_context(query, plugins_config):
                             f"[METEOROLOGIA AO VIVO]: {city} | Temp: {w['temperature_2m']}°C (Sensação: {w['apparent_temperature']}°C) | Umidade: {w['relative_humidity_2m']}% | Vento: {w['wind_speed_10m']} km/h"
                         )
                         sources.append({
-                            "title": f"Open-Meteo Previsão do Tempo ({city})",
+                            "title": f"Open-Meteo Previsão ({city})",
                             "url": f"https://open-meteo.com/en/docs#latitude={lat}&longitude={lon}"
                         })
         except Exception:
             pass
 
-    # 2. Web Search Snippet Hook
     if plugins_config.get("web_search", True) and any(k in ql for k in ["notícia", "noticia", "hoje", "resultado", "preço", "preco", "cotação", "cotacao", "o que aconteceu", "pesquise", "quem é", "quem e"]):
         try:
             clean_q = urllib.parse.quote(query)
@@ -125,7 +127,7 @@ def get_live_web_context(query, plugins_config):
                 ddg_data = json.loads(rd.read().decode())
                 abs_text = ddg_data.get("AbstractText", "")
                 abs_url = ddg_data.get("AbstractURL", "")
-                source_name = ddg_data.get("AbstractSource", "DuckDuckGo Instant Answers")
+                source_name = ddg_data.get("AbstractSource", "DuckDuckGo")
                 if abs_text:
                     snippets.append(f"[BUSCA WEB AO VIVO]: {abs_text}")
                     sources.append({
@@ -162,12 +164,12 @@ class handler(BaseHTTPRequestHandler):
             self._send_json({
                 "status": "online",
                 "platform": "Vercel Serverless Cloud",
-                "app": "Montanha Gemini Studio v4.5 (Antigravity-Grade)",
+                "app": "Montanha Gemini Studio v4.6",
                 "server_env_gemini_active": bool(os.environ.get("GEMINI_API_KEY"))
             })
             return
 
-        self._send_json({"status": "running", "service": "Montanha Gemini Studio API v4.5"})
+        self._send_json({"status": "running", "service": "Montanha Gemini Studio API v4.6"})
 
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
@@ -179,7 +181,70 @@ class handler(BaseHTTPRequestHandler):
         except Exception:
             body = {}
 
-        if parsed.path.endswith("/chat"):
+        # 1. Endpoint de Extração de PDF
+        if parsed.path.endswith("/read-pdf"):
+            pdf_b64 = body.get("pdf_base64", "")
+            filename = body.get("filename", "documento.pdf")
+            if not pdf_b64:
+                self._send_json({"status": "error", "message": "Nenhum arquivo enviado"}, 400)
+                return
+            try:
+                from pypdf import PdfReader
+                pdf_bytes = base64.b64decode(pdf_b64)
+                reader = PdfReader(io.BytesIO(pdf_bytes))
+                text_pages = []
+                for idx_page, page in enumerate(reader.pages[:40]):
+                    extracted = page.extract_text()
+                    if extracted:
+                        text_pages.append(f"--- [Página {idx_page+1}] ---\n{extracted.strip()}")
+                full_text = "\n\n".join(text_pages)
+                self._send_json({
+                    "status": "success",
+                    "filename": filename,
+                    "total_pages": len(reader.pages),
+                    "extracted_text": full_text[:40000]
+                })
+                return
+            except Exception as e:
+                self._send_json({"status": "error", "message": f"Falha ao ler PDF: {str(e)}"}, 500)
+                return
+
+        # 2. Endpoint de Exportação de PDF
+        elif parsed.path.endswith("/export-pdf"):
+            text = body.get("text", "").strip()
+            title = body.get("title", "Documento Montanha Studio").strip()
+            try:
+                from reportlab.lib.pagesizes import letter
+                from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+                from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+                from reportlab.lib import colors
+
+                pdf_buffer = io.BytesIO()
+                doc = SimpleDocTemplate(pdf_buffer, pagesize=letter, rightMargin=40, leftMargin=40, topMargin=40, bottomMargin=40)
+                styles = getSampleStyleSheet()
+                title_style = ParagraphStyle('TitleStyle', parent=styles['Heading1'], fontSize=18, leading=22, textColor=colors.HexColor('#1e1f20'), spaceAfter=14)
+                body_style = ParagraphStyle('BodyStyle', parent=styles['Normal'], fontSize=10, leading=14, textColor=colors.HexColor('#2c3e50'))
+
+                story = [Paragraph(f"<b>{title}</b>", title_style), Spacer(1, 10)]
+                for line in text.split("\n"):
+                    line = line.strip()
+                    if not line:
+                        story.append(Spacer(1, 6))
+                    else:
+                        clean_line = line.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                        story.append(Paragraph(clean_line, body_style))
+                doc.build(story)
+                pdf_data = pdf_buffer.getvalue()
+                pdf_buffer.close()
+                b64_pdf = base64.b64encode(pdf_data).decode("utf-8")
+                self._send_json({"status": "success", "pdf_base64": b64_pdf, "filename": f"{title.lower().replace(' ', '_')}.pdf"})
+                return
+            except Exception as e:
+                self._send_json({"status": "error", "message": f"Erro PDF: {str(e)}"}, 500)
+                return
+
+        # 3. Endpoint de Chat Multimodal
+        elif parsed.path.endswith("/chat"):
             prompt = body.get("prompt", "").strip()
             skill_key = body.get("skill", "minha-voz")
             image_b64 = body.get("image_base64", "")
@@ -199,8 +264,8 @@ class handler(BaseHTTPRequestHandler):
 
             web_context, sources = get_live_web_context(prompt, plugins_config)
 
-            # Groq Llama Dispatch
-            if ("groq" in engine.lower() or "llama" in engine.lower()) and user_groq_key and not image_b64:
+            # Auto-roteamento Multimodal: Se tiver imagem anexada, Groq não tem visão, rotear para Gemini Vision
+            if ("groq" in engine.lower() or "llama" in engine.lower()) and not image_b64 and user_groq_key:
                 try:
                     url = "https://api.groq.com/openai/v1/chat/completions"
                     headers = {"Authorization": f"Bearer {user_groq_key}", "Content-Type": "application/json"}
@@ -216,15 +281,16 @@ class handler(BaseHTTPRequestHandler):
                         self._send_json({
                             "status": "success",
                             "response": ans,
-                            "model": "Groq Llama 3.3 70B",
+                            "model": "Groq Llama 3.3",
                             "sources": sources
                         })
                         return
                 except Exception:
                     pass
 
+            # Roteamento Gemini (Multimodal - Imagens, Documentos e Texto)
             if not user_gemini_key:
-                self._send_json({"status": "error", "message": "🔒 Nenhuma chave configurada. Abra Configurações e insira sua GEMINI_API_KEY."}, 401)
+                self._send_json({"status": "error", "message": "🔒 Nenhuma chave Gemini configurada. Abra Configuração e insira sua chave para visão/chat."}, 401)
                 return
 
             current_text = prompt
@@ -262,7 +328,7 @@ class handler(BaseHTTPRequestHandler):
                     headers={"Content-Type": "application/json"}
                 )
                 try:
-                    with urllib.request.urlopen(req, timeout=25) as resp:
+                    with urllib.request.urlopen(req, timeout=35) as resp:
                         res_data = json.loads(resp.read().decode())
                         candidate_resp = res_data.get("candidates", [{}])[0]
                         parts = candidate_resp.get("content", {}).get("parts", [])

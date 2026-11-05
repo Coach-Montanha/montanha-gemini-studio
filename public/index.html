@@ -178,7 +178,7 @@
             </div>
         </main>
 
-        <!-- Bottom Input Dock (Estilo Antigravity 1-para-1) -->
+        <!-- Bottom Input Dock com Todos os Controles Perfeitamente Alinhados -->
         <div class="w-full max-w-3xl mx-auto px-4 pb-4">
             <!-- Image Attachment Preview -->
             <div id="imagePreviewBar" class="hidden mb-2 p-2 rounded-xl bg-[#1e1f20] border border-[#37393b] flex items-center justify-between">
@@ -191,11 +191,11 @@
                 </button>
             </div>
 
-            <!-- Main Input Box com layout do Antigravity -->
+            <!-- Main Input Box -->
             <div class="relative bg-[#1e1f20] rounded-2xl border border-[#37393b] focus-within:border-white/30 transition shadow-2xl p-2.5 flex items-end space-x-2">
                 <input type="file" id="fileInput" accept="image/*,audio/*,video/*" class="hidden" onchange="handleFileSelect(event)">
                 
-                <!-- Botão '+' de Adicionar Contexto (Estilo Antigravity) -->
+                <!-- Botão '+' de Adicionar Contexto -->
                 <div class="relative">
                     <button id="addContextBtn" onclick="toggleContextDropdown()" title="Adicionar Contexto (+)" class="w-9 h-9 rounded-xl hover:bg-white/10 text-white/70 hover:text-white flex items-center justify-center transition text-base font-bold">
                         <i class="fa-solid fa-plus"></i>
@@ -219,7 +219,7 @@
 
                 <textarea id="promptInput" rows="1" placeholder="Converse com o assistente, fale no microfone ou envie comandos..." onkeydown="handleKeyDown(event)" oninput="autoGrow(this)" class="flex-1 bg-transparent border-0 text-white placeholder-white/40 text-sm focus:outline-none resize-none max-h-40 leading-relaxed py-1.5 px-1"></textarea>
 
-                <!-- Microfone ao lado do botão de enviar (Padrão Antigravity) -->
+                <!-- Microfone ao lado do botão de envio -->
                 <button id="micBtn" onclick="toggleSpeechRecognition()" title="Falar por Voz (Microfone)" class="w-9 h-9 rounded-xl hover:bg-cyan-500/20 text-cyan-400 hover:text-cyan-300 flex items-center justify-center transition">
                     <i id="micIcon" class="fa-solid fa-microphone text-sm"></i>
                 </button>
@@ -230,48 +230,44 @@
                 </button>
             </div>
 
-            <!-- Control Bar under Message Box: Seletor de Modelo (Antigravity Style) + Skill + Audio Speed -->
-            <div class="mt-2.5 px-1 flex flex-wrap items-center justify-between gap-2 text-xs">
-                
-                <div class="flex items-center space-x-2 flex-wrap gap-y-1">
-                    <!-- Engine Selector (Estilo Antigravity) -->
-                    <div class="flex items-center space-x-1.5 bg-[#1e1f20] border border-[#37393b] rounded-xl px-2.5 py-1">
-                        <i class="fa-solid fa-microchip text-cyan-400 text-[11px]"></i>
-                        <span class="text-white/60 text-[11px]">Motor:</span>
-                        <select id="selectModelEngine" onchange="changeEngine(this.value)" class="bg-transparent text-white text-[11px] font-semibold focus:outline-none cursor-pointer">
-                            <option value="gemini-flash-lite-latest" class="bg-[#1e1f20] text-white">⚡ Gemini Flash Lite (Rápido)</option>
-                            <option value="gemini-flash-latest" class="bg-[#1e1f20] text-white">🧠 Gemini Flash (Multimodal)</option>
-                            <option value="groq-llama-3.3-70b" class="bg-[#1e1f20] text-white">🚀 Groq Llama 3.3 70B (&lt;500ms)</option>
+            <!-- Botões Inferiores em Linha Única Perfeita (Flex Row Alinhado) -->
+            <div class="mt-2.5 px-1 flex flex-row items-center justify-between gap-2 text-xs overflow-x-auto">
+                <div class="flex items-center space-x-2 flex-nowrap">
+                    <!-- Engine Button / Dropdown: Label limpo -->
+                    <div class="relative flex items-center bg-[#1e1f20] border border-[#37393b] rounded-xl px-2.5 py-1.5">
+                        <span class="text-white/50 text-[11px] mr-1.5">Motor:</span>
+                        <select id="selectModelEngine" onchange="updateEngineDisplay(this.value)" class="bg-transparent text-white text-[11px] font-semibold focus:outline-none cursor-pointer pr-1">
+                            <option value="gemini-flash-lite-latest" class="bg-[#1e1f20] text-white">Gemini Flash Lite</option>
+                            <option value="gemini-flash-latest" class="bg-[#1e1f20] text-white">Gemini Flash (Multimodal)</option>
+                            <option value="groq-llama-3.3-70b" class="bg-[#1e1f20] text-white">Groq Llama 3.3</option>
                         </select>
                     </div>
 
-                    <!-- Skill Selector -->
-                    <div class="flex items-center space-x-1.5 bg-[#1e1f20] border border-[#37393b] rounded-xl px-2.5 py-1">
-                        <i class="fa-solid fa-brain text-purple-400 text-[11px]"></i>
-                        <span class="text-white/60 text-[11px]">Habilidade:</span>
-                        <select id="selectSkill" class="bg-transparent text-white text-[11px] font-semibold focus:outline-none cursor-pointer">
-                            <option value="minha-voz" class="bg-[#1e1f20] text-white" selected>🔥 Minha Voz (Coach Montanha)</option>
-                            <option value="roteiros-10x" class="bg-[#1e1f20] text-white">🎬 Roteiros 10x (Reels/Shorts)</option>
-                            <option value="personal-trainer" class="bg-[#1e1f20] text-white">🏋️ Personal Trainer & Fisiologia</option>
-                            <option value="programador" class="bg-[#1e1f20] text-white">💻 Engenheiro Sênior (Ponytail)</option>
-                            <option value="lpo-crosstraining" class="bg-[#1e1f20] text-white">🏋️ LPO Everett Biomecânica</option>
-                            <option value="lyle-mcdonald" class="bg-[#1e1f20] text-white">🥩 Nutrição Lyle McDonald & PSMF</option>
-                            <option value="stories-10x-copy" class="bg-[#1e1f20] text-white">📱 Copy Stories 10x (Ladeira)</option>
-                            <option value="matriz-anti-saas" class="bg-[#1e1f20] text-white">🛡️ Matriz Anti-SaaS Local</option>
+                    <!-- Skill Button / Dropdown: Label limpo -->
+                    <div class="relative flex items-center bg-[#1e1f20] border border-[#37393b] rounded-xl px-2.5 py-1.5">
+                        <span class="text-white/50 text-[11px] mr-1.5">Habilidade:</span>
+                        <select id="selectSkill" class="bg-transparent text-white text-[11px] font-semibold focus:outline-none cursor-pointer pr-1">
+                            <option value="minha-voz" class="bg-[#1e1f20] text-white" selected>Coach Montanha</option>
+                            <option value="programador" class="bg-[#1e1f20] text-white">Engenheiro Sênior</option>
+                            <option value="roteiros-10x" class="bg-[#1e1f20] text-white">Roteiros 10x</option>
+                            <option value="personal-trainer" class="bg-[#1e1f20] text-white">Personal Trainer</option>
+                            <option value="lpo-crosstraining" class="bg-[#1e1f20] text-white">LPO Everett</option>
+                            <option value="lyle-mcdonald" class="bg-[#1e1f20] text-white">Nutrição Lyle McDonald</option>
+                            <option value="stories-10x-copy" class="bg-[#1e1f20] text-white">Copy Stories 10x</option>
+                            <option value="matriz-anti-saas" class="bg-[#1e1f20] text-white">Matriz Anti-SaaS</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- Audio Speed Selector -->
-                <div class="flex items-center space-x-1.5 bg-[#1e1f20] border border-[#37393b] rounded-xl px-2.5 py-1">
-                    <i class="fa-solid fa-gauge-high text-cyan-400 text-[11px]"></i>
-                    <span class="text-white/60 text-[11px]">Voz:</span>
+                <!-- Voice Speed Button: Exibe apenas "Voz: 1.06x" -->
+                <div class="flex items-center bg-[#1e1f20] border border-[#37393b] rounded-xl px-2.5 py-1.5 flex-shrink-0">
+                    <span class="text-white/50 text-[11px] mr-1.5">Voz:</span>
                     <select id="selectAudioSpeed" class="bg-transparent text-white text-[11px] font-mono focus:outline-none cursor-pointer">
-                        <option value="0.9" class="bg-[#1e1f20] text-white">0.90x Pausado</option>
-                        <option value="1.0" class="bg-[#1e1f20] text-white">1.00x Normal</option>
-                        <option value="1.06" class="bg-[#1e1f20] text-white" selected>1.06x Dinâmico</option>
-                        <option value="1.15" class="bg-[#1e1f20] text-white">1.15x Rápido</option>
-                        <option value="1.25" class="bg-[#1e1f20] text-white">1.25x Máximo</option>
+                        <option value="0.9" class="bg-[#1e1f20] text-white">0.90x</option>
+                        <option value="1.0" class="bg-[#1e1f20] text-white">1.00x</option>
+                        <option value="1.06" class="bg-[#1e1f20] text-white" selected>1.06x</option>
+                        <option value="1.15" class="bg-[#1e1f20] text-white">1.15x</option>
+                        <option value="1.25" class="bg-[#1e1f20] text-white">1.25x</option>
                     </select>
                 </div>
             </div>
@@ -292,7 +288,6 @@
                 </button>
             </div>
 
-            <!-- Aviso Zero-Leak -->
             <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 leading-relaxed flex items-start space-x-2">
                 <i class="fa-solid fa-shield-halved text-sm mt-0.5 flex-shrink-0"></i>
                 <div>
@@ -362,7 +357,7 @@
                 <div class="space-y-1.5 text-xs">
                     <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#131314] border border-[#37393b]">
                         <div>
-                            <div class="font-semibold text-white">🔥 Identidade Coach Montanha (Minha Voz)</div>
+                            <div class="font-semibold text-white">Identidade Coach Montanha (Minha Voz)</div>
                             <div class="text-[10px] text-white/50">Direto ao ponto, zero enrolação corporativa</div>
                         </div>
                         <input type="checkbox" id="permMinhaVoz" checked class="w-4 h-4 rounded accent-purple-500">
@@ -370,7 +365,7 @@
 
                     <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#131314] border border-[#37393b]">
                         <div>
-                            <div class="font-semibold text-white">⚖️ Regra do [CONFERIR]</div>
+                            <div class="font-semibold text-white">Regra do [CONFERIR]</div>
                             <div class="text-[10px] text-white/50">Proíbe invenção de métricas financeiras não confirmadas</div>
                         </div>
                         <input type="checkbox" id="permConferir" checked class="w-4 h-4 rounded accent-purple-500">
@@ -378,7 +373,7 @@
 
                     <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#131314] border border-[#37393b]">
                         <div>
-                            <div class="font-semibold text-white">💻 Disciplina Ponytail & Karpathy</div>
+                            <div class="font-semibold text-white">Disciplina Ponytail & Karpathy</div>
                             <div class="text-[10px] text-white/50">Simplicidade radical, zero pacotes desnecessários</div>
                         </div>
                         <input type="checkbox" id="permPonytail" checked class="w-4 h-4 rounded accent-purple-500">
@@ -432,7 +427,6 @@
         let isRecognizing = false;
         let isLiveAudioActive = false;
 
-        // Security-First State
         let localKeys = {
             gemini: localStorage.getItem('montanha_user_gemini_key') || '',
             groq: localStorage.getItem('montanha_user_groq_key') || ''
@@ -453,7 +447,6 @@
             }
         };
 
-        // Persistência Local dos Chats (Sobrevive a F5 na Vercel e Desktop)
         function getLocalChats() {
             try {
                 return JSON.parse(localStorage.getItem('montanha_local_chats') || '{}');
@@ -532,7 +525,7 @@
             if (document.getElementById('permPonytail')) document.getElementById('permPonytail').checked = !!appPreferences.permanent_skills.karpathy_ponytail;
         }
 
-        function changeEngine(val) {
+        function updateEngineDisplay(val) {
             appPreferences.engine = val;
             localStorage.setItem('montanha_engine', val);
         }
@@ -698,14 +691,46 @@
         function handleFileSelect(e) {
             const file = e.target.files[0];
             if (!file) return;
+
+            // Compressão client-side se for imagem para evitar estourar o limite de payload (4MB da Vercel)
             const reader = new FileReader();
             reader.onload = function(evt) {
                 const fullDataUrl = evt.target.result;
-                attachedImageMime = file.type;
-                attachedImageBase64 = fullDataUrl.split(',')[1];
-                document.getElementById('imgPreviewThumb').src = fullDataUrl;
-                document.getElementById('imgPreviewName').innerText = file.name;
-                document.getElementById('imagePreviewBar').classList.remove('hidden');
+                if (file.type.startsWith('image/')) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        let w = img.width;
+                        let h = img.height;
+                        const maxDim = 1200;
+                        if (w > maxDim || h > maxDim) {
+                            if (w > h) {
+                                h = Math.round((h * maxDim) / w);
+                                w = maxDim;
+                            } else {
+                                w = Math.round((w * maxDim) / h);
+                                h = maxDim;
+                            }
+                        }
+                        canvas.width = w;
+                        canvas.height = h;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, w, h);
+                        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+                        attachedImageMime = 'image/jpeg';
+                        attachedImageBase64 = compressedDataUrl.split(',')[1];
+                        document.getElementById('imgPreviewThumb').src = compressedDataUrl;
+                        document.getElementById('imgPreviewName').innerText = file.name;
+                        document.getElementById('imagePreviewBar').classList.remove('hidden');
+                    };
+                    img.src = fullDataUrl;
+                } else {
+                    attachedImageMime = file.type;
+                    attachedImageBase64 = fullDataUrl.split(',')[1];
+                    document.getElementById('imgPreviewThumb').src = fullDataUrl;
+                    document.getElementById('imgPreviewName').innerText = file.name;
+                    document.getElementById('imagePreviewBar').classList.remove('hidden');
+                }
             };
             reader.readAsDataURL(file);
         }
@@ -717,7 +742,6 @@
             document.getElementById('imagePreviewBar').classList.add('hidden');
         }
 
-        // Sistema Híbrido de Chats (Local + Servidor)
         async function loadChatsIndex() {
             const container = document.getElementById('chatsListContainer');
             container.innerHTML = '';
@@ -734,7 +758,6 @@
             const localChatsMap = getLocalChats();
             const localChats = Object.values(localChatsMap);
 
-            // Merge unificando por id
             const combinedMap = {};
             serverChats.forEach(c => { combinedMap[c.id] = c; });
             localChats.forEach(c => { combinedMap[c.id] = c; });
@@ -762,7 +785,6 @@
             }
         }
 
-        // Criar Novo Chat com Reset Imediato da Tela (Sem Falhas)
         async function createNewChat() {
             currentChatId = 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
             document.getElementById('currentChatTitle').innerText = "Nova Conversa";
@@ -774,7 +796,6 @@
             closeSidebarMobile();
             localStorage.removeItem('montanha_last_active_chat');
 
-            // Notifica servidor se disponível
             try {
                 await fetch('/api/chats/new', {
                     method: 'POST',
@@ -794,13 +815,11 @@
 
             let messages = [];
 
-            // 1. Tenta carregar do cache local primeiro (Instantâneo)
             const localChats = getLocalChats();
             if (localChats[chatId] && localChats[chatId].messages) {
                 messages = localChats[chatId].messages;
             }
 
-            // 2. Se vazio, tenta carregar do servidor
             if (!messages || messages.length === 0) {
                 try {
                     const res = await fetch(`/api/chats/${chatId}`);
@@ -993,15 +1012,19 @@
             if (el) el.remove();
         }
 
-        // Envio de Mensagem com Persistência Imediata no Cache Local
         async function sendMessage() {
             const input = document.getElementById('promptInput');
             const prompt = input.value.trim();
             const skill = document.getElementById('selectSkill').value;
-            const engine = document.getElementById('selectModelEngine').value;
+            let engine = document.getElementById('selectModelEngine').value;
             const sendBtn = document.getElementById('sendBtn');
 
             if (!prompt && !attachedImageBase64) return;
+
+            // Se o usuário anexou imagem, Groq não suporta visão. Chaveia para Gemini automaticamente
+            if (attachedImageBase64 && engine.includes('groq')) {
+                engine = 'gemini-flash-lite-latest';
+            }
 
             if (!localKeys.gemini && !engine.includes('groq')) {
                 openSettingsModal();
@@ -1254,7 +1277,6 @@
             fetchPreferences();
             loadChatsIndex();
 
-            // Recupera o último chat aberto após F5
             const lastChat = localStorage.getItem('montanha_last_active_chat');
             if (lastChat) {
                 const localChats = getLocalChats();
