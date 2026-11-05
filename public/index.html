@@ -164,9 +164,9 @@
 
             <!-- Main Input Box -->
             <div class="relative bg-[#1e1f20] rounded-2xl border border-[#37393b] focus-within:border-white/30 transition shadow-2xl p-2.5 flex items-end space-x-2">
-                <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+                <input type="file" id="fileInput" accept="image/*,audio/*,video/*" class="hidden" onchange="handleFileSelect(event)">
                 
-                <button onclick="document.getElementById('fileInput').click()" title="Anexar Imagem para Análise" class="w-9 h-9 rounded-xl hover:bg-white/10 text-white/60 hover:text-white flex items-center justify-center transition">
+                <button onclick="document.getElementById('fileInput').click()" title="Anexar Imagem, Áudio ou Vídeo" class="w-9 h-9 rounded-xl hover:bg-white/10 text-white/60 hover:text-white flex items-center justify-center transition">
                     <i class="fa-solid fa-paperclip text-sm"></i>
                 </button>
 
@@ -174,7 +174,12 @@
                     <i class="fa-solid fa-image text-sm"></i>
                 </button>
 
-                <textarea id="promptInput" rows="1" placeholder="Converse com o Gemini ou clique no ícone de imagem..." onkeydown="handleKeyDown(event)" oninput="autoGrow(this)" class="flex-1 bg-transparent border-0 text-white placeholder-white/40 text-sm focus:outline-none resize-none max-h-40 leading-relaxed py-1.5 px-1"></textarea>
+                <!-- Voice Input Microphone Button -->
+                <button id="micBtn" onclick="toggleSpeechRecognition()" title="Falar por Voz (Microfone)" class="w-9 h-9 rounded-xl hover:bg-cyan-500/20 text-cyan-400 hover:text-cyan-300 flex items-center justify-center transition">
+                    <i id="micIcon" class="fa-solid fa-microphone text-sm"></i>
+                </button>
+
+                <textarea id="promptInput" rows="1" placeholder="Converse com o Gemini, fale no microfone ou anexe arquivos..." onkeydown="handleKeyDown(event)" oninput="autoGrow(this)" class="flex-1 bg-transparent border-0 text-white placeholder-white/40 text-sm focus:outline-none resize-none max-h-40 leading-relaxed py-1.5 px-1"></textarea>
 
                 <button id="sendBtn" onclick="sendMessage()" class="w-9 h-9 rounded-xl bg-white text-black hover:bg-white/90 flex items-center justify-center transition disabled:opacity-30 disabled:cursor-not-allowed">
                     <i class="fa-solid fa-arrow-up text-sm"></i>
@@ -239,6 +244,66 @@
         let currentChatId = null;
         let attachedImageBase64 = null;
         let attachedImageMime = null;
+        let recognition = null;
+        let isRecording = false;
+
+        // Inicializar Reconhecimento de Voz (Web Speech API)
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.lang = 'pt-BR';
+                recognition.continuous = false;
+                recognition.interimResults = false;
+
+                recognition.onstart = function() {
+                    isRecording = true;
+                    const micBtn = document.getElementById('micBtn');
+                    const micIcon = document.getElementById('micIcon');
+                    if (micBtn) micBtn.classList.add('bg-red-500/20', 'text-red-400', 'animate-pulse');
+                    if (micIcon) micIcon.className = 'fa-solid fa-microphone-slash text-sm';
+                };
+
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    const input = document.getElementById('promptInput');
+                    input.value = (input.value ? input.value + ' ' : '') + transcript;
+                    autoGrow(input);
+                    input.focus();
+                };
+
+                recognition.onerror = function(event) {
+                    console.warn("Erro no microfone:", event.error);
+                    stopSpeechRecognition();
+                };
+
+                recognition.onend = function() {
+                    stopSpeechRecognition();
+                };
+            }
+        }
+
+        function toggleSpeechRecognition() {
+            if (!recognition) initSpeechRecognition();
+            if (!recognition) return alert("Seu navegador ou aparelho não suporta reconhecimento de voz direto. Use o teclado do celular com ditado por voz!");
+            if (isRecording) {
+                recognition.stop();
+            } else {
+                try {
+                    recognition.start();
+                } catch (e) {
+                    recognition.stop();
+                }
+            }
+        }
+
+        function stopSpeechRecognition() {
+            isRecording = false;
+            const micBtn = document.getElementById('micBtn');
+            const micIcon = document.getElementById('micIcon');
+            if (micBtn) micBtn.classList.remove('bg-red-500/20', 'text-red-400', 'animate-pulse');
+            if (micIcon) micIcon.className = 'fa-solid fa-microphone text-sm';
+        }
 
         function toggleSidebar() {
             const sb = document.getElementById('sidebar');
