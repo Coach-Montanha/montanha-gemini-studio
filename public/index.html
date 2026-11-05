@@ -178,7 +178,11 @@
                     <i class="fa-solid fa-paperclip text-sm"></i>
                 </button>
 
-                <textarea id="promptInput" rows="1" placeholder="Converse com o Gemini ou digite /imagem..." onkeydown="handleKeyDown(event)" oninput="autoGrow(this)" class="flex-1 bg-transparent border-0 text-white placeholder-white/40 text-sm focus:outline-none resize-none max-h-40 leading-relaxed py-1.5 px-1"></textarea>
+                <button onclick="triggerImageMode()" title="Gerar Imagem Flux 1024x1024" class="w-9 h-9 rounded-xl hover:bg-purple-500/20 text-purple-400 hover:text-purple-300 flex items-center justify-center transition">
+                    <i class="fa-solid fa-image text-sm"></i>
+                </button>
+
+                <textarea id="promptInput" rows="1" placeholder="Converse com o Gemini ou clique no ícone de imagem..." onkeydown="handleKeyDown(event)" oninput="autoGrow(this)" class="flex-1 bg-transparent border-0 text-white placeholder-white/40 text-sm focus:outline-none resize-none max-h-40 leading-relaxed py-1.5 px-1"></textarea>
 
                 <button id="sendBtn" onclick="sendMessage()" class="w-9 h-9 rounded-xl bg-white text-black hover:bg-white/90 flex items-center justify-center transition disabled:opacity-30 disabled:cursor-not-allowed">
                     <i class="fa-solid fa-arrow-up text-sm"></i>
@@ -259,6 +263,15 @@
         function setPrompt(text) {
             const input = document.getElementById('promptInput');
             input.value = text;
+            input.focus();
+            autoGrow(input);
+        }
+
+        function triggerImageMode() {
+            const input = document.getElementById('promptInput');
+            if (!input.value.startsWith('/imagem ')) {
+                input.value = '/imagem ' + input.value;
+            }
             input.focus();
             autoGrow(input);
         }

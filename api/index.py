@@ -1,6 +1,6 @@
 """
-Vercel Serverless Function Handler for Montanha Gemini Studio
-Handles /api/chat, /api/generate-image, /api/status, and /api/tts
+Vercel Serverless Function Handler for Montanha Gemini Studio v2.5
+With Web Search Hook & Coach Montanha Identity Skills
 """
 
 import os
@@ -13,12 +13,58 @@ from http.server import BaseHTTPRequestHandler
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 
-DEFAULT_SYSTEM_PROMPT = (
-    "Você é o Montanha Gemini Studio, um assistente de inteligência artificial de alta performance "
-    "focado em produtividade, copywriting direto, negócios, fitness de alto rendimento, "
-    "estratégias digitais e desenvolvimento de software. Seja sempre cirúrgico, objetivo, sem enrolação "
-    "e forneça respostas práticas em Markdown bem formatado."
-)
+DEFAULT_SYSTEM_PROMPT = """Você é o Montanha Gemini Studio, o assistente oficial de inteligência do Ecossistema Coach Montanha.
+DIRETRIZES DA PERSONA (SKILL: MINHA VOZ):
+1. Tom de Voz: Direto, firme, de quem opera no campo de batalha, sem enrolação e sem rodeios.
+2. Abertura: Vá direto ao ponto, gancho forte ou constatação crua da realidade. Zero saudações corporativas protocolares.
+3. Vocabulário Ativo: na prática, execução, campo de batalha, resultado, esteira, métrica, processo, consistência, ROI, validação.
+4. Vocabulário Proibido: mergulhar fundo, revolucionário, no mundo acelerado de hoje, disruptivo, quiçá, em suma, dessarte.
+5. Regra do [CONFERIR]: Nunca invente números ou dados não fornecidos. Se faltar dado exato, use [CONFERIR].
+"""
+
+def get_live_web_context(query):
+    ql = query.lower()
+    snippets = []
+    if any(k in ql for k in ["clima", "tempo", "temperatura", "previsão", "chuva", "calor", "vento"]):
+        city = "Joao Pessoa"
+        for candidate in ["joao pessoa", "joão pessoa", "são paulo", "sao paulo", "rio de janeiro", "recife", "fortaleza", "brasília", "curitiba", "salvador"]:
+            if candidate in ql:
+                city = candidate.title()
+                break
+        try:
+            city_enc = urllib.parse.quote(city)
+            geo_url = f"https://geocoding-api.open-meteo.com/v1/search?name={city_enc}&count=1&language=pt&format=json"
+            req_geo = urllib.request.Request(geo_url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req_geo, timeout=4) as r:
+                gdata = json.loads(r.read().decode())
+                if gdata.get("results"):
+                    res = gdata["results"][0]
+                    lat, lon = res["latitude"], res["longitude"]
+                    w_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m"
+                    req_w = urllib.request.Request(w_url, headers={"User-Agent": "Mozilla/5.0"})
+                    with urllib.request.urlopen(req_w, timeout=4) as rw:
+                        w = json.loads(rw.read().decode())["current"]
+                        snippets.append(
+                            f"[DADOS METEOROLÓGICOS REAIS AO VIVO]: Cidade: {city}. "
+                            f"Temperatura atual: {w['temperature_2m']}°C (Sensação: {w['apparent_temperature']}°C). "
+                            f"Umidade: {w['relative_humidity_2m']}%. Vento: {w['wind_speed_10m']} km/h."
+                        )
+        except Exception:
+            pass
+
+    if not snippets and any(k in ql for k in ["quem é", "o que é", "quem foi", "pesquise", "busque", "notícias"]):
+        try:
+            ddg_url = "https://api.duckduckgo.com/?q=" + urllib.parse.quote(query) + "&format=json&no_html=1&skip_disambig=1"
+            req_d = urllib.request.Request(ddg_url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req_d, timeout=3) as rd:
+                d = json.loads(rd.read().decode())
+                abstract = d.get("AbstractText")
+                if abstract:
+                    snippets.append(f"[DADOS DA WEB EM TEMPO REAL]: {abstract}")
+        except Exception:
+            pass
+
+    return "\n".join(snippets)
 
 class handler(BaseHTTPRequestHandler):
     def end_headers(self):
@@ -37,7 +83,7 @@ class handler(BaseHTTPRequestHandler):
             self._send_json({
                 "status": "online",
                 "platform": "Vercel Serverless Cloud",
-                "app": "Montanha Gemini Studio v2",
+                "app": "Montanha Gemini Studio v2.5",
                 "model": "gemini-flash-lite-latest",
                 "gemini_key_configured": bool(GEMINI_API_KEY)
             })
@@ -73,9 +119,14 @@ class handler(BaseHTTPRequestHandler):
                 self._send_json({"status": "error", "message": "GEMINI_API_KEY não configurada na Vercel."}, 400)
                 return
 
+            web_context = get_live_web_context(prompt)
+            current_text = prompt
+            if web_context:
+                current_text = f"{prompt}\n\n[INFORMAÇÃO EM TEMPO REAL DA INTERNET]:\n{web_context}"
+
             parts = []
-            if prompt:
-                parts.append({"text": prompt})
+            if current_text:
+                parts.append({"text": current_text})
             if image_b64:
                 parts.append({
                     "inline_data": {

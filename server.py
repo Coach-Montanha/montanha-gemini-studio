@@ -1,12 +1,13 @@
 """
-Montanha Gemini Studio v2.0 - Multi-Chat, PDF Intelligence, Audio TTS & Image Suite
+Montanha Gemini Studio v2.5 - Web Search, Persona Skills, Multi-Chat & Image Suite
 Zero-token local costs, official Gemini API free-tier.
-Supports:
+Features:
+- Live Web Search & Weather Enrichment (Real-time data without quota block)
+- Skills Ingestion (Minha Voz, Roteiros 10x, Coach Montanha Identity)
 - Multi-Chat with separate context & memory (Graphify ready)
 - PDF Ingestion & Chapter Extraction (pypdf)
 - Image Generator Multi-Provider (Flux / SDXL / Pollinations Turbo)
-- Neural Audio TTS (.mp3) via edge-tts & Google TTS
-- Audio Transcription via Gemini Multimodal
+- Neural Audio TTS (.mp3)
 """
 
 import os
@@ -47,12 +48,64 @@ if not INDEX_FILE.exists():
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 
-DEFAULT_SYSTEM_PROMPT = (
-    "Você é o Montanha Gemini Studio, um assistente de inteligência artificial de alta performance "
-    "focado em produtividade, copywriting direto, negócios, fitness de alto rendimento, "
-    "estratégias digitais e desenvolvimento de software. Seja sempre cirúrgico, objetivo, sem enrolação "
-    "e forneça respostas práticas em Markdown bem formatado."
-)
+# Sistema de Skills / Persona Integrada (Coach Montanha - Minha Voz)
+DEFAULT_SYSTEM_PROMPT = """Você é o Montanha Gemini Studio, o assistente oficial de inteligência do Ecossistema Coach Montanha.
+DIRETRIZES DA PERSONA (SKILL: MINHA VOZ):
+1. Tom de Voz: Direto, firme, de quem opera no campo de batalha, sem enrolação e sem rodeios.
+2. Abertura: Vá direto ao ponto, gancho forte ou constatação crua da realidade. Zero saudações corporativas protocolares ("olá pessoal", "espero que estejam bem").
+3. Vocabulário Ativo: na prática, execução, campo de batalha, resultado, esteira, métrica, processo, consistência, caixa preta, ROI, validação.
+4. Vocabulário Proibido: mergulhar fundo, revolucionário, no mundo acelerado de hoje, disruptivo, quiçá, em suma, dessarte.
+5. Regra do [CONFERIR]: Nunca invente números, faturamentos ou métricas não fornecidas pelo usuário. Se faltar dado exato, use a tag [CONFERIR].
+6. Formatação: Use Markdown limpo com tópicos, tabelas e destaques em negrito.
+"""
+
+def get_live_web_context(query):
+    """Enriquece a pergunta com dados ao vivo da internet (clima, dados geográficos ou fatos rápidos) sem consumir cotas pagas."""
+    ql = query.lower()
+    snippets = []
+    
+    # 1. Detecção e busca ao vivo de Clima / Previsão do Tempo
+    if any(k in ql for k in ["clima", "tempo", "temperatura", "previsão", "chuva", "calor", "vento"]):
+        city = "Joao Pessoa"
+        for candidate in ["joao pessoa", "joão pessoa", "são paulo", "sao paulo", "rio de janeiro", "recife", "fortaleza", "brasília", "brasilia", "curitiba", "salvador"]:
+            if candidate in ql:
+                city = candidate.title()
+                break
+        try:
+            city_enc = urllib.parse.quote(city)
+            geo_url = f"https://geocoding-api.open-meteo.com/v1/search?name={city_enc}&count=1&language=pt&format=json"
+            req_geo = urllib.request.Request(geo_url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req_geo, timeout=4) as r:
+                gdata = json.loads(r.read().decode())
+                if gdata.get("results"):
+                    res = gdata["results"][0]
+                    lat, lon = res["latitude"], res["longitude"]
+                    w_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m"
+                    req_w = urllib.request.Request(w_url, headers={"User-Agent": "Mozilla/5.0"})
+                    with urllib.request.urlopen(req_w, timeout=4) as rw:
+                        w = json.loads(rw.read().decode())["current"]
+                        snippets.append(
+                            f"[DADOS METEOROLÓGICOS REAIS AO VIVO]: Cidade: {city}. "
+                            f"Temperatura atual: {w['temperature_2m']}°C (Sensação térmica: {w['apparent_temperature']}°C). "
+                            f"Umidade do ar: {w['relative_humidity_2m']}%. Vento: {w['wind_speed_10m']} km/h."
+                        )
+        except Exception:
+            pass
+
+    # 2. Busca Rápida Enciclopédica / Notícias via DuckDuckGo Instant API
+    if not snippets and any(k in ql for k in ["quem é", "o que é", "quem foi", "pesquise", "busque", "notícias"]):
+        try:
+            ddg_url = "https://api.duckduckgo.com/?q=" + urllib.parse.quote(query) + "&format=json&no_html=1&skip_disambig=1"
+            req_d = urllib.request.Request(ddg_url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req_d, timeout=3) as rd:
+                d = json.loads(rd.read().decode())
+                abstract = d.get("AbstractText")
+                if abstract:
+                    snippets.append(f"[DADOS DA WEB EM TEMPO REAL]: {abstract}")
+        except Exception:
+            pass
+
+    return "\n".join(snippets)
 
 def get_chats_index():
     try:
@@ -117,10 +170,10 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
         elif parsed.path == "/api/status":
             self._send_json({
                 "status": "online",
-                "app": "Montanha Gemini Studio v2",
+                "app": "Montanha Gemini Studio v2.5",
                 "gemini_key_configured": bool(GEMINI_API_KEY),
                 "model": "gemini-flash-lite-latest",
-                "features": ["multi_chat", "pdf_intelligence", "audio_tts", "image_multi_provider", "graphify_ready"]
+                "features": ["live_web_search", "persona_skills", "multi_chat", "pdf_intelligence", "audio_tts", "image_multi_provider", "graphify_ready"]
             })
             return
 
@@ -138,7 +191,6 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
             self.send_error(404, "Audio file not found")
             return
 
-        # Static file serve fallback
         rel_path = parsed.path.lstrip("/\\")
         candidate = (PUBLIC_DIR / rel_path).resolve()
         if candidate.is_relative_to(PUBLIC_DIR) and candidate.exists() and candidate.is_file():
@@ -167,7 +219,6 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
 
         parsed = urllib.parse.urlparse(self.path)
 
-        # 1. Create or Select Chat
         if parsed.path == "/api/chats/new":
             title = body.get("title", "Nova Conversa").strip() or "Nova Conversa"
             chat_id = f"chat_{int(time.time())}_{uuid.uuid4().hex[:4]}"
@@ -195,7 +246,6 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
             self._send_json({"status": "success", "message": "Chat excluído"})
             return
 
-        # 2. Chat with Context & History
         elif parsed.path == "/api/chat":
             chat_id = body.get("chat_id")
             prompt = body.get("prompt", "").strip()
@@ -204,7 +254,6 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
             mime_type = body.get("mime_type", "image/jpeg")
 
             if not chat_id:
-                # Criar chat automático se não enviado
                 idx = get_chats_index()
                 title = prompt[:35] + ("..." if len(prompt) > 35 else "") if prompt else "Conversa Rápida"
                 chat_id = f"chat_{int(time.time())}_{uuid.uuid4().hex[:4]}"
@@ -225,17 +274,23 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
                 self._send_json({"status": "error", "message": "Chave GEMINI_API_KEY não configurada no servidor."}, 400)
                 return
 
-            # Carregar histórico da conversa para manter contexto (últimas 10 mensagens)
+            # Ingestão de Contexto Web em Tempo Real (Internet Search Hook)
+            web_context = get_live_web_context(prompt)
+
+            # Histórico do Chat para Memória de Contexto
             history = get_chat_messages(chat_id)
             context_contents = []
             for h in history[-8:]:
                 context_contents.append({"role": "user", "parts": [{"text": h.get("prompt", "")}]})
                 context_contents.append({"role": "model", "parts": [{"text": h.get("response", "")}]})
 
-            # Montar mensagem atual
+            current_text = prompt
+            if web_context:
+                current_text = f"{prompt}\n\n[INFORMAÇÃO EM TEMPO REAL DA INTERNET]:\n{web_context}"
+
             current_parts = []
-            if prompt:
-                current_parts.append({"text": prompt})
+            if current_text:
+                current_parts.append({"text": current_text})
             if image_b64:
                 current_parts.append({
                     "inline_data": {
@@ -289,12 +344,12 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
                     "timestamp": int(time.time()),
                     "prompt": prompt,
                     "response": text_out,
-                    "has_image": bool(image_b64)
+                    "has_image": bool(image_b64),
+                    "has_web_context": bool(web_context)
                 }
                 history.append(msg_record)
                 save_chat_messages(chat_id, history)
 
-                # Atualizar título do chat se for a primeira mensagem
                 idx = get_chats_index()
                 for c in idx:
                     if c.get("id") == chat_id:
@@ -309,7 +364,6 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
                 self._send_json({"status": "error", "message": f"Erro Gemini API: {last_err}"}, 500)
             return
 
-        # 3. Multi-Provider Image Generation (No 45s wait)
         elif parsed.path == "/api/generate-image":
             prompt = body.get("prompt", "").strip()
             if not prompt:
@@ -317,25 +371,18 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
                 return
 
             enc_prompt = urllib.parse.quote(prompt)
-            # Rotação de sementes e nós neurais rápidos
             seed = int(time.time() * 1000) % 999999
-            
-            # Provedores de alta velocidade e qualidade
-            providers = [
-                f"https://image.pollinations.ai/prompt/{enc_prompt}?width=1024&height=1024&model=flux&seed={seed}&nologo=true",
-                f"https://image.pollinations.ai/prompt/{enc_prompt}?width=1024&height=1024&model=turbo&seed={seed}&nologo=true",
-                f"https://image.pollinations.ai/prompt/{enc_prompt}?width=1024&height=1024&seed={seed}&nologo=true"
-            ]
-            
+            image_url = f"https://image.pollinations.ai/prompt/{enc_prompt}?width=1024&height=1024&model=flux&seed={seed}&nologo=true"
+            fallback_url = f"https://image.pollinations.ai/prompt/{enc_prompt}?width=1024&height=1024&model=turbo&seed={seed}&nologo=true"
+
             self._send_json({
                 "status": "success",
-                "image_url": providers[0],
-                "fallback_url": providers[1],
+                "image_url": image_url,
+                "fallback_url": fallback_url,
                 "prompt": prompt
             })
             return
 
-        # 4. Neural Audio TTS
         elif parsed.path == "/api/tts":
             text = body.get("text", "").strip()
             voice = body.get("voice", "pt-BR-AntonioNeural")
@@ -358,7 +405,6 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
                     pass
 
             if not tts_success:
-                # Fallback Google Neural
                 try:
                     url_tts = f"https://translate.google.com/translate_tts?ie=UTF-8&q={urllib.parse.quote(text[:300])}&tl=pt-BR&client=tw-ob"
                     req = urllib.request.Request(url_tts, headers={"User-Agent": "Mozilla/5.0"})
@@ -376,7 +422,6 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
             })
             return
 
-        # 5. PDF Extraction & Book Reading
         elif parsed.path == "/api/read-pdf":
             pdf_b64 = body.get("pdf_base64", "")
             filename = body.get("filename", "livro.pdf")
@@ -394,7 +439,6 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
                 try:
                     reader = pypdf.PdfReader(str(saved_pdf))
                     total_pages = len(reader.pages)
-                    # Extrair primeiros 30 páginas para análise ágil sem sobrecarga
                     for i in range(min(total_pages, 30)):
                         extracted_text += f"\n--- PÁGINA {i+1} ---\n" + (reader.pages[i].extract_text() or "")
                 except Exception as e:
@@ -406,7 +450,7 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
                 "status": "success",
                 "filename": filename,
                 "total_pages": total_pages,
-                "extracted_text": extracted_text[:25000] # Limite seguro para contexto do modelo
+                "extracted_text": extracted_text[:25000]
             })
             return
 
@@ -421,7 +465,7 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
 def run_server(port=4192):
     server_address = ("0.0.0.0", port)
     httpd = ThreadingHTTPServer(server_address, GeminiStudioHandler)
-    print(f"[*] Montanha Gemini Studio v2.0 ativo na porta {port}")
+    print(f"[*] Montanha Gemini Studio v2.5 ativo na porta {port}")
     print(f"[*] Acesso Local: http://localhost:{port}")
     httpd.serve_forever()
 
