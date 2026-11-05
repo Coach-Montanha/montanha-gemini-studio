@@ -1,13 +1,6 @@
 """
-Montanha Gemini Studio v2.5 - Web Search, Persona Skills, Multi-Chat & Image Suite
+Montanha Gemini Studio v3.0 - Multi-Skill, PDF Engine, Audio Speed Control & Web Intelligence
 Zero-token local costs, official Gemini API free-tier.
-Features:
-- Live Web Search & Weather Enrichment (Real-time data without quota block)
-- Skills Ingestion (Minha Voz, Roteiros 10x, Coach Montanha Identity)
-- Multi-Chat with separate context & memory (Graphify ready)
-- PDF Ingestion & Chapter Extraction (pypdf)
-- Image Generator Multi-Provider (Flux / SDXL / Pollinations Turbo)
-- Neural Audio TTS (.mp3)
 """
 
 import os
@@ -32,14 +25,24 @@ try:
 except ImportError:
     edge_tts = None
 
+try:
+    from reportlab.lib.pagesizes import letter
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib import colors
+    REPORTLAB_AVAILABLE = True
+except ImportError:
+    REPORTLAB_AVAILABLE = False
+
 BASE_DIR = Path(__file__).parent.resolve()
 PUBLIC_DIR = BASE_DIR / "public"
 STORAGE_DIR = BASE_DIR / "storage"
 CHATS_DIR = STORAGE_DIR / "chats"
 UPLOADS_DIR = STORAGE_DIR / "uploads"
 AUDIO_DIR = STORAGE_DIR / "audio"
+PDF_DIR = STORAGE_DIR / "pdf"
 
-for d in [PUBLIC_DIR, STORAGE_DIR, CHATS_DIR, UPLOADS_DIR, AUDIO_DIR]:
+for d in [PUBLIC_DIR, STORAGE_DIR, CHATS_DIR, UPLOADS_DIR, AUDIO_DIR, PDF_DIR]:
     d.mkdir(parents=True, exist_ok=True)
 
 INDEX_FILE = STORAGE_DIR / "chats_index.json"
@@ -48,26 +51,41 @@ if not INDEX_FILE.exists():
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 
-# Sistema de Skills / Persona Integrada (Coach Montanha - Minha Voz)
-DEFAULT_SYSTEM_PROMPT = """Você é o Montanha Gemini Studio, o assistente oficial de inteligência do Ecossistema Coach Montanha.
-DIRETRIZES DA PERSONA (SKILL: MINHA VOZ):
-1. Tom de Voz: Direto, firme, de quem opera no campo de batalha, sem enrolação e sem rodeios.
-2. Abertura: Vá direto ao ponto, gancho forte ou constatação crua da realidade. Zero saudações corporativas protocolares ("olá pessoal", "espero que estejam bem").
-3. Vocabulário Ativo: na prática, execução, campo de batalha, resultado, esteira, métrica, processo, consistência, caixa preta, ROI, validação.
-4. Vocabulário Proibido: mergulhar fundo, revolucionário, no mundo acelerado de hoje, disruptivo, quiçá, em suma, dessarte.
-5. Regra do [CONFERIR]: Nunca invente números, faturamentos ou métricas não fornecidas pelo usuário. Se faltar dado exato, use a tag [CONFERIR].
-6. Formatação: Use Markdown limpo com tópicos, tabelas e destaques em negrito.
-"""
+# Catálogo Oficial de Skills do Ecossistema Montanha
+SKILLS_PROMPTS = {
+    "minha-voz": (
+        "Você é o Coach Montanha, operando sob a diretriz MINHA VOZ.\n"
+        "1. Tom: Direto, firme, de quem opera no campo de batalha, sem enrolação e sem rodeios corporativos.\n"
+        "2. Abertura: Gancho forte ou constatação crua da realidade. Zero 'olá pessoal' ou 'espero que estejam bem'.\n"
+        "3. Vocabulário: na prática, execução, campo de batalha, resultado, escala, esteira, métrica, consistência, ROI.\n"
+        "4. Proibido: mergulhar fundo, revolucionário, disruptivo, quiçá, em suma, dessarte.\n"
+        "5. Regra [CONFERIR]: Nunca invente números ou dados de faturamento. Se faltar métrica, escreva [CONFERIR]."
+    ),
+    "roteiros-10x": (
+        "Você é o especialista em Roteiros de Alta Conversão (Stories & Reels 10x) do Ecossistema Montanha.\n"
+        "1. Escreva roteiros com gancho nos primeiros 3 segundos, quebra de padrão, desenvolvimento em 3 atos e CTA clara.\n"
+        "2. Indique cortes visuais entre colchetes [Corte rápido para cena de treino] e o texto exato da fala do locutor.\n"
+        "3. Estilo: Enérgico, dinâmico e otimizado para retenção máxima no Instagram e TikTok."
+    ),
+    "personal-trainer": (
+        "Você é o Consultor Técnico de Fisiologia e Treino de Alta Performance do Ecossistema Montanha.\n"
+        "1. Prescreva treinos fundamentados em biomecânica real, progressão de carga e recomposição corporal.\n"
+        "2. Para atendimento: escreva scripts diretos de WhatsApp para onboarding, combate a objeções e retenção (anti-churn).\n"
+        "3. Explique de forma cirúrgica o porquê de cada estímulo metabólico ou neural."
+    ),
+    "programador": (
+        "Você é o Engenheiro de Software Sênior do Ecossistema Montanha.\n"
+        "1. Princípio Ponytail & Karpathy: Simplicidade radical, zero sobre-engenharia, cirúrgico, sem instalar dependências redundantes.\n"
+        "2. Código limpo, testável, bem comentado apenas no essencial e pronto para produção."
+    )
+}
 
 def get_live_web_context(query):
-    """Enriquece a pergunta com dados ao vivo da internet (clima, dados geográficos ou fatos rápidos) sem consumir cotas pagas."""
     ql = query.lower()
     snippets = []
-    
-    # 1. Detecção e busca ao vivo de Clima / Previsão do Tempo
     if any(k in ql for k in ["clima", "tempo", "temperatura", "previsão", "chuva", "calor", "vento"]):
         city = "Joao Pessoa"
-        for candidate in ["joao pessoa", "joão pessoa", "são paulo", "sao paulo", "rio de janeiro", "recife", "fortaleza", "brasília", "brasilia", "curitiba", "salvador"]:
+        for candidate in ["joao pessoa", "joão pessoa", "são paulo", "sao paulo", "rio de janeiro", "recife", "fortaleza", "brasília", "curitiba", "salvador"]:
             if candidate in ql:
                 city = candidate.title()
                 break
@@ -86,13 +104,12 @@ def get_live_web_context(query):
                         w = json.loads(rw.read().decode())["current"]
                         snippets.append(
                             f"[DADOS METEOROLÓGICOS REAIS AO VIVO]: Cidade: {city}. "
-                            f"Temperatura atual: {w['temperature_2m']}°C (Sensação térmica: {w['apparent_temperature']}°C). "
-                            f"Umidade do ar: {w['relative_humidity_2m']}%. Vento: {w['wind_speed_10m']} km/h."
+                            f"Temperatura atual: {w['temperature_2m']}°C (Sensação: {w['apparent_temperature']}°C). "
+                            f"Umidade: {w['relative_humidity_2m']}%. Vento: {w['wind_speed_10m']} km/h."
                         )
         except Exception:
             pass
 
-    # 2. Busca Rápida Enciclopédica / Notícias via DuckDuckGo Instant API
     if not snippets and any(k in ql for k in ["quem é", "o que é", "quem foi", "pesquise", "busque", "notícias"]):
         try:
             ddg_url = "https://api.duckduckgo.com/?q=" + urllib.parse.quote(query) + "&format=json&no_html=1&skip_disambig=1"
@@ -170,10 +187,10 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
         elif parsed.path == "/api/status":
             self._send_json({
                 "status": "online",
-                "app": "Montanha Gemini Studio v2.5",
+                "app": "Montanha Gemini Studio v3.0",
                 "gemini_key_configured": bool(GEMINI_API_KEY),
                 "model": "gemini-flash-lite-latest",
-                "features": ["live_web_search", "persona_skills", "multi_chat", "pdf_intelligence", "audio_tts", "image_multi_provider", "graphify_ready"]
+                "features": ["multi_skill_selector", "pdf_generator", "audio_speed_control", "live_web_search", "graphify_ready"]
             })
             return
 
@@ -183,12 +200,26 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
             if target.is_relative_to(AUDIO_DIR) and target.exists() and target.is_file():
                 self.send_response(200)
                 self.send_header("Content-Type", "audio/mpeg")
-                self.send_header("Content-Disposition", f'inline; filename="{fname}"')
+                self.send_header("Content-Disposition", f'attachment; filename="{fname}"')
                 self.end_headers()
                 with open(target, "rb") as f:
                     self.wfile.write(f.read())
                 return
             self.send_error(404, "Audio file not found")
+            return
+
+        elif parsed.path.startswith("/pdf/"):
+            fname = parsed.path.replace("/pdf/", "").strip()
+            target = (PDF_DIR / fname).resolve()
+            if target.is_relative_to(PDF_DIR) and target.exists() and target.is_file():
+                self.send_response(200)
+                self.send_header("Content-Type", "application/pdf")
+                self.send_header("Content-Disposition", f'attachment; filename="{fname}"')
+                self.end_headers()
+                with open(target, "rb") as f:
+                    self.wfile.write(f.read())
+                return
+            self.send_error(404, "PDF file not found")
             return
 
         rel_path = parsed.path.lstrip("/\\")
@@ -249,7 +280,8 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
         elif parsed.path == "/api/chat":
             chat_id = body.get("chat_id")
             prompt = body.get("prompt", "").strip()
-            system_prompt = body.get("system_prompt", DEFAULT_SYSTEM_PROMPT).strip()
+            skill_key = body.get("skill", "minha-voz")
+            system_prompt = SKILLS_PROMPTS.get(skill_key, SKILLS_PROMPTS["minha-voz"])
             image_b64 = body.get("image_base64", "")
             mime_type = body.get("mime_type", "image/jpeg")
 
@@ -274,10 +306,7 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
                 self._send_json({"status": "error", "message": "Chave GEMINI_API_KEY não configurada no servidor."}, 400)
                 return
 
-            # Ingestão de Contexto Web em Tempo Real (Internet Search Hook)
             web_context = get_live_web_context(prompt)
-
-            # Histórico do Chat para Memória de Contexto
             history = get_chat_messages(chat_id)
             context_contents = []
             for h in history[-8:]:
@@ -345,7 +374,8 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
                     "prompt": prompt,
                     "response": text_out,
                     "has_image": bool(image_b64),
-                    "has_web_context": bool(web_context)
+                    "has_web_context": bool(web_context),
+                    "skill": skill_key
                 }
                 history.append(msg_record)
                 save_chat_messages(chat_id, history)
@@ -364,40 +394,69 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
                 self._send_json({"status": "error", "message": f"Erro Gemini API: {last_err}"}, 500)
             return
 
-        elif parsed.path == "/api/generate-image":
-            prompt = body.get("prompt", "").strip()
-            if not prompt:
-                self._send_json({"status": "error", "message": "Prompt de imagem vazio"}, 400)
+        # Gerador Nativo de PDF em Alta Qualidade para Download
+        elif parsed.path == "/api/export-pdf":
+            text = body.get("text", "").strip()
+            title = body.get("title", "Documento Montanha Studio").strip()
+            if not text:
+                self._send_json({"status": "error", "message": "Texto vazio"}, 400)
                 return
 
-            enc_prompt = urllib.parse.quote(prompt)
-            seed = int(time.time() * 1000) % 999999
-            image_url = f"https://image.pollinations.ai/prompt/{enc_prompt}?width=1024&height=1024&model=flux&seed={seed}&nologo=true"
-            fallback_url = f"https://image.pollinations.ai/prompt/{enc_prompt}?width=1024&height=1024&model=turbo&seed={seed}&nologo=true"
+            pdf_filename = f"documento_{int(time.time())}_{uuid.uuid4().hex[:4]}.pdf"
+            pdf_path = PDF_DIR / pdf_filename
 
-            self._send_json({
-                "status": "success",
-                "image_url": image_url,
-                "fallback_url": fallback_url,
-                "prompt": prompt
-            })
-            return
+            if REPORTLAB_AVAILABLE:
+                try:
+                    doc = SimpleDocTemplate(str(pdf_path), pagesize=letter, leftMargin=40, rightMargin=40, topMargin=40, bottomMargin=40)
+                    styles = getSampleStyleSheet()
+                    title_style = ParagraphStyle('DocTitle', parent=styles['Heading1'], fontName='Helvetica-Bold', fontSize=18, leading=22, textColor=colors.HexColor('#131314'), spaceAfter=14)
+                    body_style = ParagraphStyle('DocBody', parent=styles['Normal'], fontName='Helvetica', fontSize=10, leading=15, textColor=colors.HexColor('#282a2c'), spaceAfter=8)
 
+                    story = []
+                    story.append(Paragraph(title, title_style))
+                    story.append(Spacer(1, 10))
+
+                    for paragraph in text.split("\n\n"):
+                        clean_p = paragraph.replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br/>")
+                        if clean_p.strip():
+                            story.append(Paragraph(clean_p, body_style))
+                            story.append(Spacer(1, 4))
+
+                    doc.build(story)
+                    self._send_json({
+                        "status": "success",
+                        "pdf_url": f"/pdf/{pdf_filename}",
+                        "filename": pdf_filename
+                    })
+                    return
+                except Exception as e:
+                    self._send_json({"status": "error", "message": f"Erro ao gerar PDF: {str(e)}"}, 500)
+                    return
+            else:
+                self._send_json({"status": "error", "message": "ReportLab indisponível"}, 500)
+                return
+
+        # Geração de Áudio TTS com Controle de Velocidade e Download
         elif parsed.path == "/api/tts":
             text = body.get("text", "").strip()
             voice = body.get("voice", "pt-BR-AntonioNeural")
+            speed = body.get("speed", 1.0) # ex: 0.9, 1.0, 1.1, 1.25
+
             if not text:
                 self._send_json({"status": "error", "message": "Texto vazio para TTS"}, 400)
                 return
 
-            out_name = f"tts_{int(time.time())}_{uuid.uuid4().hex[:4]}.mp3"
+            pct = int(round((float(speed) - 1.0) * 100))
+            rate_str = f"+{pct}%" if pct >= 0 else f"{pct}%"
+
+            out_name = f"locucao_{int(time.time())}_{uuid.uuid4().hex[:4]}.mp3"
             out_file = AUDIO_DIR / out_name
 
             tts_success = False
             if edge_tts:
                 try:
                     async def _run_edge():
-                        comm = edge_tts.Communicate(text[:1200], voice)
+                        comm = edge_tts.Communicate(text[:1500], voice, rate=rate_str)
                         await comm.save(str(out_file))
                     asyncio.run(_run_edge())
                     tts_success = True
@@ -418,7 +477,27 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
             self._send_json({
                 "status": "success",
                 "audio_url": f"/audio/{out_name}",
-                "filename": out_name
+                "filename": out_name,
+                "speed": speed
+            })
+            return
+
+        elif parsed.path == "/api/generate-image":
+            prompt = body.get("prompt", "").strip()
+            if not prompt:
+                self._send_json({"status": "error", "message": "Prompt de imagem vazio"}, 400)
+                return
+
+            enc_prompt = urllib.parse.quote(prompt)
+            seed = int(time.time() * 1000) % 999999
+            image_url = f"https://image.pollinations.ai/prompt/{enc_prompt}?width=1024&height=1024&model=flux&seed={seed}&nologo=true"
+            fallback_url = f"https://image.pollinations.ai/prompt/{enc_prompt}?width=1024&height=1024&model=turbo&seed={seed}&nologo=true"
+
+            self._send_json({
+                "status": "success",
+                "image_url": image_url,
+                "fallback_url": fallback_url,
+                "prompt": prompt
             })
             return
 
@@ -465,7 +544,7 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
 def run_server(port=4192):
     server_address = ("0.0.0.0", port)
     httpd = ThreadingHTTPServer(server_address, GeminiStudioHandler)
-    print(f"[*] Montanha Gemini Studio v2.5 ativo na porta {port}")
+    print(f"[*] Montanha Gemini Studio v3.0 ativo na porta {port}")
     print(f"[*] Acesso Local: http://localhost:{port}")
     httpd.serve_forever()
 

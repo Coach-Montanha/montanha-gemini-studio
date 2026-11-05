@@ -3,12 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Montanha Gemini Studio</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Montanha Gemini Studio v3.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Marked.js para renderizar Markdown do Gemini -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
@@ -58,12 +55,10 @@
 </head>
 <body class="h-screen w-screen flex overflow-hidden relative">
 
-    <!-- Mobile Overlay Backdrop when Sidebar is Open -->
     <div id="sidebarBackdrop" onclick="closeSidebarMobile()" class="hidden md:hidden fixed inset-0 bg-black/60 z-30 transition-opacity"></div>
 
-    <!-- Left Sidebar: Drawer responsivo no Mobile -->
+    <!-- Sidebar: Multi-Chat & Context Memory (Graphify Ready) -->
     <aside id="sidebar" class="fixed md:static inset-y-0 left-0 w-72 bg-[#1e1f20] border-r border-[#282a2c] flex flex-col flex-shrink-0 transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0 z-40">
-        <!-- Sidebar Header -->
         <div class="h-14 border-b border-[#282a2c] flex items-center justify-between px-3">
             <button onclick="createNewChat()" class="flex-1 flex items-center justify-center space-x-2 py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-semibold border border-white/5 transition active:scale-95 shadow">
                 <i class="fa-solid fa-plus text-cyan-400"></i>
@@ -74,14 +69,10 @@
             </button>
         </div>
 
-        <!-- Chats List -->
-        <div class="flex-1 overflow-y-auto p-2 space-y-1" id="chatsListContainer">
-            <!-- Dynamic chats injected here -->
-        </div>
+        <div class="flex-1 overflow-y-auto p-2 space-y-1" id="chatsListContainer"></div>
 
-        <!-- Sidebar Footer: Stats & Zero Cost Indicator -->
         <div class="p-3 border-t border-[#282a2c] bg-black/20 text-[11px] text-white/50 flex items-center justify-between">
-            <span class="flex items-center gap-1.5"><i class="fa-solid fa-database text-purple-400"></i> Memória Isolada</span>
+            <span class="flex items-center gap-1.5"><i class="fa-solid fa-diagram-project text-purple-400"></i> Graphify Ready</span>
             <span class="text-emerald-400 font-mono">0 Tokens</span>
         </div>
     </aside>
@@ -101,7 +92,7 @@
                 <div>
                     <h1 class="text-sm font-semibold tracking-wide flex items-center space-x-1.5">
                         <span id="currentChatTitle">Montanha Gemini Studio</span>
-                        <span class="text-[10px] uppercase tracking-wider bg-white/10 px-2 py-0.5 rounded-full text-purple-300 font-mono">Flash Lite</span>
+                        <span class="text-[10px] uppercase tracking-wider bg-white/10 px-2 py-0.5 rounded-full text-purple-300 font-mono">v3.0 Pro</span>
                     </h1>
                 </div>
             </div>
@@ -119,7 +110,7 @@
 
         <!-- Messages Scroll Area -->
         <main class="flex-1 overflow-y-auto p-4 md:px-0 flex flex-col items-center" id="scrollContainer">
-            <div class="w-full max-w-3xl flex-1 flex flex-col justify-start space-y-6 pb-28" id="messagesList">
+            <div class="w-full max-w-3xl flex-1 flex flex-col justify-start space-y-6 pb-36" id="messagesList">
 
                 <!-- Welcome Screen -->
                 <div id="welcomeScreen" class="flex-1 flex flex-col items-center justify-center text-center my-auto py-12 space-y-4">
@@ -131,26 +122,26 @@
                             Olá, <span class="gemini-gradient-text">Coach Montanha</span>
                         </h2>
                         <p class="text-sm text-white/50 mt-1 max-w-md mx-auto">
-                            Chats independentes, leitura de PDFs, geração de imagens sem limites e síntese de voz neural.
+                            Selecione a Skill desejada abaixo da barra de envio e comece a executar.
                         </p>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-lg pt-4 text-left">
-                        <button onclick="setPrompt('/imagem Guerreiro espartano com capa vermelha em corrida na chuva iluminação cinematográfica')" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
+                        <button onclick="setPrompt('/imagem Atleta determinado correndo sob chuva iluminação dramática 8k')" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
                             <i class="fa-solid fa-image text-purple-400 mt-0.5"></i>
                             <span>Gerar Imagem Flux 1024x1024</span>
                         </button>
-                        <button onclick="setPrompt('Crie um roteiro magnético de 30 segundos para Reels sobre perda de gordura sem perda de massa magra')" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
+                        <button onclick="setPrompt('Escreva um roteiro de 20s para Reels sobre foco total na execução')" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
                             <i class="fa-solid fa-clapperboard text-cyan-400 mt-0.5"></i>
-                            <span>Roteiro de Reels 10x</span>
+                            <span>Roteiro 10x com Minha Voz</span>
+                        </button>
+                        <button onclick="setPrompt('Como está o clima e a temperatura em João Pessoa hoje?')" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
+                            <i class="fa-solid fa-cloud-sun text-emerald-400 mt-0.5"></i>
+                            <span>Busca ao Vivo na Internet</span>
                         </button>
                         <button onclick="openPdfModal()" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
                             <i class="fa-solid fa-book-open text-amber-400 mt-0.5"></i>
                             <span>Subir Livro / Artigo em PDF</span>
-                        </button>
-                        <button onclick="setPrompt('Escreva uma sequência direta de 3 mensagens para WhatsApp convertendo lead frio em aluno')" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
-                            <i class="fa-brands fa-whatsapp text-emerald-400 mt-0.5"></i>
-                            <span>Conversão WhatsApp Anti-Objeção</span>
                         </button>
                     </div>
                 </div>
@@ -158,7 +149,7 @@
             </div>
         </main>
 
-        <!-- Bottom Input Dock -->
+        <!-- Bottom Input Dock with Skills Selector & Speed Controls -->
         <div class="w-full max-w-3xl mx-auto px-4 pb-4">
             <!-- Image Attachment Preview -->
             <div id="imagePreviewBar" class="hidden mb-2 p-2 rounded-xl bg-[#1e1f20] border border-[#37393b] flex items-center justify-between">
@@ -171,6 +162,7 @@
                 </button>
             </div>
 
+            <!-- Main Input Box -->
             <div class="relative bg-[#1e1f20] rounded-2xl border border-[#37393b] focus-within:border-white/30 transition shadow-2xl p-2.5 flex items-end space-x-2">
                 <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
                 
@@ -188,14 +180,39 @@
                     <i class="fa-solid fa-arrow-up text-sm"></i>
                 </button>
             </div>
-            <div class="text-center mt-2 flex items-center justify-center space-x-2 text-[11px] text-white/40">
-                <span>Montanha Gemini Studio v2.0 • Contextos Isolados • Zero Custo</span>
+
+            <!-- Control Bar under Message Box: Skills Selector & Audio Speed -->
+            <div class="mt-2.5 px-1 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <!-- Skill Selector -->
+                <div class="flex items-center space-x-1.5 bg-[#1e1f20] border border-[#37393b] rounded-xl px-2.5 py-1">
+                    <i class="fa-solid fa-brain text-purple-400 text-[11px]"></i>
+                    <span class="text-white/60 text-[11px]">Skill:</span>
+                    <select id="selectSkill" class="bg-transparent text-white text-[11px] font-semibold focus:outline-none cursor-pointer">
+                        <option value="minha-voz" class="bg-[#1e1f20] text-white" selected>🔥 Minha Voz (Coach Montanha)</option>
+                        <option value="roteiros-10x" class="bg-[#1e1f20] text-white">🎬 Roteiros 10x (Reels/Shorts)</option>
+                        <option value="personal-trainer" class="bg-[#1e1f20] text-white">🏋️ Personal Trainer & Fisiologia</option>
+                        <option value="programador" class="bg-[#1e1f20] text-white">💻 Engenheiro Sênior (Karpathy)</option>
+                    </select>
+                </div>
+
+                <!-- Audio Speed Selector -->
+                <div class="flex items-center space-x-1.5 bg-[#1e1f20] border border-[#37393b] rounded-xl px-2.5 py-1">
+                    <i class="fa-solid fa-gauge-high text-cyan-400 text-[11px]"></i>
+                    <span class="text-white/60 text-[11px]">Voz:</span>
+                    <select id="selectAudioSpeed" class="bg-transparent text-white text-[11px] font-mono focus:outline-none cursor-pointer">
+                        <option value="0.9" class="bg-[#1e1f20] text-white">0.90x Pausado</option>
+                        <option value="1.0" class="bg-[#1e1f20] text-white">1.00x Normal</option>
+                        <option value="1.06" class="bg-[#1e1f20] text-white" selected>1.06x Dinâmico</option>
+                        <option value="1.15" class="bg-[#1e1f20] text-white">1.15x Rápido</option>
+                        <option value="1.25" class="bg-[#1e1f20] text-white">1.25x Máximo</option>
+                    </select>
+                </div>
             </div>
         </div>
 
     </div>
 
-    <!-- Modal PDF Upload & Intelligence -->
+    <!-- Modal PDF Upload -->
     <div id="pdfModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-[#1e1f20] border border-[#37393b] rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
             <div class="flex items-center justify-between pb-2 border-b border-[#282a2c]">
@@ -227,16 +244,13 @@
             const sb = document.getElementById('sidebar');
             const backdrop = document.getElementById('sidebarBackdrop');
             if (window.innerWidth < 768) {
-                // Mobile Drawer
                 const isOpen = !sb.classList.contains('-translate-x-full');
-                if (isOpen) {
-                    closeSidebarMobile();
-                } else {
+                if (isOpen) { closeSidebarMobile(); }
+                else {
                     sb.classList.remove('-translate-x-full');
                     if (backdrop) backdrop.classList.remove('hidden');
                 }
             } else {
-                // Desktop Toggle
                 sb.classList.toggle('md:hidden');
             }
         }
@@ -300,7 +314,7 @@
                     const d = await res.json();
                     if (d.status === 'success') {
                         closePdfModal();
-                        const prompt = `Analise o seguinte livro/documento "${d.filename}" com ${d.total_pages} páginas:\n\n${d.extracted_text}\n\nFaça um resumo executivo com os 5 principais ensinamentos e aplicações práticas imediatas.`;
+                        const prompt = `Analise o seguinte documento "${d.filename}" com ${d.total_pages} páginas:\n\n${d.extracted_text}\n\nFaça um resumo executivo com os 5 principais ensinamentos e aplicações práticas imediatas.`;
                         setPrompt(prompt);
                         sendMessage();
                     } else {
@@ -428,7 +442,7 @@
                             Olá, <span class="gemini-gradient-text">Coach Montanha</span>
                         </h2>
                         <p class="text-sm text-white/50 mt-1 max-w-md mx-auto">
-                            Inicie sua consulta, roteiro ou comando /imagem neste novo contexto.
+                            Inicie sua consulta neste contexto selecionado.
                         </p>
                     </div>
                 </div>
@@ -490,14 +504,30 @@
                         <i class="fa-solid fa-sparkles text-xs text-white"></i>
                     </div>
                     <div class="flex-1 max-w-[90%] bg-transparent text-white/90 text-sm markdown-body overflow-x-auto leading-relaxed" id="${msgId}">
-                        ${formattedHtml}
-                        <div class="mt-2.5 pt-2 border-t border-white/5 flex items-center space-x-3 text-xs text-white/50">
-                            <button onclick="synthesizeSpeech('${msgId}')" class="hover:text-cyan-400 flex items-center gap-1">
-                                <i class="fa-solid fa-volume-high"></i> Ouvir Voz Neural
+                        <div class="msg-content">${formattedHtml}</div>
+                        
+                        <!-- Actions Bar under message -->
+                        <div class="mt-3 pt-2 border-t border-white/5 flex flex-wrap items-center gap-3 text-xs text-white/60">
+                            <!-- TTS Speech Button -->
+                            <button onclick="synthesizeSpeech('${msgId}')" class="hover:text-cyan-400 flex items-center gap-1 bg-white/5 hover:bg-white/10 px-2 py-1 rounded-lg transition">
+                                <i class="fa-solid fa-volume-high text-cyan-400"></i>
+                                <span>Ouvir Voz</span>
                             </button>
-                            <button onclick="navigator.clipboard.writeText(document.getElementById('${msgId}').innerText); alert('Copiado!');" class="hover:text-white flex items-center gap-1">
-                                <i class="fa-regular fa-copy"></i> Copiar
+
+                            <!-- Native PDF Export Button -->
+                            <button onclick="downloadAsPdf('${msgId}')" class="hover:text-red-400 flex items-center gap-1 bg-white/5 hover:bg-white/10 px-2 py-1 rounded-lg transition">
+                                <i class="fa-solid fa-file-pdf text-red-400"></i>
+                                <span>Baixar PDF</span>
                             </button>
+
+                            <!-- Copy Button -->
+                            <button onclick="copyMessageText('${msgId}')" class="hover:text-white flex items-center gap-1 bg-white/5 hover:bg-white/10 px-2 py-1 rounded-lg transition">
+                                <i class="fa-regular fa-copy"></i>
+                                <span>Copiar</span>
+                            </button>
+
+                            <!-- Dynamic Audio Player container if synthesized -->
+                            <div id="playerContainer_${msgId}" class="w-full hidden mt-2"></div>
                         </div>
                     </div>
                 `;
@@ -508,26 +538,86 @@
         }
 
         async function synthesizeSpeech(elemId) {
-            const text = document.getElementById(elemId)?.innerText || '';
+            const container = document.getElementById(elemId);
+            const contentDiv = container.querySelector('.msg-content');
+            const text = contentDiv ? contentDiv.innerText : container.innerText;
             if (!text) return;
-            const cleanText = text.replace(/Ouvir Voz Neural|Copiar/g, '').trim().substring(0, 600);
-            
+
+            const speed = parseFloat(document.getElementById('selectAudioSpeed').value || 1.0);
+            const playerDiv = document.getElementById(`playerContainer_${elemId}`);
+            if (playerDiv) {
+                playerDiv.classList.remove('hidden');
+                playerDiv.innerHTML = '<span class="text-xs text-cyan-400 flex items-center gap-1.5"><i class="fa-solid fa-spinner fa-spin"></i> Sintetizando locução em ' + speed + 'x...</span>';
+            }
+
             try {
                 const res = await fetch('/api/tts', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ text: cleanText, voice: 'pt-BR-AntonioNeural' })
+                    body: JSON.stringify({
+                        text: text.substring(0, 1500),
+                        voice: 'pt-BR-AntonioNeural',
+                        speed: speed
+                    })
                 });
                 const d = await res.json();
                 if (d.status === 'success') {
-                    const audio = new Audio(d.audio_url);
-                    audio.play();
+                    if (playerDiv) {
+                        playerDiv.innerHTML = `
+                            <div class="p-2 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between gap-2">
+                                <audio controls autoplay src="${d.audio_url}" class="h-8 flex-1"></audio>
+                                <a href="${d.audio_url}" download="${d.filename}" class="px-2.5 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 text-xs flex items-center gap-1 font-semibold">
+                                    <i class="fa-solid fa-download"></i> Baixar MP3
+                                </a>
+                            </div>
+                        `;
+                    }
                 } else {
-                    alert('Erro na voz: ' + d.message);
+                    if (playerDiv) playerDiv.innerHTML = '<span class="text-xs text-red-400">Erro: ' + d.message + '</span>';
                 }
             } catch (e) {
-                alert('Erro ao conectar ao TTS.');
+                if (playerDiv) playerDiv.innerHTML = '<span class="text-xs text-red-400">Erro de conexão com o sintetizador.</span>';
             }
+        }
+
+        async function downloadAsPdf(elemId) {
+            const container = document.getElementById(elemId);
+            const contentDiv = container.querySelector('.msg-content');
+            const text = contentDiv ? contentDiv.innerText : container.innerText;
+            if (!text) return;
+
+            const chatTitle = document.getElementById('currentChatTitle').innerText || 'Documento';
+            try {
+                const res = await fetch('/api/export-pdf', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        title: chatTitle,
+                        text: text
+                    })
+                });
+                const d = await res.json();
+                if (d.status === 'success') {
+                    const dlLink = document.createElement('a');
+                    dlLink.href = d.pdf_url;
+                    dlLink.download = d.filename;
+                    document.body.appendChild(dlLink);
+                    dlLink.click();
+                    document.body.removeChild(dlLink);
+                } else {
+                    alert('Erro ao gerar PDF: ' + d.message);
+                }
+            } catch (e) {
+                alert('Erro de conexão ao gerar PDF.');
+            }
+        }
+
+        function copyMessageText(elemId) {
+            const container = document.getElementById(elemId);
+            const contentDiv = container.querySelector('.msg-content');
+            const text = contentDiv ? contentDiv.innerText : container.innerText;
+            navigator.clipboard.writeText(text);
+            alert('Texto copiado com sucesso!');
         }
 
         async function sendMessage() {
@@ -541,6 +631,7 @@
             const currentPrompt = prompt;
             const currentImg = attachedImageBase64;
             const currentMime = attachedImageMime;
+            const selectedSkill = document.getElementById('selectSkill').value;
 
             input.value = '';
             input.style.height = 'auto';
@@ -548,7 +639,7 @@
 
             appendMessageUI('user', currentPrompt);
 
-            // Gerador de Imagens
+            // Geração de Imagem
             if (currentPrompt.startsWith('/imagem') || currentPrompt.startsWith('/image') || currentPrompt.startsWith('/foto')) {
                 const imgQuery = currentPrompt.replace(/^(\/imagem|\/image|\/foto)/i, '').trim();
                 appendMessageUI('gemini', `*Gerando imagem artística via Flux Neural: "${imgQuery}"...*`);
@@ -571,7 +662,7 @@
                 return;
             }
 
-            // Conversa padrão no chat selecionado
+            // Conversa padrão com Skill Selecionada e Memória
             try {
                 const res = await fetch('/api/chat', {
                     method: 'POST',
@@ -579,6 +670,7 @@
                     body: JSON.stringify({
                         chat_id: currentChatId,
                         prompt: currentPrompt,
+                        skill: selectedSkill,
                         image_base64: currentImg,
                         mime_type: currentMime
                     })
