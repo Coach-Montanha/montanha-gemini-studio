@@ -23,11 +23,20 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Android SDK Tools
-        uses: android-actions/setup-android@v3
-
-      - name: Build Standalone APK
+      - name: Build Standalone APK via Native Android Tools
         run: |
+          echo "==> Instalando build-tools e platform 34..."
+          yes | sdkmanager --licenses > /dev/null 2>&1 || true
+          sdkmanager "platforms;android-34" "build-tools;34.0.0" > /dev/null 2>&1
+
+          BUILD_TOOLS_DIR=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -n 1)
+          PLATFORM_DIR=$(ls -d $ANDROID_HOME/platforms/* | sort -V | tail -n 1)
+          ANDROID_JAR="$PLATFORM_DIR/android.jar"
+          export PATH="$BUILD_TOOLS_DIR:$PATH"
+
+          echo "Usando Android JAR: $ANDROID_JAR"
+          echo "Usando Build Tools: $BUILD_TOOLS_DIR"
+
           mkdir -p build_apk/src/com/montanhagemini/app
           mkdir -p build_apk/res/values
           mkdir -p build_apk/obj
@@ -144,11 +153,6 @@ jobs:
           }
           EOF
 
-          ANDROID_JAR="$ANDROID_HOME/platforms/android-34/android.jar"
-          if [ ! -f "$ANDROID_JAR" ]; then
-              ANDROID_JAR=$(find $ANDROID_HOME/platforms -name "android.jar" | head -n 1)
-          fi
-
           aapt package -f -m -J build_apk/src -M build_apk/AndroidManifest.xml -S build_apk/res -I "$ANDROID_JAR"
           javac -d build_apk/obj -classpath "$ANDROID_JAR" $(find build_apk/src -name "*.java")
           d8 --output build_apk/bin build_apk/obj/com/montanhagemini/app/*.class
@@ -165,11 +169,11 @@ jobs:
           name: MontanhaGeminiStudio-APK
           path: build_apk/bin/MontanhaGeminiStudio.apk
 
-      - name: Create GitHub Release
+      - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: build_apk/bin/MontanhaGeminiStudio.apk
           tag_name: ${{ github.ref_name }}
           name: Montanha Gemini Studio ${{ github.ref_name }}
-          body: "Download do arquivo APK do Montanha Gemini Studio compilado automaticamente pelo GitHub Actions na nuvem."
+          body: "Download direto do arquivo APK do Montanha Gemini Studio compilado automaticamente pelo GitHub Actions."
