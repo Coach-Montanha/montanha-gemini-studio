@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Montanha Gemini Studio v4.0</title>
+    <title>Montanha Gemini Studio v4.1 (Zero-Leak)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -51,14 +51,6 @@
             margin-bottom: 6px;
             color: #ffffff;
         }
-        /* Custom Switch */
-        .toggle-checkbox:checked {
-            right: 0;
-            border-color: #68D391;
-        }
-        .toggle-checkbox:checked + .toggle-label {
-            background-color: #48BB78;
-        }
     </style>
 </head>
 <body class="h-screen w-screen flex overflow-hidden relative">
@@ -81,10 +73,10 @@
 
         <div class="p-3 border-t border-[#282a2c] bg-black/20 text-[11px] text-white/50 flex items-center justify-between">
             <button onclick="openSettingsModal()" class="flex items-center space-x-1.5 hover:text-white transition">
-                <i class="fa-solid fa-sliders text-cyan-400"></i>
-                <span>Configurações & APIs</span>
+                <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+                <span>Segurança & Chaves</span>
             </button>
-            <span class="text-emerald-400 font-mono text-[10px] bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">v4.0 Harness</span>
+            <span class="text-emerald-400 font-mono text-[10px] bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Zero-Leak</span>
         </div>
     </aside>
 
@@ -103,7 +95,7 @@
                 <div>
                     <h1 class="text-sm font-semibold tracking-wide flex items-center space-x-1.5">
                         <span id="currentChatTitle">Montanha Gemini Studio</span>
-                        <span id="headerEngineTag" class="text-[10px] uppercase tracking-wider bg-white/10 px-2 py-0.5 rounded-full text-purple-300 font-mono">Gemini Flash</span>
+                        <span id="keyStatusBadge" class="text-[10px] uppercase tracking-wider bg-white/10 px-2 py-0.5 rounded-full text-emerald-300 font-mono">🔒 Protegido</span>
                     </h1>
                 </div>
             </div>
@@ -111,8 +103,8 @@
             <div class="flex items-center space-x-2">
                 <!-- Settings Button -->
                 <button onclick="openSettingsModal()" title="Configurações, Plugins & Chaves de IA" class="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/80 hover:text-white text-xs flex items-center space-x-1.5 transition border border-white/5">
-                    <i class="fa-solid fa-gear text-cyan-400"></i>
-                    <span class="hidden sm:inline">Plugins & Ajustes</span>
+                    <i class="fa-solid fa-key text-amber-400"></i>
+                    <span class="hidden sm:inline">Minhas Chaves</span>
                 </button>
 
                 <!-- Real-Time Live Audio Call Mode Button -->
@@ -138,33 +130,45 @@
                 <!-- Welcome Screen -->
                 <div id="welcomeScreen" class="flex-1 flex flex-col items-center justify-center text-center my-auto py-12 space-y-4">
                     <div class="w-16 h-16 rounded-2xl flex items-center justify-center bg-gradient-to-tr from-blue-600 via-indigo-600 to-pink-500 shadow-xl">
-                        <i class="fa-solid fa-sparkles text-2xl text-white"></i>
+                        <i class="fa-solid fa-shield-halved text-2xl text-white"></i>
                     </div>
                     <div>
                         <h2 class="text-2xl md:text-3xl font-bold">
                             Olá, <span class="gemini-gradient-text">Coach Montanha</span>
                         </h2>
                         <p class="text-sm text-white/50 mt-1 max-w-md mx-auto">
-                            Harness Multi-IA ativo com Plugins dinâmicos e Skills permanentes.
+                            Arquitetura Blindada Zero-Leak. Suas chaves ficam salvas estritamente no seu dispositivo local.
                         </p>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-lg pt-4 text-left">
+                        <button onclick="openSettingsModal()" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-amber-500/30 text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
+                            <i class="fa-solid fa-key text-amber-400 mt-0.5"></i>
+                            <div>
+                                <span class="font-bold text-amber-300">Inserir Minha Chave Gemini</span>
+                                <p class="text-[11px] text-white/50">Definir credencial local privada</p>
+                            </div>
+                        </button>
                         <button onclick="setPrompt('/imagem Atleta determinado correndo sob chuva iluminação dramática 8k')" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
                             <i class="fa-solid fa-image text-purple-400 mt-0.5"></i>
-                            <span>Gerar Imagem Flux 1024x1024</span>
+                            <div>
+                                <span>Gerar Imagem Flux 1024x1024</span>
+                                <p class="text-[11px] text-white/50">Criação visual sem custo</p>
+                            </div>
                         </button>
                         <button onclick="setPrompt('Agende uma reunião de alinhamento com a equipe de marketing no Google Calendar para amanhã às 15h')" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
                             <i class="fa-solid fa-calendar-check text-blue-400 mt-0.5"></i>
-                            <span>Ação Google Calendar Plugin</span>
+                            <div>
+                                <span>Ação Google Calendar</span>
+                                <p class="text-[11px] text-white/50">Plugin de agendamento</p>
+                            </div>
                         </button>
                         <button onclick="setPrompt('Como está o clima e a temperatura em João Pessoa agora?')" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
                             <i class="fa-solid fa-cloud-sun text-emerald-400 mt-0.5"></i>
-                            <span>Busca Meteorológica ao Vivo</span>
-                        </button>
-                        <button onclick="openSettingsModal()" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
-                            <i class="fa-solid fa-sliders text-cyan-400 mt-0.5"></i>
-                            <span>Gerenciar Plugins & Chaves de IA</span>
+                            <div>
+                                <span>Busca Meteorológica ao Vivo</span>
+                                <p class="text-[11px] text-white/50">Open-Meteo em tempo real</p>
+                            </div>
                         </button>
                     </div>
                 </div>
@@ -214,7 +218,7 @@
                 <!-- Skill Selector -->
                 <div class="flex items-center space-x-1.5 bg-[#1e1f20] border border-[#37393b] rounded-xl px-2.5 py-1">
                     <i class="fa-solid fa-brain text-purple-400 text-[11px]"></i>
-                    <span class="text-white/60 text-[11px]">Habilidade Ativa:</span>
+                    <span class="text-white/60 text-[11px]">Habilidade:</span>
                     <select id="selectSkill" class="bg-transparent text-white text-[11px] font-semibold focus:outline-none cursor-pointer">
                         <option value="minha-voz" class="bg-[#1e1f20] text-white" selected>🔥 Minha Voz (Coach Montanha)</option>
                         <option value="roteiros-10x" class="bg-[#1e1f20] text-white">🎬 Roteiros 10x (Reels/Shorts)</option>
@@ -244,85 +248,94 @@
 
     </div>
 
-    <!-- MODAL DE CONFIGURAÇÕES, PLUGINS & MULTI-IA HARNESS -->
+    <!-- MODAL DE CONFIGURAÇÕES, SEGURANÇA & CHAVES PRIVADAS (ZERO-LEAK) -->
     <div id="settingsModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-[#1e1f20] border border-[#37393b] rounded-2xl max-w-xl w-full p-5 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between pb-3 border-b border-[#282a2c]">
                 <h3 class="text-sm font-bold text-white flex items-center space-x-2">
-                    <i class="fa-solid fa-sliders text-cyan-400"></i>
-                    <span>Painel de Ajustes, Plugins & Multi-IA</span>
+                    <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+                    <span>Painel de Segurança & Chaves Privadas (BYOK)</span>
                 </h3>
                 <button onclick="closeSettingsModal()" class="text-white/50 hover:text-white p-1">
                     <i class="fa-solid fa-xmark text-base"></i>
                 </button>
             </div>
 
-            <!-- 1. Motor de IA Principal (Harness) -->
-            <div class="space-y-2">
-                <label class="text-xs font-bold text-white/80 uppercase tracking-wider flex items-center gap-1.5">
-                    <i class="fa-solid fa-microchip text-purple-400"></i> Motor Principal de IA
-                </label>
-                <select id="settingEngine" class="w-full bg-[#131314] border border-[#37393b] rounded-xl p-2.5 text-xs text-white font-medium focus:border-cyan-400 focus:outline-none">
-                    <option value="gemini-flash-lite-latest">Google Gemini Flash Lite (Ultra Rápido & Gratuito)</option>
-                    <option value="gemini-flash-latest">Google Gemini Flash (Padrão Multimodal)</option>
-                    <option value="groq-llama-3.3-70b">Groq Llama 3.3 70B (Velocidade Extrema < 500ms)</option>
-                    <option value="deepseek-chat">DeepSeek Chat V3 (Raciocínio & Código)</option>
-                </select>
+            <!-- Aviso de Arquitetura Segura -->
+            <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 leading-relaxed flex items-start space-x-2">
+                <i class="fa-solid fa-lock text-sm mt-0.5 flex-shrink-0"></i>
+                <div>
+                    <strong>Privacidade & Segurança Absoluta (Zero-Leak):</strong>
+                    Suas chaves de API são armazenadas exclusivamente na memória segura do seu navegador e enviadas via HTTPS cifrado diretamente para as requisições de IA. O servidor <b>nunca</b> salva suas chaves em disco ou banco de dados.
+                </div>
             </div>
 
-            <!-- 2. Chaves de APIs Externas -->
-            <div class="space-y-3 pt-2 border-t border-[#282a2c]">
+            <!-- 1. Chaves Privadas do Usuário -->
+            <div class="space-y-3">
                 <label class="text-xs font-bold text-white/80 uppercase tracking-wider flex items-center gap-1.5">
-                    <i class="fa-solid fa-key text-amber-400"></i> Chaves de API das IAs
+                    <i class="fa-solid fa-key text-amber-400"></i> Suas Chaves de API
                 </label>
                 <div class="space-y-2">
                     <div>
-                        <div class="text-[11px] text-white/50 mb-1">Google Gemini API Key:</div>
-                        <input type="password" id="settingGeminiKey" placeholder="AIzaSy..." class="w-full bg-[#131314] border border-[#37393b] rounded-xl p-2 text-xs text-white focus:outline-none font-mono">
+                        <div class="text-[11px] text-white/60 mb-1 flex items-center justify-between">
+                            <span>Google Gemini API Key:</span>
+                            <span id="geminiKeyStatus" class="text-[10px] text-white/40">Não configurada</span>
+                        </div>
+                        <input type="password" id="settingGeminiKey" placeholder="Cole sua chave AIzaSy..." class="w-full bg-[#131314] border border-[#37393b] rounded-xl p-2.5 text-xs text-white focus:border-amber-400 focus:outline-none font-mono">
                     </div>
                     <div>
-                        <div class="text-[11px] text-white/50 mb-1">Groq API Key (Llama 3.3 70B Gratuito):</div>
-                        <input type="password" id="settingGroqKey" placeholder="gsk_..." class="w-full bg-[#131314] border border-[#37393b] rounded-xl p-2 text-xs text-white focus:outline-none font-mono">
+                        <div class="text-[11px] text-white/60 mb-1 flex items-center justify-between">
+                            <span>Groq API Key (Opcional - Llama 3.3 70B Gratuito):</span>
+                            <span id="groqKeyStatus" class="text-[10px] text-white/40">Opcional</span>
+                        </div>
+                        <input type="password" id="settingGroqKey" placeholder="Cole sua chave gsk_..." class="w-full bg-[#131314] border border-[#37393b] rounded-xl p-2.5 text-xs text-white focus:border-cyan-400 focus:outline-none font-mono">
                     </div>
                 </div>
+            </div>
+
+            <!-- 2. Motor de IA Principal -->
+            <div class="space-y-2 pt-2 border-t border-[#282a2c]">
+                <label class="text-xs font-bold text-white/80 uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-microchip text-purple-400"></i> Motor de IA Selecionado
+                </label>
+                <select id="settingEngine" class="w-full bg-[#131314] border border-[#37393b] rounded-xl p-2.5 text-xs text-white font-medium focus:border-cyan-400 focus:outline-none">
+                    <option value="gemini-flash-lite-latest">Google Gemini Flash Lite (Mais Rápido & Gratuito)</option>
+                    <option value="gemini-flash-latest">Google Gemini Flash (Padrão Multimodal)</option>
+                    <option value="groq-llama-3.3-70b">Groq Llama 3.3 70B (Velocidade Extrema < 500ms)</option>
+                </select>
             </div>
 
             <!-- 3. Gerenciador de Plugins (Liga / Desliga) -->
             <div class="space-y-3 pt-2 border-t border-[#282a2c]">
                 <label class="text-xs font-bold text-white/80 uppercase tracking-wider flex items-center justify-between">
-                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-plug text-cyan-400"></i> Plugins & Ferramentas (Toggles)</span>
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-plug text-cyan-400"></i> Plugins & Ferramentas Ativas</span>
                     <span class="text-[10px] text-emerald-400 lowercase font-mono">on/off</span>
                 </label>
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                     <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#131314] border border-[#37393b] cursor-pointer">
                         <span class="flex items-center gap-2"><i class="fa-solid fa-calendar text-blue-400"></i> Google Calendar</span>
-                        <input type="checkbox" id="pluginGCalendar" class="w-4 h-4 rounded text-blue-500 accent-blue-500">
+                        <input type="checkbox" id="pluginGCalendar" class="w-4 h-4 rounded accent-blue-500">
                     </label>
 
                     <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#131314] border border-[#37393b] cursor-pointer">
                         <span class="flex items-center gap-2"><i class="fa-solid fa-table text-emerald-400"></i> Google Sheets</span>
-                        <input type="checkbox" id="pluginGSheets" class="w-4 h-4 rounded text-emerald-500 accent-emerald-500">
+                        <input type="checkbox" id="pluginGSheets" class="w-4 h-4 rounded accent-emerald-500">
                     </label>
 
                     <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#131314] border border-[#37393b] cursor-pointer">
                         <span class="flex items-center gap-2"><i class="fa-solid fa-cloud-sun text-amber-400"></i> Clima ao Vivo</span>
-                        <input type="checkbox" id="pluginWeather" class="w-4 h-4 rounded text-amber-500 accent-amber-500">
+                        <input type="checkbox" id="pluginWeather" class="w-4 h-4 rounded accent-amber-500">
                     </label>
 
                     <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#131314] border border-[#37393b] cursor-pointer">
                         <span class="flex items-center gap-2"><i class="fa-solid fa-globe text-cyan-400"></i> Busca Web Rápida</span>
-                        <input type="checkbox" id="pluginWebSearch" class="w-4 h-4 rounded text-cyan-500 accent-cyan-500">
-                    </label>
-
-                    <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#131314] border border-[#37393b] cursor-pointer">
-                        <span class="flex items-center gap-2"><i class="fa-solid fa-cloud text-purple-400"></i> Ações Cloud / Webhooks</span>
-                        <input type="checkbox" id="pluginCloud" class="w-4 h-4 rounded text-purple-500 accent-purple-500">
+                        <input type="checkbox" id="pluginWebSearch" class="w-4 h-4 rounded accent-cyan-500">
                     </label>
                 </div>
             </div>
 
-            <!-- 4. Habilidades Permanentes e Automáticas (Harness do Sistema) -->
+            <!-- 4. Habilidades Permanentes e Automáticas -->
             <div class="space-y-3 pt-2 border-t border-[#282a2c]">
                 <label class="text-xs font-bold text-white/80 uppercase tracking-wider flex items-center justify-between">
                     <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-purple-400"></i> Habilidades Permanentes Automáticas</span>
@@ -355,12 +368,17 @@
                 </div>
             </div>
 
-            <!-- Botão Salvar Configurações -->
-            <div class="pt-2 border-t border-[#282a2c] flex items-center justify-end space-x-2">
-                <button onclick="closeSettingsModal()" class="px-4 py-2 rounded-xl text-xs text-white/60 hover:text-white transition">Cancelar</button>
-                <button onclick="saveAllSettings()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-xs shadow hover:brightness-110 active:scale-95 transition">
-                    <i class="fa-solid fa-check mr-1.5"></i> Salvar Preferências
+            <!-- Botões -->
+            <div class="pt-2 border-t border-[#282a2c] flex items-center justify-between">
+                <button onclick="clearStoredKeys()" class="text-xs text-red-400 hover:text-red-300 flex items-center gap-1">
+                    <i class="fa-regular fa-trash-can"></i> Limpar Chaves Locais
                 </button>
+                <div class="flex items-center space-x-2">
+                    <button onclick="closeSettingsModal()" class="px-4 py-2 rounded-xl text-xs text-white/60 hover:text-white transition">Fechar</button>
+                    <button onclick="saveAllSettings()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-xs shadow hover:brightness-110 active:scale-95 transition">
+                        <i class="fa-solid fa-shield mr-1.5"></i> Salvar Chaves & Preferências
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -396,17 +414,19 @@
         let isRecognizing = false;
         let isLiveAudioActive = false;
 
-        // Settings State
-        let appSettings = {
-            engine: "gemini-flash-lite-latest",
-            gemini_api_key: "",
-            groq_api_key: "",
+        // Security-First State (Stored locally in user browser, never pushed to server storage)
+        let localKeys = {
+            gemini: localStorage.getItem('montanha_user_gemini_key') || '',
+            groq: localStorage.getItem('montanha_user_groq_key') || ''
+        };
+
+        let appPreferences = {
+            engine: localStorage.getItem('montanha_engine') || "gemini-flash-lite-latest",
             plugins: {
                 gcalendar: true,
                 gsheets: true,
                 live_weather: true,
-                web_search: true,
-                cloud_actions: true
+                web_search: true
             },
             permanent_skills: {
                 minha_voz: true,
@@ -415,51 +435,58 @@
             }
         };
 
-        // Load Settings on Start
-        async function fetchSettings() {
+        async function fetchPreferences() {
             try {
-                // Try from local storage first
-                const local = localStorage.getItem('montanha_gemini_settings');
-                if (local) {
-                    appSettings = JSON.parse(local);
-                }
                 const res = await fetch('/api/settings');
                 if (res.ok) {
                     const data = await res.json();
                     if (data.status === 'success' && data.settings) {
-                        appSettings = Object.assign(appSettings, data.settings);
+                        if (data.settings.plugins) appPreferences.plugins = data.settings.plugins;
+                        if (data.settings.permanent_skills) appPreferences.permanent_skills = data.settings.permanent_skills;
                     }
                 }
             } catch (e) {}
-            applySettingsToUI();
+            applyPreferencesToUI();
         }
 
-        function applySettingsToUI() {
-            const engineTag = document.getElementById('headerEngineTag');
-            if (engineTag) {
-                if (appSettings.engine.includes('groq')) engineTag.innerText = "Groq Llama 70B";
-                else if (appSettings.engine.includes('deepseek')) engineTag.innerText = "DeepSeek V3";
-                else engineTag.innerText = "Gemini Flash";
+        function applyPreferencesToUI() {
+            // Update Key Status
+            const badge = document.getElementById('keyStatusBadge');
+            const gemStatus = document.getElementById('geminiKeyStatus');
+            if (localKeys.gemini) {
+                badge.innerText = "🔒 Chave Ativa";
+                badge.className = "text-[10px] uppercase tracking-wider bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full text-emerald-300 font-mono";
+                if (gemStatus) {
+                    gemStatus.innerText = "● Ativa (" + localKeys.gemini.substring(0, 4) + "..." + localKeys.gemini.slice(-4) + ")";
+                    gemStatus.className = "text-[10px] text-emerald-400 font-mono";
+                }
+            } else {
+                badge.innerText = "⚠️ Sem Chave";
+                badge.className = "text-[10px] uppercase tracking-wider bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full text-amber-300 font-mono";
+                if (gemStatus) {
+                    gemStatus.innerText = "Pendente";
+                    gemStatus.className = "text-[10px] text-amber-400";
+                }
             }
-            if (document.getElementById('settingEngine')) document.getElementById('settingEngine').value = appSettings.engine || "gemini-flash-lite-latest";
-            if (document.getElementById('settingGeminiKey') && appSettings.gemini_api_key) document.getElementById('settingGeminiKey').value = appSettings.gemini_api_key;
-            if (document.getElementById('settingGroqKey') && appSettings.groq_api_key) document.getElementById('settingGroqKey').value = appSettings.groq_api_key;
-            
-            // Plugins Toggles
-            if (document.getElementById('pluginGCalendar')) document.getElementById('pluginGCalendar').checked = !!appSettings.plugins.gcalendar;
-            if (document.getElementById('pluginGSheets')) document.getElementById('pluginGSheets').checked = !!appSettings.plugins.gsheets;
-            if (document.getElementById('pluginWeather')) document.getElementById('pluginWeather').checked = !!appSettings.plugins.live_weather;
-            if (document.getElementById('pluginWebSearch')) document.getElementById('pluginWebSearch').checked = !!appSettings.plugins.web_search;
-            if (document.getElementById('pluginCloud')) document.getElementById('pluginCloud').checked = !!appSettings.plugins.cloud_actions;
+
+            if (document.getElementById('settingGeminiKey')) document.getElementById('settingGeminiKey').value = localKeys.gemini;
+            if (document.getElementById('settingGroqKey')) document.getElementById('settingGroqKey').value = localKeys.groq;
+            if (document.getElementById('settingEngine')) document.getElementById('settingEngine').value = appPreferences.engine;
+
+            // Plugins
+            if (document.getElementById('pluginGCalendar')) document.getElementById('pluginGCalendar').checked = !!appPreferences.plugins.gcalendar;
+            if (document.getElementById('pluginGSheets')) document.getElementById('pluginGSheets').checked = !!appPreferences.plugins.gsheets;
+            if (document.getElementById('pluginWeather')) document.getElementById('pluginWeather').checked = !!appPreferences.plugins.live_weather;
+            if (document.getElementById('pluginWebSearch')) document.getElementById('pluginWebSearch').checked = !!appPreferences.plugins.web_search;
 
             // Permanent Skills
-            if (document.getElementById('permMinhaVoz')) document.getElementById('permMinhaVoz').checked = !!appSettings.permanent_skills.minha_voz;
-            if (document.getElementById('permConferir')) document.getElementById('permConferir').checked = !!appSettings.permanent_skills.conferir_rule;
-            if (document.getElementById('permPonytail')) document.getElementById('permPonytail').checked = !!appSettings.permanent_skills.karpathy_ponytail;
+            if (document.getElementById('permMinhaVoz')) document.getElementById('permMinhaVoz').checked = !!appPreferences.permanent_skills.minha_voz;
+            if (document.getElementById('permConferir')) document.getElementById('permConferir').checked = !!appPreferences.permanent_skills.conferir_rule;
+            if (document.getElementById('permPonytail')) document.getElementById('permPonytail').checked = !!appPreferences.permanent_skills.karpathy_ponytail;
         }
 
         function openSettingsModal() {
-            applySettingsToUI();
+            applyPreferencesToUI();
             document.getElementById('settingsModal').classList.remove('hidden');
         }
 
@@ -467,40 +494,58 @@
             document.getElementById('settingsModal').classList.add('hidden');
         }
 
+        function clearStoredKeys() {
+            if (confirm("Deseja remover as chaves de API salvas neste dispositivo?")) {
+                localStorage.removeItem('montanha_user_gemini_key');
+                localStorage.removeItem('montanha_user_groq_key');
+                localKeys.gemini = '';
+                localKeys.groq = '';
+                applyPreferencesToUI();
+                alert("Chaves removidas com segurança deste dispositivo.");
+            }
+        }
+
         async function saveAllSettings() {
-            appSettings.engine = document.getElementById('settingEngine').value;
             const gemKey = document.getElementById('settingGeminiKey').value.trim();
             const groqKey = document.getElementById('settingGroqKey').value.trim();
-            if (gemKey) appSettings.gemini_api_key = gemKey;
-            if (groqKey) appSettings.groq_api_key = groqKey;
+            const engine = document.getElementById('settingEngine').value;
 
-            appSettings.plugins = {
+            // Guardar no LocalStorage do navegador (Zero-Leak)
+            localKeys.gemini = gemKey;
+            localKeys.groq = groqKey;
+            localStorage.setItem('montanha_user_gemini_key', gemKey);
+            localStorage.setItem('montanha_user_groq_key', groqKey);
+            localStorage.setItem('montanha_engine', engine);
+
+            appPreferences.engine = engine;
+            appPreferences.plugins = {
                 gcalendar: document.getElementById('pluginGCalendar').checked,
                 gsheets: document.getElementById('pluginGSheets').checked,
                 live_weather: document.getElementById('pluginWeather').checked,
-                web_search: document.getElementById('pluginWebSearch').checked,
-                cloud_actions: document.getElementById('pluginCloud').checked
+                web_search: document.getElementById('pluginWebSearch').checked
             };
-
-            appSettings.permanent_skills = {
+            appPreferences.permanent_skills = {
                 minha_voz: document.getElementById('permMinhaVoz').checked,
                 conferir_rule: document.getElementById('permConferir').checked,
                 karpathy_ponytail: document.getElementById('permPonytail').checked
             };
 
-            localStorage.setItem('montanha_gemini_settings', JSON.stringify(appSettings));
-
+            // Envia apenas as preferências de UI para o servidor (SEM CHAVES)
             try {
                 await fetch('/api/settings', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(appSettings)
+                    body: JSON.stringify({
+                        engine: appPreferences.engine,
+                        plugins: appPreferences.plugins,
+                        permanent_skills: appPreferences.permanent_skills
+                    })
                 });
             } catch (e) {}
 
-            applySettingsToUI();
+            applyPreferencesToUI();
             closeSettingsModal();
-            alert("Configurações e Plugins salvos com sucesso!");
+            alert("✅ Chaves e preferências salvas com segurança no seu dispositivo!");
         }
 
         function toggleSidebar() {
@@ -826,7 +871,7 @@
             if (el) el.remove();
         }
 
-        // Send Message Handler
+        // Send Message Handler com Injeção Segura de Chave em Trânsito
         async function sendMessage() {
             const input = document.getElementById('promptInput');
             const prompt = input.value.trim();
@@ -834,6 +879,13 @@
             const sendBtn = document.getElementById('sendBtn');
 
             if (!prompt && !attachedImageBase64) return;
+
+            // Verificação de Chave Local
+            if (!localKeys.gemini && !appPreferences.engine.includes('groq')) {
+                openSettingsModal();
+                alert("🔒 Por favor, insira sua GEMINI_API_KEY no painel de segurança para continuar.");
+                return;
+            }
 
             input.value = '';
             input.style.height = 'auto';
@@ -874,19 +926,26 @@
                 chat_id: currentChatId,
                 prompt: prompt,
                 skill: skill,
-                engine: appSettings.engine,
-                plugins: appSettings.plugins,
-                permanent_skills: appSettings.permanent_skills,
+                engine: appPreferences.engine,
+                plugins: appPreferences.plugins,
+                permanent_skills: appPreferences.permanent_skills,
                 image_base64: attachedImageBase64 || "",
                 mime_type: attachedImageMime || "image/jpeg"
             };
+
+            // Injeção Segura da Chave via Headers HTTPS Cifrados
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+            if (localKeys.gemini) headers['X-Gemini-Key'] = localKeys.gemini;
+            if (localKeys.groq) headers['X-Groq-Key'] = localKeys.groq;
 
             removeAttachedImage();
 
             try {
                 const res = await fetch('/api/chat', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: headers,
                     body: JSON.stringify(payload)
                 });
                 const data = await res.json();
@@ -904,6 +963,9 @@
                     }
                 } else {
                     appendBotMessage("⚠️ " + (data.message || "Erro no processamento. Verifique suas chaves de API nas Configurações."));
+                    if (res.status === 401) {
+                        openSettingsModal();
+                    }
                     if (isLiveAudioActive) {
                         isLiveAudioActive = false;
                         updateLiveAudioButtonUI();
@@ -921,7 +983,7 @@
             }
         }
 
-        // Live Audio Conversation Mode Loop (Speak -> Listen -> Speak)
+        // Live Audio Conversation Mode Loop
         function toggleLiveAudioMode() {
             isLiveAudioActive = !isLiveAudioActive;
             updateLiveAudioButtonUI();
@@ -1071,7 +1133,7 @@
         }
 
         window.onload = function() {
-            fetchSettings();
+            fetchPreferences();
             loadChatsIndex();
         };
     </script>

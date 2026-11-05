@@ -1,18 +1,14 @@
 """
-Vercel Serverless Function Handler for Montanha Gemini Studio v4.0
-Multi-Engine Harness (Gemini + Groq + DeepSeek), Dynamic Plugins & Settings
+Vercel Serverless Function Handler for Montanha Gemini Studio v4.1 (Zero-Leak)
+Chaves de API enviadas pelo usuário via cabeçalho/payload em trânsito TLS, sem persistência.
 """
 
 import os
 import json
-import uuid
 import time
 import urllib.request
 import urllib.parse
 from http.server import BaseHTTPRequestHandler
-
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 
 SKILLS_PROMPTS = {
     "minha-voz": (
@@ -118,7 +114,7 @@ class handler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Gemini-Key, X-Groq-Key")
         self.end_headers()
         self.wfile.write(body)
 
@@ -126,7 +122,7 @@ class handler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Gemini-Key, X-Groq-Key")
         self.end_headers()
 
     def do_GET(self):
@@ -135,14 +131,12 @@ class handler(BaseHTTPRequestHandler):
             self._send_json({
                 "status": "online",
                 "platform": "Vercel Serverless Cloud",
-                "app": "Montanha Gemini Studio v4.0",
-                "model": "gemini-flash-lite-latest",
-                "gemini_key_configured": bool(GEMINI_API_KEY),
-                "groq_key_configured": bool(GROQ_API_KEY)
+                "app": "Montanha Gemini Studio v4.1 (Zero-Leak)",
+                "server_env_gemini_active": bool(os.environ.get("GEMINI_API_KEY"))
             })
             return
 
-        self._send_json({"status": "running", "service": "Montanha Gemini Studio API v4.0"})
+        self._send_json({"status": "running", "service": "Montanha Gemini Studio API v4.1 (Zero-Leak)"})
 
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
@@ -163,6 +157,10 @@ class handler(BaseHTTPRequestHandler):
             permanent_skills = body.get("permanent_skills", {"minha_voz": True, "conferir_rule": True, "karpathy_ponytail": True})
             engine = body.get("engine", "gemini-flash-lite-latest")
 
+            # Prioridade para a chave fornecida pelo usuário no cabeçalho ou payload
+            user_gemini_key = self.headers.get("X-Gemini-Key") or body.get("api_key") or os.environ.get("GEMINI_API_KEY", "")
+            user_groq_key = self.headers.get("X-Groq-Key") or body.get("groq_api_key") or os.environ.get("GROQ_API_KEY", "")
+
             system_prompt = build_system_prompt(skill_key, plugins_config, permanent_skills)
 
             if not prompt and not image_b64:
@@ -170,7 +168,6 @@ class handler(BaseHTTPRequestHandler):
                 return
 
             # Groq Llama Dispatch
-            user_groq_key = body.get("groq_api_key") or GROQ_API_KEY
             if ("groq" in engine.lower() or "llama" in engine.lower()) and user_groq_key and not image_b64:
                 try:
                     url = "https://api.groq.com/openai/v1/chat/completions"
@@ -188,9 +185,8 @@ class handler(BaseHTTPRequestHandler):
                 except Exception as e:
                     pass
 
-            api_key = body.get("api_key") or GEMINI_API_KEY
-            if not api_key:
-                self._send_json({"status": "error", "message": "Chave GEMINI_API_KEY não configurada."}, 400)
+            if not user_gemini_key:
+                self._send_json({"status": "error", "message": "🔒 Nenhuma chave de API configurada. Insira sua GEMINI_API_KEY nas Configurações."}, 401)
                 return
 
             web_context = get_live_web_context(prompt, plugins_config)
@@ -218,7 +214,7 @@ class handler(BaseHTTPRequestHandler):
             model_candidates = ["gemini-flash-lite-latest", "gemini-flash-latest"]
             last_err = ""
             for candidate in model_candidates:
-                endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{candidate}:generateContent?key={api_key}"
+                endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{candidate}:generateContent?key={user_gemini_key}"
                 req = urllib.request.Request(
                     endpoint,
                     data=json.dumps(payload).encode("utf-8"),
