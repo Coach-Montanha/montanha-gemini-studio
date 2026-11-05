@@ -1,0 +1,175 @@
+name: Build Android APK Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Android SDK Tools
+        uses: android-actions/setup-android@v3
+
+      - name: Build Standalone APK
+        run: |
+          mkdir -p build_apk/src/com/montanhagemini/app
+          mkdir -p build_apk/res/values
+          mkdir -p build_apk/obj
+          mkdir -p build_apk/bin
+
+          cat << 'EOF' > build_apk/AndroidManifest.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+              package="com.montanhagemini.app"
+              android:versionCode="1"
+              android:versionName="1.0">
+              <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+              <uses-permission android:name="android.permission.RECORD_AUDIO" />
+              <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+              <application
+                  android:label="Montanha Gemini Studio"
+                  android:usesCleartextTraffic="true"
+                  android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true"
+                      android:configChanges="orientation|screenSize|keyboardHidden">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF
+
+          cat << 'EOF' > build_apk/src/com/montanhagemini/app/MainActivity.java
+          package com.montanhagemini.app;
+
+          import android.annotation.SuppressLint;
+          import android.app.Activity;
+          import android.app.DownloadManager;
+          import android.content.Context;
+          import android.net.Uri;
+          import android.os.Bundle;
+          import android.os.Environment;
+          import android.view.WindowManager;
+          import android.webkit.DownloadListener;
+          import android.webkit.PermissionRequest;
+          import android.webkit.WebChromeClient;
+          import android.webkit.WebSettings;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+          import android.widget.Toast;
+
+          public class MainActivity extends Activity {
+              private WebView webView;
+
+              @SuppressLint("SetJavaScriptEnabled")
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+
+                  getWindow().setFlags(
+                      WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                      WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+                  );
+
+                  webView = new WebView(this);
+                  setContentView(webView);
+
+                  WebSettings ws = webView.getSettings();
+                  ws.setJavaScriptEnabled(true);
+                  ws.setDomStorageEnabled(true);
+                  ws.setAllowFileAccess(true);
+                  ws.setAllowContentAccess(true);
+                  ws.setMediaPlaybackRequiresUserGesture(false);
+
+                  webView.setWebViewClient(new WebViewClient());
+                  webView.setWebChromeClient(new WebChromeClient() {
+                      @Override
+                      public void onPermissionRequest(final PermissionRequest request) {
+                          request.grant(request.getResources());
+                      }
+                  });
+
+                  webView.setDownloadListener(new DownloadListener() {
+                      @Override
+                      public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
+                          try {
+                              DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+                              request.setMimeType(mimeType);
+                              request.setDescription("Baixando...");
+                              request.setTitle(url.substring(url.lastIndexOf("/") + 1));
+                              request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                              request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, url.substring(url.lastIndexOf("/") + 1));
+
+                              DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+                              if (dm != null) {
+                                  dm.enqueue(request);
+                                  Toast.makeText(MainActivity.this, "Baixando para pasta Downloads...", Toast.LENGTH_SHORT).show();
+                              }
+                          } catch (Exception e) {}
+                      }
+                  });
+
+                  webView.loadUrl("https://montanha-gemini-studio.vercel.app");
+              }
+
+              @Override
+              public void onBackPressed() {
+                  if (webView.canGoBack()) {
+                      webView.goBack();
+                  } else {
+                      super.onBackPressed();
+                  }
+              }
+          }
+          EOF
+
+          ANDROID_JAR="$ANDROID_HOME/platforms/android-34/android.jar"
+          if [ ! -f "$ANDROID_JAR" ]; then
+              ANDROID_JAR=$(find $ANDROID_HOME/platforms -name "android.jar" | head -n 1)
+          fi
+
+          aapt package -f -m -J build_apk/src -M build_apk/AndroidManifest.xml -S build_apk/res -I "$ANDROID_JAR"
+          javac -d build_apk/obj -classpath "$ANDROID_JAR" $(find build_apk/src -name "*.java")
+          d8 --output build_apk/bin build_apk/obj/com/montanhagemini/app/*.class
+          aapt package -f -M build_apk/AndroidManifest.xml -S build_apk/res -I "$ANDROID_JAR" -F build_apk/bin/unsigned.apk
+          cd build_apk/bin
+          aapt add unsigned.apk classes.dex
+
+          keytool -genkeypair -v -keystore debug.keystore -alias androiddebugkey -keypass android -storepass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=AndroidDebug,O=Android,C=US"
+          apksigner sign --ks debug.keystore --ks-pass pass:android --out MontanhaGeminiStudio.apk unsigned.apk
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MontanhaGeminiStudio-APK
+          path: build_apk/bin/MontanhaGeminiStudio.apk
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: build_apk/bin/MontanhaGeminiStudio.apk
+          tag_name: ${{ github.ref_name }}
+          name: Montanha Gemini Studio ${{ github.ref_name }}
+          body: "Download do arquivo APK do Montanha Gemini Studio compilado automaticamente pelo GitHub Actions na nuvem."
