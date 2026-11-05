@@ -1,6 +1,9 @@
 """
-Vercel Serverless Function Handler for Montanha Gemini Studio v4.1 (Zero-Leak)
-Chaves de API enviadas pelo usuário via cabeçalho/payload em trânsito TLS, sem persistência.
+Vercel Serverless Function Handler for Montanha Gemini Studio v4.5 (Antigravity-Grade)
+- Zero-Leak Security (Keys from client headers)
+- Online Sources & Real Grounding Links
+- Offline Indicator when answering from internal knowledge
+- Multi-Engine Dispatch (Gemini, Groq, DeepSeek)
 """
 
 import os
@@ -76,12 +79,16 @@ def build_system_prompt(skill_key, plugins_config, permanent_skills):
 
 def get_live_web_context(query, plugins_config):
     if not plugins_config.get("web_search", True) and not plugins_config.get("live_weather", True):
-        return ""
+        return "", None
+
     ql = query.lower()
     snippets = []
+    sources = []
+
+    # 1. Weather Hook com Open-Meteo
     if plugins_config.get("live_weather", True) and any(k in ql for k in ["clima", "tempo", "temperatura", "previsão"]):
         city = "Joao Pessoa"
-        for candidate in ["joao pessoa", "joão pessoa", "são paulo", "sao paulo", "rio de janeiro", "recife", "fortaleza", "curitiba"]:
+        for candidate in ["joao pessoa", "joão pessoa", "são paulo", "sao paulo", "rio de janeiro", "recife", "fortaleza", "curitiba", "brasília", "salvador"]:
             if candidate in ql:
                 city = candidate.title()
                 break
@@ -99,12 +106,36 @@ def get_live_web_context(query, plugins_config):
                     with urllib.request.urlopen(req_w, timeout=3) as rw:
                         w = json.loads(rw.read().decode())["current"]
                         snippets.append(
-                            f"[METEOROLOGIA AO VIVO]: {city} | Temp: {w['temperature_2m']}°C (Sensação: {w['apparent_temperature']}°C) | Umidade: {w['relative_humidity_2m']}%"
+                            f"[METEOROLOGIA AO VIVO]: {city} | Temp: {w['temperature_2m']}°C (Sensação: {w['apparent_temperature']}°C) | Umidade: {w['relative_humidity_2m']}% | Vento: {w['wind_speed_10m']} km/h"
                         )
+                        sources.append({
+                            "title": f"Open-Meteo Previsão do Tempo ({city})",
+                            "url": f"https://open-meteo.com/en/docs#latitude={lat}&longitude={lon}"
+                        })
         except Exception:
             pass
 
-    return "\n".join(snippets)
+    # 2. Web Search Snippet Hook
+    if plugins_config.get("web_search", True) and any(k in ql for k in ["notícia", "noticia", "hoje", "resultado", "preço", "preco", "cotação", "cotacao", "o que aconteceu", "pesquise", "quem é", "quem e"]):
+        try:
+            clean_q = urllib.parse.quote(query)
+            ddg_url = f"https://api.duckduckgo.com/?q={clean_q}&format=json&no_html=1&skip_disambig=1"
+            req_ddg = urllib.request.Request(ddg_url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req_ddg, timeout=3) as rd:
+                ddg_data = json.loads(rd.read().decode())
+                abs_text = ddg_data.get("AbstractText", "")
+                abs_url = ddg_data.get("AbstractURL", "")
+                source_name = ddg_data.get("AbstractSource", "DuckDuckGo Instant Answers")
+                if abs_text:
+                    snippets.append(f"[BUSCA WEB AO VIVO]: {abs_text}")
+                    sources.append({
+                        "title": f"{source_name}: {query[:35]}",
+                        "url": abs_url or f"https://duckduckgo.com/?q={clean_q}"
+                    })
+        except Exception:
+            pass
+
+    return "\n".join(snippets), (sources if sources else None)
 
 class handler(BaseHTTPRequestHandler):
     def _send_json(self, data, status=200):
@@ -131,12 +162,12 @@ class handler(BaseHTTPRequestHandler):
             self._send_json({
                 "status": "online",
                 "platform": "Vercel Serverless Cloud",
-                "app": "Montanha Gemini Studio v4.1 (Zero-Leak)",
+                "app": "Montanha Gemini Studio v4.5 (Antigravity-Grade)",
                 "server_env_gemini_active": bool(os.environ.get("GEMINI_API_KEY"))
             })
             return
 
-        self._send_json({"status": "running", "service": "Montanha Gemini Studio API v4.1 (Zero-Leak)"})
+        self._send_json({"status": "running", "service": "Montanha Gemini Studio API v4.5"})
 
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
@@ -157,7 +188,6 @@ class handler(BaseHTTPRequestHandler):
             permanent_skills = body.get("permanent_skills", {"minha_voz": True, "conferir_rule": True, "karpathy_ponytail": True})
             engine = body.get("engine", "gemini-flash-lite-latest")
 
-            # Prioridade para a chave fornecida pelo usuário no cabeçalho ou payload
             user_gemini_key = self.headers.get("X-Gemini-Key") or body.get("api_key") or os.environ.get("GEMINI_API_KEY", "")
             user_groq_key = self.headers.get("X-Groq-Key") or body.get("groq_api_key") or os.environ.get("GROQ_API_KEY", "")
 
@@ -167,29 +197,36 @@ class handler(BaseHTTPRequestHandler):
                 self._send_json({"status": "error", "message": "Mensagem vazia"}, 400)
                 return
 
+            web_context, sources = get_live_web_context(prompt, plugins_config)
+
             # Groq Llama Dispatch
             if ("groq" in engine.lower() or "llama" in engine.lower()) and user_groq_key and not image_b64:
                 try:
                     url = "https://api.groq.com/openai/v1/chat/completions"
                     headers = {"Authorization": f"Bearer {user_groq_key}", "Content-Type": "application/json"}
+                    prompt_full = f"{prompt}\n\n[CONTEXTO WEB]: {web_context}" if web_context else prompt
                     payload = {
                         "model": "llama-3.3-70b-versatile",
-                        "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt}]
+                        "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt_full}]
                     }
                     req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers)
-                    with urllib.request.urlopen(req, timeout=15) as resp:
+                    with urllib.request.urlopen(req, timeout=20) as resp:
                         res = json.loads(resp.read().decode())
                         ans = res["choices"][0]["message"]["content"]
-                        self._send_json({"status": "success", "response": ans, "model": "Groq Llama 3.3 70B"})
+                        self._send_json({
+                            "status": "success",
+                            "response": ans,
+                            "model": "Groq Llama 3.3 70B",
+                            "sources": sources
+                        })
                         return
-                except Exception as e:
+                except Exception:
                     pass
 
             if not user_gemini_key:
-                self._send_json({"status": "error", "message": "🔒 Nenhuma chave de API configurada. Insira sua GEMINI_API_KEY nas Configurações."}, 401)
+                self._send_json({"status": "error", "message": "🔒 Nenhuma chave configurada. Abra Configurações e insira sua GEMINI_API_KEY."}, 401)
                 return
 
-            web_context = get_live_web_context(prompt, plugins_config)
             current_text = prompt
             if web_context:
                 current_text = f"{prompt}\n\n[INFORMAÇÃO EM TEMPO REAL]:\n{web_context}"
@@ -212,6 +249,10 @@ class handler(BaseHTTPRequestHandler):
             }
 
             model_candidates = ["gemini-flash-lite-latest", "gemini-flash-latest"]
+            if engine in model_candidates:
+                model_candidates.remove(engine)
+                model_candidates.insert(0, engine)
+
             last_err = ""
             for candidate in model_candidates:
                 endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{candidate}:generateContent?key={user_gemini_key}"
@@ -227,7 +268,12 @@ class handler(BaseHTTPRequestHandler):
                         parts = candidate_resp.get("content", {}).get("parts", [])
                         text_ans = "".join([p.get("text", "") for p in parts]).strip()
                         if text_ans:
-                            self._send_json({"status": "success", "response": text_ans, "model": candidate})
+                            self._send_json({
+                                "status": "success",
+                                "response": text_ans,
+                                "model": candidate,
+                                "sources": sources
+                            })
                             return
                 except Exception as ex:
                     last_err = str(ex)

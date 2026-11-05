@@ -1,11 +1,9 @@
 """
-Montanha Gemini Studio v4.1 - Zero-Leak Secure Harness
-Features:
-- Security First: Server never stores or persists raw API keys on disk or git.
-- Zero-Leak BYOK: Keys are supplied by the user per-session (in memory / HTTPS Authorization header).
-- Settings storage only persists UI toggles (plugins on/off, permanent skills).
-- Server Environment fallback: GEMINI_API_KEY from os.environ (set on Vercel or local OS).
-- Multi-Engine Harness: Gemini Flash Lite / Flash / Pro + Groq Llama 3.3 70B + DeepSeek.
+Montanha Gemini Studio v4.5 (Antigravity-Grade Local Server)
+- Zero-Leak Security (Keys from client headers)
+- Online Sources & Real Grounding Links
+- Offline Indicator when answering from internal knowledge
+- Multi-Engine Dispatch (Gemini, Groq, DeepSeek)
 """
 
 import os
@@ -30,7 +28,6 @@ CHATS_DIR.mkdir(parents=True, exist_ok=True)
 if not INDEX_FILE.exists():
     INDEX_FILE.write_text("[]", encoding="utf-8")
 
-# Preferências padrão de UI e Plugins (SEM NENHUMA CHAVE DE API PERSISTIDA)
 DEFAULT_PREFS = {
     "engine": "gemini-flash-lite-latest",
     "plugins": {
@@ -58,7 +55,6 @@ def load_prefs():
         for k, v in DEFAULT_PREFS.items():
             if k not in data:
                 data[k] = v
-        # Blindagem: se existir chave acidental no JSON de preferências, remove imediatamente
         for secret in ["gemini_api_key", "groq_api_key", "openai_api_key", "deepseek_api_key"]:
             data.pop(secret, None)
         return data
@@ -68,7 +64,6 @@ def load_prefs():
 def save_prefs(new_prefs):
     try:
         current = load_prefs()
-        # Sanitizar chaves privadas para garantir que JAMAIS sejam salvas no disco
         clean = {k: v for k, v in new_prefs.items() if not k.endswith("_api_key") and not k.endswith("_key")}
         current.update(clean)
         PREFS_FILE.write_text(json.dumps(current, indent=2, ensure_ascii=False), encoding="utf-8")
@@ -146,13 +141,15 @@ def build_system_prompt(skill_key, plugins_config, permanent_skills):
 
 def get_live_web_context(query, plugins_config):
     if not plugins_config.get("web_search", True) and not plugins_config.get("live_weather", True):
-        return ""
+        return "", None
+
     ql = query.lower()
     snippets = []
+    sources = []
 
     if plugins_config.get("live_weather", True) and any(k in ql for k in ["clima", "tempo", "temperatura", "previsão"]):
         city = "Joao Pessoa"
-        for candidate in ["joao pessoa", "joão pessoa", "são paulo", "sao paulo", "rio de janeiro", "recife", "fortaleza", "curitiba"]:
+        for candidate in ["joao pessoa", "joão pessoa", "são paulo", "sao paulo", "rio de janeiro", "recife", "fortaleza", "curitiba", "brasília", "salvador"]:
             if candidate in ql:
                 city = candidate.title()
                 break
@@ -174,10 +171,14 @@ def get_live_web_context(query, plugins_config):
                             f"Temperatura atual: {w['temperature_2m']}°C (Sensação: {w['apparent_temperature']}°C). "
                             f"Umidade: {w['relative_humidity_2m']}%. Vento: {w['wind_speed_10m']} km/h."
                         )
+                        sources.append({
+                            "title": f"Open-Meteo Previsão ({city})",
+                            "url": f"https://open-meteo.com/en/docs#latitude={lat}&longitude={lon}"
+                        })
         except Exception:
             pass
 
-    if plugins_config.get("web_search", True) and any(k in ql for k in ["notícia", "hoje", "resultado", "preço", "cotação", "o que aconteceu", "pesquise"]):
+    if plugins_config.get("web_search", True) and any(k in ql for k in ["notícia", "noticia", "hoje", "resultado", "preço", "preco", "cotação", "cotacao", "o que aconteceu", "pesquise", "quem é", "quem e"]):
         try:
             clean_q = urllib.parse.quote(query)
             ddg_url = f"https://api.duckduckgo.com/?q={clean_q}&format=json&no_html=1&skip_disambig=1"
@@ -185,12 +186,18 @@ def get_live_web_context(query, plugins_config):
             with urllib.request.urlopen(req_ddg, timeout=3) as rd:
                 ddg_data = json.loads(rd.read().decode())
                 abs_text = ddg_data.get("AbstractText", "")
+                abs_url = ddg_data.get("AbstractURL", "")
+                source_name = ddg_data.get("AbstractSource", "DuckDuckGo Instant Answers")
                 if abs_text:
                     snippets.append(f"[BUSCA WEB AO VIVO]: {abs_text}")
+                    sources.append({
+                        "title": f"{source_name}: {query[:35]}",
+                        "url": abs_url or f"https://duckduckgo.com/?q={clean_q}"
+                    })
         except Exception:
             pass
 
-    return "\n".join(snippets)
+    return "\n".join(snippets), (sources if sources else None)
 
 def get_chats_index():
     try:
@@ -255,7 +262,7 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
             prefs = load_prefs()
             self._send_json({
                 "status": "online",
-                "app": "Montanha Gemini Studio v4.1 (Zero-Leak)",
+                "app": "Montanha Gemini Studio v4.5 (Antigravity-Grade)",
                 "engine": prefs.get("engine", "gemini-flash-lite-latest"),
                 "server_env_gemini_active": bool(os.environ.get("GEMINI_API_KEY")),
                 "plugins": prefs.get("plugins", {}),
@@ -265,7 +272,6 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
 
         elif parsed.path == "/api/settings":
             prefs = load_prefs()
-            # NUNCA devolve chaves de API pelo endpoint GET
             self._send_json({
                 "status": "success",
                 "settings": prefs,
@@ -289,10 +295,11 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
             if file_path.suffix == ".css": mime = "text/css"
             elif file_path.suffix == ".js": mime = "application/javascript"
             elif file_path.suffix == ".json": mime = "application/json"
+            elif file_path.suffix == ".svg": mime = "image/svg+xml"
             elif file_path.suffix in [".png", ".jpg", ".jpeg"]: mime = f"image/{file_path.suffix.lstrip('.')}"
             content = file_path.read_bytes()
             self.send_response(200)
-            self.send_header("Content-Type", f"{mime}; charset=utf-8" if "text" in mime else mime)
+            self.send_header("Content-Type", f"{mime}; charset=utf-8" if "text" in mime or "svg" in mime else mime)
             self.send_header("Content-Length", str(len(content)))
             self.end_headers()
             self.wfile.write(content)
@@ -314,6 +321,27 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
         if parsed.path == "/api/settings":
             save_prefs(body)
             self._send_json({"status": "success", "message": "Preferências salvas com segurança!"})
+            return
+
+        elif parsed.path == "/api/chats/save":
+            chat_id = body.get("chat_id")
+            title = body.get("title", "Conversa").strip()
+            messages = body.get("messages", [])
+            if chat_id:
+                idx = get_chats_index()
+                existing = next((c for c in idx if c.get("id") == chat_id), None)
+                if not existing:
+                    idx.insert(0, {
+                        "id": chat_id,
+                        "title": title[:35] + ("..." if len(title) > 35 else ""),
+                        "created_at": time.strftime("%Y-%m-%d %H:%M"),
+                        "updated_at": time.strftime("%Y-%m-%d %H:%M")
+                    })
+                else:
+                    existing["updated_at"] = time.strftime("%Y-%m-%d %H:%M")
+                save_chats_index(idx)
+                save_chat_messages(chat_id, messages)
+            self._send_json({"status": "success"})
             return
 
         elif parsed.path == "/api/chats/new":
@@ -349,7 +377,6 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
             image_b64 = body.get("image_base64", "")
             mime_type = body.get("mime_type", "image/jpeg")
 
-            # Obtenção da Chave: Prioridade Absoluta para o Header ou Payload fornecido diretamente pelo Usuário
             user_gemini_key = self.headers.get("X-Gemini-Key") or body.get("api_key") or os.environ.get("GEMINI_API_KEY", "")
             user_groq_key = self.headers.get("X-Groq-Key") or body.get("groq_api_key") or os.environ.get("GROQ_API_KEY", "")
 
@@ -360,54 +387,39 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
 
             system_prompt = build_system_prompt(skill_key, plugins_config, permanent_skills)
 
-            if not chat_id:
-                idx = get_chats_index()
-                title = prompt[:35] + ("..." if len(prompt) > 35 else "") if prompt else "Conversa Rápida"
-                chat_id = f"chat_{int(time.time())}_{uuid.uuid4().hex[:4]}"
-                idx.insert(0, {
-                    "id": chat_id,
-                    "title": title,
-                    "created_at": time.strftime("%Y-%m-%d %H:%M"),
-                    "updated_at": time.strftime("%Y-%m-%d %H:%M")
-                })
-                save_chats_index(idx)
-
             if not prompt and not image_b64:
                 self._send_json({"status": "error", "message": "Mensagem vazia"}, 400)
                 return
 
-            web_context = get_live_web_context(prompt, plugins_config)
-            history = get_chat_messages(chat_id)
-
-            current_text = prompt
-            if web_context:
-                current_text = f"{prompt}\n\n[INFORMAÇÃO EM TEMPO REAL DA INTERNET]:\n{web_context}"
+            web_context, sources = get_live_web_context(prompt, plugins_config)
 
             # Groq Llama 3.3 70B
             if ("groq" in engine.lower() or "llama" in engine.lower()) and user_groq_key and not image_b64:
                 try:
-                    ext_ans = dispatch_external_engine("groq", current_text, system_prompt, user_groq_key)
+                    prompt_full = f"{prompt}\n\n[INFORMAÇÃO TEMPO REAL]:\n{web_context}" if web_context else prompt
+                    ext_ans = dispatch_external_engine("groq", prompt_full, system_prompt, user_groq_key)
                     if ext_ans:
-                        history.append({"role": "user", "prompt": prompt, "time": time.strftime("%H:%M")})
-                        history.append({"role": "model", "response": ext_ans, "engine": "Groq Llama 3.3 70B", "time": time.strftime("%H:%M")})
-                        save_chat_messages(chat_id, history)
-                        self._send_json({"status": "success", "chat_id": chat_id, "response": ext_ans, "engine": "Groq Llama 3.3 70B"})
+                        self._send_json({
+                            "status": "success",
+                            "chat_id": chat_id,
+                            "response": ext_ans,
+                            "engine": "Groq Llama 3.3 70B",
+                            "sources": sources
+                        })
                         return
                 except Exception as e:
                     print(f"Erro Groq: {e}")
 
-            # Gemini Engine
             if not user_gemini_key:
                 self._send_json({
                     "status": "error",
-                    "message": "🔒 Nenhuma Chave de API fornecida. Por favor, insira sua GEMINI_API_KEY no painel de Ajustes."
+                    "message": "🔒 Nenhuma Chave de API configurada. Clique em 'Configuração' e defina sua GEMINI_API_KEY."
                 }, 401)
                 return
 
-            context_contents = []
-            for h in history[-8:]:
-                context_contents.append({"role": "user", "parts": [{"text": h.get("prompt", "")}]})
-                context_contents.append({"role": "model", "parts": [{"text": h.get("response", "")}]})
+            current_text = prompt
+            if web_context:
+                current_text = f"{prompt}\n\n[INFORMAÇÃO EM TEMPO REAL DA INTERNET]:\n{web_context}"
 
             current_parts = []
             if current_text:
@@ -420,10 +432,8 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
                     }
                 })
 
-            context_contents.append({"role": "user", "parts": current_parts})
-
             payload = {
-                "contents": context_contents,
+                "contents": [{"role": "user", "parts": current_parts}],
                 "system_instruction": {"parts": [{"text": system_prompt}]},
                 "generationConfig": {"temperature": 0.7, "maxOutputTokens": 2048}
             }
@@ -448,10 +458,13 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
                         parts = candidate_resp.get("content", {}).get("parts", [])
                         text_ans = "".join([p.get("text", "") for p in parts]).strip()
                         if text_ans:
-                            history.append({"role": "user", "prompt": prompt, "image": bool(image_b64), "time": time.strftime("%H:%M")})
-                            history.append({"role": "model", "response": text_ans, "model": candidate, "time": time.strftime("%H:%M")})
-                            save_chat_messages(chat_id, history)
-                            self._send_json({"status": "success", "chat_id": chat_id, "response": text_ans, "model": candidate})
+                            self._send_json({
+                                "status": "success",
+                                "chat_id": chat_id,
+                                "response": text_ans,
+                                "model": candidate,
+                                "sources": sources
+                            })
                             return
                 except urllib.error.HTTPError as he:
                     last_err = he.read().decode()
@@ -530,7 +543,7 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
 def run_server(port=4192):
     server_address = ("0.0.0.0", port)
     httpd = ThreadingHTTPServer(server_address, GeminiStudioHandler)
-    print(f"[*] Montanha Gemini Studio v4.1 (Zero-Leak) ativo na porta {port}")
+    print(f"[*] Montanha Gemini Studio v4.5 ativo na porta {port}")
     httpd.serve_forever()
 
 if __name__ == "__main__":

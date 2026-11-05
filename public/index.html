@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Montanha Gemini Studio v4.1 (Zero-Leak)</title>
+    <title>Montanha Gemini Studio</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -73,8 +74,8 @@
 
         <div class="p-3 border-t border-[#282a2c] bg-black/20 text-[11px] text-white/50 flex items-center justify-between">
             <button onclick="openSettingsModal()" class="flex items-center space-x-1.5 hover:text-white transition">
-                <i class="fa-solid fa-shield-halved text-emerald-400"></i>
-                <span>Segurança & Chaves</span>
+                <i class="fa-solid fa-gear text-cyan-400"></i>
+                <span>Configurações</span>
             </button>
             <span class="text-emerald-400 font-mono text-[10px] bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Zero-Leak</span>
         </div>
@@ -101,13 +102,13 @@
             </div>
 
             <div class="flex items-center space-x-2">
-                <!-- Settings Button -->
-                <button onclick="openSettingsModal()" title="Configurações, Plugins & Chaves de IA" class="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/80 hover:text-white text-xs flex items-center space-x-1.5 transition border border-white/5">
-                    <i class="fa-solid fa-key text-amber-400"></i>
-                    <span class="hidden sm:inline">Minhas Chaves</span>
+                <!-- Settings Button (Sempre Acessível) -->
+                <button onclick="openSettingsModal()" title="Configurações, Plugins & Chaves" class="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/80 hover:text-white text-xs flex items-center space-x-1.5 transition border border-white/5">
+                    <i class="fa-solid fa-gear text-cyan-400"></i>
+                    <span>Configuração</span>
                 </button>
 
-                <!-- Real-Time Live Audio Call Mode Button -->
+                <!-- Live Voice Call -->
                 <button id="liveAudioCallBtn" onclick="toggleLiveAudioMode()" title="Modo Conversa por Voz Contínua (Gemini Live)" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:brightness-110 text-white font-bold text-xs flex items-center space-x-1.5 transition shadow active:scale-95">
                     <i id="liveAudioIcon" class="fa-solid fa-phone"></i>
                     <span id="liveAudioText">Conversa Live</span>
@@ -117,6 +118,7 @@
                     <i class="fa-solid fa-file-pdf text-red-400"></i>
                     <span class="hidden sm:inline">PDF</span>
                 </button>
+
                 <button onclick="deleteCurrentChat()" title="Excluir este chat" class="p-2 rounded-full hover:bg-white/10 text-white/60 hover:text-red-400 transition">
                     <i class="fa-regular fa-trash-can text-sm"></i>
                 </button>
@@ -130,44 +132,44 @@
                 <!-- Welcome Screen -->
                 <div id="welcomeScreen" class="flex-1 flex flex-col items-center justify-center text-center my-auto py-12 space-y-4">
                     <div class="w-16 h-16 rounded-2xl flex items-center justify-center bg-gradient-to-tr from-blue-600 via-indigo-600 to-pink-500 shadow-xl">
-                        <i class="fa-solid fa-shield-halved text-2xl text-white"></i>
+                        <i class="fa-solid fa-sparkles text-2xl text-white"></i>
                     </div>
                     <div>
                         <h2 class="text-2xl md:text-3xl font-bold">
                             Olá, <span class="gemini-gradient-text">Coach Montanha</span>
                         </h2>
                         <p class="text-sm text-white/50 mt-1 max-w-md mx-auto">
-                            Arquitetura Blindada Zero-Leak. Suas chaves ficam salvas estritamente no seu dispositivo local.
+                            Estúdio com fontes reais e navegação transparente.
                         </p>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-lg pt-4 text-left">
-                        <button onclick="openSettingsModal()" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-amber-500/30 text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
-                            <i class="fa-solid fa-key text-amber-400 mt-0.5"></i>
-                            <div>
-                                <span class="font-bold text-amber-300">Inserir Minha Chave Gemini</span>
-                                <p class="text-[11px] text-white/50">Definir credencial local privada</p>
-                            </div>
-                        </button>
                         <button onclick="setPrompt('/imagem Atleta determinado correndo sob chuva iluminação dramática 8k')" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
                             <i class="fa-solid fa-image text-purple-400 mt-0.5"></i>
                             <div>
-                                <span>Gerar Imagem Flux 1024x1024</span>
-                                <p class="text-[11px] text-white/50">Criação visual sem custo</p>
+                                <span class="font-semibold">Gerar Imagem Flux 1024x1024</span>
+                                <p class="text-[11px] text-white/50">Criação visual instantânea</p>
+                            </div>
+                        </button>
+                        <button onclick="setPrompt('Escreva um roteiro de 20s para Reels sobre consistência e execução')" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
+                            <i class="fa-solid fa-clapperboard text-cyan-400 mt-0.5"></i>
+                            <div>
+                                <span class="font-semibold">Roteiro 10x com Minha Voz</span>
+                                <p class="text-[11px] text-white/50">Cortes e gancho de 3 segundos</p>
                             </div>
                         </button>
                         <button onclick="setPrompt('Agende uma reunião de alinhamento com a equipe de marketing no Google Calendar para amanhã às 15h')" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
                             <i class="fa-solid fa-calendar-check text-blue-400 mt-0.5"></i>
                             <div>
-                                <span>Ação Google Calendar</span>
+                                <span class="font-semibold">Ação Google Calendar</span>
                                 <p class="text-[11px] text-white/50">Plugin de agendamento</p>
                             </div>
                         </button>
                         <button onclick="setPrompt('Como está o clima e a temperatura em João Pessoa agora?')" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
                             <i class="fa-solid fa-cloud-sun text-emerald-400 mt-0.5"></i>
                             <div>
-                                <span>Busca Meteorológica ao Vivo</span>
-                                <p class="text-[11px] text-white/50">Open-Meteo em tempo real</p>
+                                <span class="font-semibold">Busca Meteorológica ao Vivo</span>
+                                <p class="text-[11px] text-white/50">Open-Meteo com fontes reais</p>
                             </div>
                         </button>
                     </div>
@@ -176,7 +178,7 @@
             </div>
         </main>
 
-        <!-- Bottom Input Dock with Skills Selector & Speed Controls -->
+        <!-- Bottom Input Dock (Estilo Antigravity 1-para-1) -->
         <div class="w-full max-w-3xl mx-auto px-4 pb-4">
             <!-- Image Attachment Preview -->
             <div id="imagePreviewBar" class="hidden mb-2 p-2 rounded-xl bg-[#1e1f20] border border-[#37393b] flex items-center justify-between">
@@ -189,46 +191,75 @@
                 </button>
             </div>
 
-            <!-- Main Input Box -->
+            <!-- Main Input Box com layout do Antigravity -->
             <div class="relative bg-[#1e1f20] rounded-2xl border border-[#37393b] focus-within:border-white/30 transition shadow-2xl p-2.5 flex items-end space-x-2">
                 <input type="file" id="fileInput" accept="image/*,audio/*,video/*" class="hidden" onchange="handleFileSelect(event)">
                 
-                <button onclick="document.getElementById('fileInput').click()" title="Anexar Imagem, Áudio ou Vídeo" class="w-9 h-9 rounded-xl hover:bg-white/10 text-white/60 hover:text-white flex items-center justify-center transition">
-                    <i class="fa-solid fa-paperclip text-sm"></i>
-                </button>
+                <!-- Botão '+' de Adicionar Contexto (Estilo Antigravity) -->
+                <div class="relative">
+                    <button id="addContextBtn" onclick="toggleContextDropdown()" title="Adicionar Contexto (+)" class="w-9 h-9 rounded-xl hover:bg-white/10 text-white/70 hover:text-white flex items-center justify-center transition text-base font-bold">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                    <!-- Context Menu Dropdown -->
+                    <div id="contextDropdown" class="hidden absolute bottom-11 left-0 w-48 bg-[#1e1f20] border border-[#37393b] rounded-xl shadow-2xl py-1.5 z-30 text-xs">
+                        <button onclick="document.getElementById('fileInput').click(); toggleContextDropdown();" class="w-full px-3 py-2 text-left hover:bg-white/10 text-white/80 hover:text-white flex items-center space-x-2.5">
+                            <i class="fa-solid fa-paperclip text-cyan-400"></i>
+                            <span>Anexar Arquivo</span>
+                        </button>
+                        <button onclick="triggerImageMode(); toggleContextDropdown();" class="w-full px-3 py-2 text-left hover:bg-white/10 text-white/80 hover:text-white flex items-center space-x-2.5">
+                            <i class="fa-solid fa-image text-purple-400"></i>
+                            <span>Gerar Imagem Flux</span>
+                        </button>
+                        <button onclick="openPdfModal(); toggleContextDropdown();" class="w-full px-3 py-2 text-left hover:bg-white/10 text-white/80 hover:text-white flex items-center space-x-2.5">
+                            <i class="fa-solid fa-file-pdf text-red-400"></i>
+                            <span>Ler Livro / Artigo PDF</span>
+                        </button>
+                    </div>
+                </div>
 
-                <button onclick="triggerImageMode()" title="Gerar Imagem Flux 1024x1024" class="w-9 h-9 rounded-xl hover:bg-purple-500/20 text-purple-400 hover:text-purple-300 flex items-center justify-center transition">
-                    <i class="fa-solid fa-image text-sm"></i>
-                </button>
+                <textarea id="promptInput" rows="1" placeholder="Converse com o assistente, fale no microfone ou envie comandos..." onkeydown="handleKeyDown(event)" oninput="autoGrow(this)" class="flex-1 bg-transparent border-0 text-white placeholder-white/40 text-sm focus:outline-none resize-none max-h-40 leading-relaxed py-1.5 px-1"></textarea>
 
-                <!-- Voice Input Microphone Button -->
+                <!-- Microfone ao lado do botão de enviar (Padrão Antigravity) -->
                 <button id="micBtn" onclick="toggleSpeechRecognition()" title="Falar por Voz (Microfone)" class="w-9 h-9 rounded-xl hover:bg-cyan-500/20 text-cyan-400 hover:text-cyan-300 flex items-center justify-center transition">
                     <i id="micIcon" class="fa-solid fa-microphone text-sm"></i>
                 </button>
 
-                <textarea id="promptInput" rows="1" placeholder="Converse com o assistente, fale no microfone ou envie comandos..." onkeydown="handleKeyDown(event)" oninput="autoGrow(this)" class="flex-1 bg-transparent border-0 text-white placeholder-white/40 text-sm focus:outline-none resize-none max-h-40 leading-relaxed py-1.5 px-1"></textarea>
-
-                <button id="sendBtn" onclick="sendMessage()" class="w-9 h-9 rounded-xl bg-white text-black hover:bg-white/90 flex items-center justify-center transition disabled:opacity-30 disabled:cursor-not-allowed">
+                <!-- Botão Enviar com seta arredondada -->
+                <button id="sendBtn" onclick="sendMessage()" class="w-9 h-9 rounded-xl bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition disabled:opacity-30 disabled:cursor-not-allowed shadow">
                     <i class="fa-solid fa-arrow-up text-sm"></i>
                 </button>
             </div>
 
-            <!-- Control Bar under Message Box: Dynamic Skills & Audio Speed -->
+            <!-- Control Bar under Message Box: Seletor de Modelo (Antigravity Style) + Skill + Audio Speed -->
             <div class="mt-2.5 px-1 flex flex-wrap items-center justify-between gap-2 text-xs">
-                <!-- Skill Selector -->
-                <div class="flex items-center space-x-1.5 bg-[#1e1f20] border border-[#37393b] rounded-xl px-2.5 py-1">
-                    <i class="fa-solid fa-brain text-purple-400 text-[11px]"></i>
-                    <span class="text-white/60 text-[11px]">Habilidade:</span>
-                    <select id="selectSkill" class="bg-transparent text-white text-[11px] font-semibold focus:outline-none cursor-pointer">
-                        <option value="minha-voz" class="bg-[#1e1f20] text-white" selected>🔥 Minha Voz (Coach Montanha)</option>
-                        <option value="roteiros-10x" class="bg-[#1e1f20] text-white">🎬 Roteiros 10x (Reels/Shorts)</option>
-                        <option value="personal-trainer" class="bg-[#1e1f20] text-white">🏋️ Personal Trainer & Fisiologia</option>
-                        <option value="programador" class="bg-[#1e1f20] text-white">💻 Engenheiro Sênior (Ponytail)</option>
-                        <option value="lpo-crosstraining" class="bg-[#1e1f20] text-white">🏋️ LPO Everett Biomecânica</option>
-                        <option value="lyle-mcdonald" class="bg-[#1e1f20] text-white">🥩 Nutrição Lyle McDonald & PSMF</option>
-                        <option value="stories-10x-copy" class="bg-[#1e1f20] text-white">📱 Copy Stories 10x (Ladeira)</option>
-                        <option value="matriz-anti-saas" class="bg-[#1e1f20] text-white">🛡️ Matriz Anti-SaaS Local</option>
-                    </select>
+                
+                <div class="flex items-center space-x-2 flex-wrap gap-y-1">
+                    <!-- Engine Selector (Estilo Antigravity) -->
+                    <div class="flex items-center space-x-1.5 bg-[#1e1f20] border border-[#37393b] rounded-xl px-2.5 py-1">
+                        <i class="fa-solid fa-microchip text-cyan-400 text-[11px]"></i>
+                        <span class="text-white/60 text-[11px]">Motor:</span>
+                        <select id="selectModelEngine" onchange="changeEngine(this.value)" class="bg-transparent text-white text-[11px] font-semibold focus:outline-none cursor-pointer">
+                            <option value="gemini-flash-lite-latest" class="bg-[#1e1f20] text-white">⚡ Gemini Flash Lite (Rápido)</option>
+                            <option value="gemini-flash-latest" class="bg-[#1e1f20] text-white">🧠 Gemini Flash (Multimodal)</option>
+                            <option value="groq-llama-3.3-70b" class="bg-[#1e1f20] text-white">🚀 Groq Llama 3.3 70B (&lt;500ms)</option>
+                        </select>
+                    </div>
+
+                    <!-- Skill Selector -->
+                    <div class="flex items-center space-x-1.5 bg-[#1e1f20] border border-[#37393b] rounded-xl px-2.5 py-1">
+                        <i class="fa-solid fa-brain text-purple-400 text-[11px]"></i>
+                        <span class="text-white/60 text-[11px]">Habilidade:</span>
+                        <select id="selectSkill" class="bg-transparent text-white text-[11px] font-semibold focus:outline-none cursor-pointer">
+                            <option value="minha-voz" class="bg-[#1e1f20] text-white" selected>🔥 Minha Voz (Coach Montanha)</option>
+                            <option value="roteiros-10x" class="bg-[#1e1f20] text-white">🎬 Roteiros 10x (Reels/Shorts)</option>
+                            <option value="personal-trainer" class="bg-[#1e1f20] text-white">🏋️ Personal Trainer & Fisiologia</option>
+                            <option value="programador" class="bg-[#1e1f20] text-white">💻 Engenheiro Sênior (Ponytail)</option>
+                            <option value="lpo-crosstraining" class="bg-[#1e1f20] text-white">🏋️ LPO Everett Biomecânica</option>
+                            <option value="lyle-mcdonald" class="bg-[#1e1f20] text-white">🥩 Nutrição Lyle McDonald & PSMF</option>
+                            <option value="stories-10x-copy" class="bg-[#1e1f20] text-white">📱 Copy Stories 10x (Ladeira)</option>
+                            <option value="matriz-anti-saas" class="bg-[#1e1f20] text-white">🛡️ Matriz Anti-SaaS Local</option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Audio Speed Selector -->
@@ -248,32 +279,31 @@
 
     </div>
 
-    <!-- MODAL DE CONFIGURAÇÕES, SEGURANÇA & CHAVES PRIVADAS (ZERO-LEAK) -->
+    <!-- MODAL DE CONFIGURAÇÃO (Zero-Leak) -->
     <div id="settingsModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-[#1e1f20] border border-[#37393b] rounded-2xl max-w-xl w-full p-5 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between pb-3 border-b border-[#282a2c]">
                 <h3 class="text-sm font-bold text-white flex items-center space-x-2">
-                    <i class="fa-solid fa-shield-halved text-emerald-400"></i>
-                    <span>Painel de Segurança & Chaves Privadas (BYOK)</span>
+                    <i class="fa-solid fa-gear text-cyan-400"></i>
+                    <span>Configurações & Painel de Segurança</span>
                 </h3>
                 <button onclick="closeSettingsModal()" class="text-white/50 hover:text-white p-1">
                     <i class="fa-solid fa-xmark text-base"></i>
                 </button>
             </div>
 
-            <!-- Aviso de Arquitetura Segura -->
+            <!-- Aviso Zero-Leak -->
             <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 leading-relaxed flex items-start space-x-2">
-                <i class="fa-solid fa-lock text-sm mt-0.5 flex-shrink-0"></i>
+                <i class="fa-solid fa-shield-halved text-sm mt-0.5 flex-shrink-0"></i>
                 <div>
-                    <strong>Privacidade & Segurança Absoluta (Zero-Leak):</strong>
-                    Suas chaves de API são armazenadas exclusivamente na memória segura do seu navegador e enviadas via HTTPS cifrado diretamente para as requisições de IA. O servidor <b>nunca</b> salva suas chaves em disco ou banco de dados.
+                    <strong>Armazenamento Local Seguro:</strong> Suas chaves ficam salvas somente no seu navegador/dispositivo. O servidor não armazena nem registra suas chaves em disco.
                 </div>
             </div>
 
-            <!-- 1. Chaves Privadas do Usuário -->
+            <!-- Chaves de API -->
             <div class="space-y-3">
                 <label class="text-xs font-bold text-white/80 uppercase tracking-wider flex items-center gap-1.5">
-                    <i class="fa-solid fa-key text-amber-400"></i> Suas Chaves de API
+                    <i class="fa-solid fa-key text-amber-400"></i> Chaves de API Privadas
                 </label>
                 <div class="space-y-2">
                     <div>
@@ -285,7 +315,7 @@
                     </div>
                     <div>
                         <div class="text-[11px] text-white/60 mb-1 flex items-center justify-between">
-                            <span>Groq API Key (Opcional - Llama 3.3 70B Gratuito):</span>
+                            <span>Groq API Key (Llama 3.3 70B Gratuito):</span>
                             <span id="groqKeyStatus" class="text-[10px] text-white/40">Opcional</span>
                         </div>
                         <input type="password" id="settingGroqKey" placeholder="Cole sua chave gsk_..." class="w-full bg-[#131314] border border-[#37393b] rounded-xl p-2.5 text-xs text-white focus:border-cyan-400 focus:outline-none font-mono">
@@ -293,19 +323,7 @@
                 </div>
             </div>
 
-            <!-- 2. Motor de IA Principal -->
-            <div class="space-y-2 pt-2 border-t border-[#282a2c]">
-                <label class="text-xs font-bold text-white/80 uppercase tracking-wider flex items-center gap-1.5">
-                    <i class="fa-solid fa-microchip text-purple-400"></i> Motor de IA Selecionado
-                </label>
-                <select id="settingEngine" class="w-full bg-[#131314] border border-[#37393b] rounded-xl p-2.5 text-xs text-white font-medium focus:border-cyan-400 focus:outline-none">
-                    <option value="gemini-flash-lite-latest">Google Gemini Flash Lite (Mais Rápido & Gratuito)</option>
-                    <option value="gemini-flash-latest">Google Gemini Flash (Padrão Multimodal)</option>
-                    <option value="groq-llama-3.3-70b">Groq Llama 3.3 70B (Velocidade Extrema < 500ms)</option>
-                </select>
-            </div>
-
-            <!-- 3. Gerenciador de Plugins (Liga / Desliga) -->
+            <!-- Gerenciador de Plugins -->
             <div class="space-y-3 pt-2 border-t border-[#282a2c]">
                 <label class="text-xs font-bold text-white/80 uppercase tracking-wider flex items-center justify-between">
                     <span class="flex items-center gap-1.5"><i class="fa-solid fa-plug text-cyan-400"></i> Plugins & Ferramentas Ativas</span>
@@ -335,7 +353,7 @@
                 </div>
             </div>
 
-            <!-- 4. Habilidades Permanentes e Automáticas -->
+            <!-- Habilidades Permanentes -->
             <div class="space-y-3 pt-2 border-t border-[#282a2c]">
                 <label class="text-xs font-bold text-white/80 uppercase tracking-wider flex items-center justify-between">
                     <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-purple-400"></i> Habilidades Permanentes Automáticas</span>
@@ -376,7 +394,7 @@
                 <div class="flex items-center space-x-2">
                     <button onclick="closeSettingsModal()" class="px-4 py-2 rounded-xl text-xs text-white/60 hover:text-white transition">Fechar</button>
                     <button onclick="saveAllSettings()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-xs shadow hover:brightness-110 active:scale-95 transition">
-                        <i class="fa-solid fa-shield mr-1.5"></i> Salvar Chaves & Preferências
+                        <i class="fa-solid fa-check mr-1.5"></i> Salvar Preferências
                     </button>
                 </div>
             </div>
@@ -414,7 +432,7 @@
         let isRecognizing = false;
         let isLiveAudioActive = false;
 
-        // Security-First State (Stored locally in user browser, never pushed to server storage)
+        // Security-First State
         let localKeys = {
             gemini: localStorage.getItem('montanha_user_gemini_key') || '',
             groq: localStorage.getItem('montanha_user_groq_key') || ''
@@ -435,6 +453,36 @@
             }
         };
 
+        // Persistência Local dos Chats (Sobrevive a F5 na Vercel e Desktop)
+        function getLocalChats() {
+            try {
+                return JSON.parse(localStorage.getItem('montanha_local_chats') || '{}');
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function saveLocalChat(chatId, title, messages) {
+            const chats = getLocalChats();
+            chats[chatId] = {
+                id: chatId,
+                title: title,
+                updated_at: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'}),
+                messages: messages
+            };
+            localStorage.setItem('montanha_local_chats', JSON.stringify(chats));
+            localStorage.setItem('montanha_last_active_chat', chatId);
+        }
+
+        function deleteLocalChat(chatId) {
+            const chats = getLocalChats();
+            delete chats[chatId];
+            localStorage.setItem('montanha_local_chats', JSON.stringify(chats));
+            if (localStorage.getItem('montanha_last_active_chat') === chatId) {
+                localStorage.removeItem('montanha_last_active_chat');
+            }
+        }
+
         async function fetchPreferences() {
             try {
                 const res = await fetch('/api/settings');
@@ -450,7 +498,6 @@
         }
 
         function applyPreferencesToUI() {
-            // Update Key Status
             const badge = document.getElementById('keyStatusBadge');
             const gemStatus = document.getElementById('geminiKeyStatus');
             if (localKeys.gemini) {
@@ -471,7 +518,7 @@
 
             if (document.getElementById('settingGeminiKey')) document.getElementById('settingGeminiKey').value = localKeys.gemini;
             if (document.getElementById('settingGroqKey')) document.getElementById('settingGroqKey').value = localKeys.groq;
-            if (document.getElementById('settingEngine')) document.getElementById('settingEngine').value = appPreferences.engine;
+            if (document.getElementById('selectModelEngine')) document.getElementById('selectModelEngine').value = appPreferences.engine;
 
             // Plugins
             if (document.getElementById('pluginGCalendar')) document.getElementById('pluginGCalendar').checked = !!appPreferences.plugins.gcalendar;
@@ -484,6 +531,24 @@
             if (document.getElementById('permConferir')) document.getElementById('permConferir').checked = !!appPreferences.permanent_skills.conferir_rule;
             if (document.getElementById('permPonytail')) document.getElementById('permPonytail').checked = !!appPreferences.permanent_skills.karpathy_ponytail;
         }
+
+        function changeEngine(val) {
+            appPreferences.engine = val;
+            localStorage.setItem('montanha_engine', val);
+        }
+
+        function toggleContextDropdown() {
+            const dd = document.getElementById('contextDropdown');
+            dd.classList.toggle('hidden');
+        }
+
+        document.addEventListener('click', function(e) {
+            const btn = document.getElementById('addContextBtn');
+            const dd = document.getElementById('contextDropdown');
+            if (btn && dd && !btn.contains(e.target) && !dd.contains(e.target)) {
+                dd.classList.add('hidden');
+            }
+        });
 
         function openSettingsModal() {
             applyPreferencesToUI();
@@ -508,16 +573,12 @@
         async function saveAllSettings() {
             const gemKey = document.getElementById('settingGeminiKey').value.trim();
             const groqKey = document.getElementById('settingGroqKey').value.trim();
-            const engine = document.getElementById('settingEngine').value;
 
-            // Guardar no LocalStorage do navegador (Zero-Leak)
             localKeys.gemini = gemKey;
             localKeys.groq = groqKey;
             localStorage.setItem('montanha_user_gemini_key', gemKey);
             localStorage.setItem('montanha_user_groq_key', groqKey);
-            localStorage.setItem('montanha_engine', engine);
 
-            appPreferences.engine = engine;
             appPreferences.plugins = {
                 gcalendar: document.getElementById('pluginGCalendar').checked,
                 gsheets: document.getElementById('pluginGSheets').checked,
@@ -530,7 +591,6 @@
                 karpathy_ponytail: document.getElementById('permPonytail').checked
             };
 
-            // Envia apenas as preferências de UI para o servidor (SEM CHAVES)
             try {
                 await fetch('/api/settings', {
                     method: 'POST',
@@ -545,7 +605,7 @@
 
             applyPreferencesToUI();
             closeSettingsModal();
-            alert("✅ Chaves e preferências salvas com segurança no seu dispositivo!");
+            alert("✅ Preferências salvas com segurança!");
         }
 
         function toggleSidebar() {
@@ -657,106 +717,143 @@
             document.getElementById('imagePreviewBar').classList.add('hidden');
         }
 
+        // Sistema Híbrido de Chats (Local + Servidor)
         async function loadChatsIndex() {
+            const container = document.getElementById('chatsListContainer');
+            container.innerHTML = '';
+
+            let serverChats = [];
             try {
                 const res = await fetch('/api/chats');
-                const data = await res.json();
-                const container = document.getElementById('chatsListContainer');
-                container.innerHTML = '';
-
-                if (data.status === 'success' && data.chats && data.chats.length > 0) {
-                    data.chats.forEach(chat => {
-                        const item = document.createElement('div');
-                        item.className = `p-2.5 rounded-xl cursor-pointer text-xs flex items-center justify-between group transition ${chat.id === currentChatId ? 'bg-white/10 text-white font-semibold' : 'text-white/70 hover:bg-white/5 hover:text-white'}`;
-                        item.onclick = () => selectChat(chat.id, chat.title);
-                        item.innerHTML = `
-                            <div class="flex items-center space-x-2 truncate">
-                                <i class="fa-regular fa-message text-[10px] text-purple-400"></i>
-                                <span class="truncate">${escapeHtml(chat.title)}</span>
-                            </div>
-                            <button onclick="event.stopPropagation(); deleteChatById('${chat.id}')" class="opacity-0 group-hover:opacity-100 text-white/40 hover:text-red-400 p-1">
-                                <i class="fa-solid fa-xmark text-xs"></i>
-                            </button>
-                        `;
-                        container.appendChild(item);
-                    });
-                } else {
-                    container.innerHTML = '<div class="p-3 text-xs text-white/40 text-center">Nenhum chat salvo ainda.</div>';
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.status === 'success' && data.chats) serverChats = data.chats;
                 }
             } catch (err) {}
+
+            const localChatsMap = getLocalChats();
+            const localChats = Object.values(localChatsMap);
+
+            // Merge unificando por id
+            const combinedMap = {};
+            serverChats.forEach(c => { combinedMap[c.id] = c; });
+            localChats.forEach(c => { combinedMap[c.id] = c; });
+
+            const allChats = Object.values(combinedMap);
+
+            if (allChats.length > 0) {
+                allChats.forEach(chat => {
+                    const item = document.createElement('div');
+                    item.className = `p-2.5 rounded-xl cursor-pointer text-xs flex items-center justify-between group transition ${chat.id === currentChatId ? 'bg-white/10 text-white font-semibold' : 'text-white/70 hover:bg-white/5 hover:text-white'}`;
+                    item.onclick = () => selectChat(chat.id, chat.title);
+                    item.innerHTML = `
+                        <div class="flex items-center space-x-2 truncate">
+                            <i class="fa-regular fa-message text-[10px] text-cyan-400"></i>
+                            <span class="truncate">${escapeHtml(chat.title)}</span>
+                        </div>
+                        <button onclick="event.stopPropagation(); deleteChatById('${chat.id}')" class="opacity-0 group-hover:opacity-100 text-white/40 hover:text-red-400 p-1">
+                            <i class="fa-solid fa-xmark text-xs"></i>
+                        </button>
+                    `;
+                    container.appendChild(item);
+                });
+            } else {
+                container.innerHTML = '<div class="p-3 text-xs text-white/40 text-center">Nenhum chat salvo ainda.</div>';
+            }
         }
 
+        // Criar Novo Chat com Reset Imediato da Tela (Sem Falhas)
         async function createNewChat() {
+            currentChatId = 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+            document.getElementById('currentChatTitle').innerText = "Nova Conversa";
+            document.getElementById('messagesList').innerHTML = '';
+            document.getElementById('welcomeScreen').classList.remove('hidden');
+            document.getElementById('promptInput').value = '';
+            document.getElementById('promptInput').focus();
+            removeAttachedImage();
+            closeSidebarMobile();
+            localStorage.removeItem('montanha_last_active_chat');
+
+            // Notifica servidor se disponível
             try {
-                const res = await fetch('/api/chats/new', {
+                await fetch('/api/chats/new', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ title: "Nova Conversa" })
                 });
-                const d = await res.json();
-                if (d.status === 'success') {
-                    selectChat(d.chat.id, d.chat.title);
-                    loadChatsIndex();
-                }
-            } catch (err) {
-                currentChatId = 'chat_' + Date.now();
-                document.getElementById('messagesList').innerHTML = '';
-                document.getElementById('welcomeScreen').classList.remove('hidden');
-            }
+            } catch (err) {}
+
+            loadChatsIndex();
         }
 
         async function selectChat(chatId, title) {
             currentChatId = chatId;
             document.getElementById('currentChatTitle').innerText = title || "Conversa";
             closeSidebarMobile();
+            localStorage.setItem('montanha_last_active_chat', chatId);
 
-            try {
-                const res = await fetch(`/api/chats/${chatId}`);
-                const d = await res.json();
-                const container = document.getElementById('messagesList');
-                container.innerHTML = '';
+            let messages = [];
 
-                if (d.status === 'success' && d.messages && d.messages.length > 0) {
-                    document.getElementById('welcomeScreen').classList.add('hidden');
-                    d.messages.forEach(msg => {
-                        if (msg.role === 'user') {
-                            appendUserMessage(msg.prompt, msg.image);
-                        } else {
-                            appendBotMessage(msg.response);
+            // 1. Tenta carregar do cache local primeiro (Instantâneo)
+            const localChats = getLocalChats();
+            if (localChats[chatId] && localChats[chatId].messages) {
+                messages = localChats[chatId].messages;
+            }
+
+            // 2. Se vazio, tenta carregar do servidor
+            if (!messages || messages.length === 0) {
+                try {
+                    const res = await fetch(`/api/chats/${chatId}`);
+                    if (res.ok) {
+                        const d = await res.json();
+                        if (d.status === 'success' && d.messages) {
+                            messages = d.messages;
+                            saveLocalChat(chatId, title, messages);
                         }
-                    });
-                    scrollToBottom();
-                } else {
-                    document.getElementById('welcomeScreen').classList.remove('hidden');
-                }
-                loadChatsIndex();
-            } catch (err) {}
+                    }
+                } catch (err) {}
+            }
+
+            const container = document.getElementById('messagesList');
+            container.innerHTML = '';
+
+            if (messages && messages.length > 0) {
+                document.getElementById('welcomeScreen').classList.add('hidden');
+                messages.forEach(msg => {
+                    if (msg.role === 'user') {
+                        appendUserMessage(msg.prompt, msg.image);
+                    } else {
+                        appendBotMessage(msg.response, msg.sources);
+                    }
+                });
+                scrollToBottom();
+            } else {
+                document.getElementById('welcomeScreen').classList.remove('hidden');
+            }
+            loadChatsIndex();
         }
 
         async function deleteCurrentChat() {
             if (!currentChatId) return;
             if (!confirm("Excluir este chat e histórico?")) return;
             await deleteChatById(currentChatId);
-            currentChatId = null;
-            document.getElementById('messagesList').innerHTML = '';
-            document.getElementById('welcomeScreen').classList.remove('hidden');
-            loadChatsIndex();
         }
 
         async function deleteChatById(chatId) {
+            deleteLocalChat(chatId);
             try {
                 await fetch('/api/chats/delete', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ chat_id: chatId })
                 });
-                if (currentChatId === chatId) {
-                    currentChatId = null;
-                    document.getElementById('messagesList').innerHTML = '';
-                    document.getElementById('welcomeScreen').classList.remove('hidden');
-                }
-                loadChatsIndex();
             } catch (e) {}
+
+            if (currentChatId === chatId) {
+                createNewChat();
+            } else {
+                loadChatsIndex();
+            }
         }
 
         function scrollToBottom() {
@@ -785,7 +882,7 @@
             scrollToBottom();
         }
 
-        function appendBotMessage(markdownText) {
+        function appendBotMessage(markdownText, sources=null) {
             document.getElementById('welcomeScreen').classList.add('hidden');
             const container = document.getElementById('messagesList');
             const div = document.createElement('div');
@@ -793,6 +890,30 @@
             
             const rawId = 'raw_' + Math.random().toString(36).substr(2, 9);
             window[rawId] = markdownText;
+
+            let sourceBadgeHtml = '';
+            if (sources && sources.length > 0) {
+                sourceBadgeHtml = `
+                    <div class="mt-2.5 pt-2 border-t border-white/5 flex flex-wrap items-center gap-2 text-[11px] text-white/50">
+                        <span class="flex items-center gap-1 font-semibold text-emerald-400">
+                            <i class="fa-solid fa-globe text-[10px]"></i> Fonte Online:
+                        </span>
+                        ${sources.map(s => `
+                            <a href="${s.url}" target="_blank" rel="noopener noreferrer" class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 text-cyan-300 hover:underline flex items-center gap-1 border border-white/5">
+                                <span class="truncate max-w-[200px]">${escapeHtml(s.title || s.url)}</span>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                            </a>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                sourceBadgeHtml = `
+                    <div class="mt-2.5 pt-2 border-t border-white/5 flex items-center space-x-1.5 text-[10px] text-white/40">
+                        <i class="fa-solid fa-database text-[9px] text-purple-400"></i>
+                        <span>Informação Offline (Base de Conhecimento / IA Interna)</span>
+                    </div>
+                `;
+            }
 
             div.innerHTML = `
                 <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500 shadow mt-0.5">
@@ -802,6 +923,7 @@
                     <div class="markdown-body text-sm text-[#e3e3e3] leading-relaxed">
                         ${marked.parse(markdownText)}
                     </div>
+                    ${sourceBadgeHtml}
                     <!-- Action Buttons: Audio TTS & PDF Export -->
                     <div class="flex items-center space-x-2 pt-1">
                         <button onclick="speakText(window['${rawId}'])" title="Ouvir Resposta em Voz Alta" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-cyan-400 text-xs flex items-center space-x-1.5 transition border border-white/5">
@@ -871,19 +993,19 @@
             if (el) el.remove();
         }
 
-        // Send Message Handler com Injeção Segura de Chave em Trânsito
+        // Envio de Mensagem com Persistência Imediata no Cache Local
         async function sendMessage() {
             const input = document.getElementById('promptInput');
             const prompt = input.value.trim();
             const skill = document.getElementById('selectSkill').value;
+            const engine = document.getElementById('selectModelEngine').value;
             const sendBtn = document.getElementById('sendBtn');
 
             if (!prompt && !attachedImageBase64) return;
 
-            // Verificação de Chave Local
-            if (!localKeys.gemini && !appPreferences.engine.includes('groq')) {
+            if (!localKeys.gemini && !engine.includes('groq')) {
                 openSettingsModal();
-                alert("🔒 Por favor, insira sua GEMINI_API_KEY no painel de segurança para continuar.");
+                alert("🔒 Por favor, insira sua GEMINI_API_KEY no painel de configuração para continuar.");
                 return;
             }
 
@@ -919,24 +1041,31 @@
                 return;
             }
 
+            if (!currentChatId) {
+                currentChatId = 'chat_' + Date.now();
+                document.getElementById('currentChatTitle').innerText = prompt.substring(0, 30);
+            }
+
             appendUserMessage(prompt, !!attachedImageBase64);
             appendLoadingSkeleton();
+
+            const localChats = getLocalChats();
+            const currentChatObj = localChats[currentChatId] || { id: currentChatId, title: prompt.substring(0, 30), messages: [] };
+            currentChatObj.messages.push({ role: 'user', prompt: prompt, image: !!attachedImageBase64 });
+            saveLocalChat(currentChatId, currentChatObj.title, currentChatObj.messages);
 
             const payload = {
                 chat_id: currentChatId,
                 prompt: prompt,
                 skill: skill,
-                engine: appPreferences.engine,
+                engine: engine,
                 plugins: appPreferences.plugins,
                 permanent_skills: appPreferences.permanent_skills,
                 image_base64: attachedImageBase64 || "",
                 mime_type: attachedImageMime || "image/jpeg"
             };
 
-            // Injeção Segura da Chave via Headers HTTPS Cifrados
-            const headers = {
-                'Content-Type': 'application/json'
-            };
+            const headers = { 'Content-Type': 'application/json' };
             if (localKeys.gemini) headers['X-Gemini-Key'] = localKeys.gemini;
             if (localKeys.groq) headers['X-Groq-Key'] = localKeys.groq;
 
@@ -952,17 +1081,16 @@
                 removeLoadingSkeleton();
 
                 if (data.status === 'success') {
-                    if (!currentChatId && data.chat_id) {
-                        currentChatId = data.chat_id;
-                    }
-                    appendBotMessage(data.response);
+                    appendBotMessage(data.response, data.sources);
+                    currentChatObj.messages.push({ role: 'model', response: data.response, sources: data.sources });
+                    saveLocalChat(currentChatId, currentChatObj.title, currentChatObj.messages);
                     loadChatsIndex();
 
                     if (isLiveAudioActive) {
                         speakTextAndListenNext(data.response);
                     }
                 } else {
-                    appendBotMessage("⚠️ " + (data.message || "Erro no processamento. Verifique suas chaves de API nas Configurações."));
+                    appendBotMessage("⚠️ " + (data.message || "Erro no processamento."));
                     if (res.status === 401) {
                         openSettingsModal();
                     }
@@ -983,11 +1111,10 @@
             }
         }
 
-        // Live Audio Conversation Mode Loop
+        // Live Audio
         function toggleLiveAudioMode() {
             isLiveAudioActive = !isLiveAudioActive;
             updateLiveAudioButtonUI();
-
             if (isLiveAudioActive) {
                 startSpeechRecognition();
             } else {
@@ -1004,7 +1131,7 @@
             if (isLiveAudioActive) {
                 btn.className = "px-3 py-1.5 rounded-xl bg-gradient-to-r from-red-600 to-pink-600 text-white font-bold text-xs flex items-center space-x-1.5 shadow animate-pulse transition";
                 icon.className = "fa-solid fa-phone-slash";
-                text.innerText = "Encerrar Chamada";
+                text.innerText = "Encerrar";
             } else {
                 btn.className = "px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:brightness-110 text-white font-bold text-xs flex items-center space-x-1.5 transition shadow active:scale-95";
                 icon.className = "fa-solid fa-phone";
@@ -1069,23 +1196,15 @@
         function speakTextAndListenNext(text) {
             if (!('speechSynthesis' in window)) return;
             window.speechSynthesis.cancel();
-
-            const cleanText = text.replace(/```[\s\S]*?```/g, 'Bloco de código omitido.')
-                                  .replace(/[#*`_~\[\]()]/g, '');
-
+            const cleanText = text.replace(/```[\s\S]*?```/g, 'Bloco de código omitido.').replace(/[#*`_~\[\]()]/g, '');
             const utterance = new SpeechSynthesisUtterance(cleanText);
             utterance.lang = 'pt-BR';
-            const speed = parseFloat(document.getElementById('selectAudioSpeed').value) || 1.06;
-            utterance.rate = speed;
-
+            utterance.rate = parseFloat(document.getElementById('selectAudioSpeed').value) || 1.06;
             utterance.onend = function() {
                 if (isLiveAudioActive) {
-                    setTimeout(() => {
-                        startSpeechRecognition();
-                    }, 400);
+                    setTimeout(() => { startSpeechRecognition(); }, 400);
                 }
             };
-
             window.speechSynthesis.speak(utterance);
         }
 
@@ -1095,8 +1214,7 @@
             const cleanText = text.replace(/```[\s\S]*?```/g, 'Bloco de código omitido.').replace(/[#*`_~\[\]()]/g, '');
             const utterance = new SpeechSynthesisUtterance(cleanText);
             utterance.lang = 'pt-BR';
-            const speed = parseFloat(document.getElementById('selectAudioSpeed').value) || 1.06;
-            utterance.rate = speed;
+            utterance.rate = parseFloat(document.getElementById('selectAudioSpeed').value) || 1.06;
             window.speechSynthesis.speak(utterance);
         }
 
@@ -1135,6 +1253,15 @@
         window.onload = function() {
             fetchPreferences();
             loadChatsIndex();
+
+            // Recupera o último chat aberto após F5
+            const lastChat = localStorage.getItem('montanha_last_active_chat');
+            if (lastChat) {
+                const localChats = getLocalChats();
+                if (localChats[lastChat]) {
+                    selectChat(lastChat, localChats[lastChat].title);
+                }
+            }
         };
     </script>
 </body>
