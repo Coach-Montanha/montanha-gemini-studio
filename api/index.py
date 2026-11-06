@@ -205,7 +205,7 @@ class handler(BaseHTTPRequestHandler):
             })
             return
 
-        self._send_json({"status": "running", "service": "Montanha Gemini Studio API v4.7"})
+        self._send_json({"status": "running", "service": "Montanha AI Studio API v5.0 (OmniRoute + OpenRouter)"})
 
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
@@ -217,8 +217,13 @@ class handler(BaseHTTPRequestHandler):
         except Exception:
             body = {}
 
+        path_str = parsed.path.lower()
+        matched = self.headers.get("x-matched-path", "").lower()
+        forwarded = self.headers.get("x-forwarded-uri", "").lower()
+        all_routes = f"{path_str} {matched} {forwarded}"
+
         # 1. Leitura e Extração de PDF (Resiliente)
-        if parsed.path.endswith("/read-pdf") or "/read-pdf" in parsed.path:
+        if any(p in all_routes for p in ["/read-pdf", "read-pdf", "/read_pdf", "read_pdf"]):
             pdf_b64 = body.get("pdf_base64", "")
             filename = body.get("filename", "documento.pdf")
             if not pdf_b64:
@@ -239,7 +244,7 @@ class handler(BaseHTTPRequestHandler):
                 return
 
         # 2. Exportação de PDF
-        elif parsed.path.endswith("/export-pdf") or "/export-pdf" in parsed.path:
+        elif any(p in all_routes for p in ["/export-pdf", "export-pdf", "/export_pdf", "export_pdf"]):
             text = body.get("text", "").strip()
             title = body.get("title", "Documento Montanha Studio").strip()
             try:
@@ -274,7 +279,7 @@ class handler(BaseHTTPRequestHandler):
                 return
 
         # 3. Chat Principal com Visão Multimodal
-        elif parsed.path.endswith("/chat") or "/chat" in parsed.path:
+        elif any(p in all_routes for p in ["/chat", "chat"]):
             prompt = body.get("prompt", "").strip()
             skill_key = body.get("skill", "minha-voz")
             image_b64 = body.get("image_base64", "")
@@ -285,6 +290,7 @@ class handler(BaseHTTPRequestHandler):
 
             user_gemini_key = self.headers.get("X-Gemini-Key") or body.get("api_key") or os.environ.get("GEMINI_API_KEY", "")
             user_groq_key = self.headers.get("X-Groq-Key") or body.get("groq_api_key") or os.environ.get("GROQ_API_KEY", "")
+            user_openrouter_key = self.headers.get("X-OpenRouter-Key") or body.get("openrouter_key") or os.environ.get("OPENROUTER_API_KEY", "")
 
             system_prompt = build_system_prompt(skill_key, plugins_config, permanent_skills)
 
@@ -316,6 +322,46 @@ class handler(BaseHTTPRequestHandler):
                         })
                         return
                 except Exception:
+                    pass
+
+            # OpenRouter (DeepSeek R1, Llama 3.3, Claude 3.5 Sonnet, etc.)
+            if ("openrouter" in engine.lower() or engine.startswith("or-")) and user_openrouter_key:
+                try:
+                    or_model = "deepseek/deepseek-r1"
+                    if "llama" in engine.lower():
+                        or_model = "meta-llama/llama-3.3-70b-instruct"
+                    elif "auto" in engine.lower():
+                        or_model = "openrouter/auto"
+                    elif "deepseek" in engine.lower():
+                        or_model = "deepseek/deepseek-r1"
+
+                    prompt_full = f"{prompt}\n\n[CONTEXTO WEB]: {web_context}" if web_context else prompt
+                    or_url = "https://openrouter.ai/api/v1/chat/completions"
+                    or_headers = {
+                        "Authorization": f"Bearer {user_openrouter_key}",
+                        "Content-Type": "application/json",
+                        "HTTP-Referer": "https://montanha-gemini-studio.vercel.app",
+                        "X-Title": "Montanha AI Studio"
+                    }
+                    or_payload = {
+                        "model": or_model,
+                        "messages": [
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": prompt_full}
+                        ]
+                    }
+                    or_req = urllib.request.Request(or_url, data=json.dumps(or_payload).encode("utf-8"), headers=or_headers)
+                    with urllib.request.urlopen(or_req, timeout=35) as or_resp:
+                        or_data = json.loads(or_resp.read().decode())
+                        or_ans = or_data["choices"][0]["message"]["content"]
+                        self._send_json({
+                            "status": "success",
+                            "response": or_ans,
+                            "model": f"OpenRouter ({or_model})",
+                            "sources": sources
+                        })
+                        return
+                except Exception as ex_or:
                     pass
 
             # Multimodal Gemini (Imagens, Documentos e Texto)
@@ -377,7 +423,7 @@ class handler(BaseHTTPRequestHandler):
             self._send_json({"status": "error", "message": f"Erro Gemini API: {last_err}"}, 500)
             return
 
-        elif parsed.path.endswith("/generate-image") or "/generate-image" in parsed.path:
+        elif any(p in all_routes for p in ["/generate-image", "generate-image"]):
             prompt = body.get("prompt", "").strip()
             import random
             seed = random.randint(1000, 999999)
