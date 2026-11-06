@@ -3,6 +3,8 @@ name: Build Android APK Release
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
 
@@ -55,7 +57,7 @@ jobs:
               <uses-permission android:name="android.permission.RECORD_AUDIO" />
               <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
               <application
-                  android:label="Montanha Gemini Studio"
+                  android:label="Montanha AI Studio"
                   android:usesCleartextTraffic="true"
                   android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
                   <activity
@@ -177,5 +179,5 @@ jobs:
         with:
           files: build_apk/bin/MontanhaGeminiStudio.apk
           tag_name: ${{ github.ref_name }}
-          name: Montanha Gemini Studio ${{ github.ref_name }}
-          body: "Download direto do arquivo APK do Montanha Gemini Studio compilado automaticamente pelo GitHub Actions."
+          name: Montanha AI Studio ${{ github.ref_name }}
+          body: "Download direto do arquivo APK do Montanha AI Studio compilado automaticamente pelo GitHub Actions."
