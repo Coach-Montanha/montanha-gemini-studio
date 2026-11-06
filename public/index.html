@@ -54,7 +54,7 @@
         }
     </style>
 </head>
-<body class="h-screen w-screen flex overflow-hidden relative">
+<body class="h-screen h-[100dvh] w-screen flex overflow-hidden relative">
 
     <div id="sidebarBackdrop" onclick="closeSidebarMobile()" class="hidden md:hidden fixed inset-0 bg-black/60 z-30 transition-opacity"></div>
 
@@ -93,10 +93,10 @@
                 <div class="w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500 shadow-md">
                     <i class="fa-solid fa-sparkles text-white text-xs"></i>
                 </div>
-                <div>
-                    <h1 class="text-sm font-semibold tracking-wide flex items-center space-x-1.5">
-                        <span id="currentChatTitle" class="hidden sm:inline">Montanha AI Studio</span>
-                        <span id="keyStatusBadge" class="hidden sm:inline text-[10px] uppercase tracking-wider bg-white/10 px-2 py-0.5 rounded-full text-emerald-300 font-mono">🔒 Protegido</span>
+                <div class="min-w-0">
+                    <h1 class="text-xs sm:text-sm font-semibold tracking-wide flex items-center space-x-1.5">
+                        <span id="currentChatTitle" class="truncate max-w-[120px] sm:max-w-[220px]">Montanha AI Studio</span>
+                        <span id="keyStatusBadge" class="hidden md:inline-flex text-[10px] uppercase tracking-wider bg-white/10 px-2 py-0.5 rounded-full text-emerald-300 font-mono">🔒 Protegido</span>
                     </h1>
                 </div>
             </div>
@@ -126,60 +126,59 @@
         </header>
 
         <!-- Messages Scroll Area -->
-        <main class="flex-1 overflow-y-auto p-4 md:px-0 flex flex-col items-center" id="scrollContainer">
-            <div class="w-full max-w-3xl flex-1 flex flex-col justify-start space-y-6 pb-36" id="messagesList">
-
-                <!-- Welcome Screen -->
-                <div id="welcomeScreen" class="flex-1 flex flex-col items-center justify-center text-center my-auto py-12 space-y-4">
-                    <div class="w-16 h-16 rounded-2xl flex items-center justify-center bg-gradient-to-tr from-blue-600 via-indigo-600 to-pink-500 shadow-xl">
-                        <i class="fa-solid fa-sparkles text-2xl text-white"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-2xl md:text-3xl font-bold">
-                            Olá, <span class="gemini-gradient-text">Coach Montanha</span>
-                        </h2>
-                        <p class="text-sm text-white/50 mt-1 max-w-md mx-auto">
-                            Estúdio com fontes reais e navegação transparente.
-                        </p>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-lg pt-4 text-left">
-                        <button onclick="setPrompt('/imagem Atleta determinado correndo sob chuva iluminação dramática 8k')" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
-                            <i class="fa-solid fa-image text-purple-400 mt-0.5"></i>
-                            <div>
-                                <span class="font-semibold">Gerar Imagem Flux 1024x1024</span>
-                                <p class="text-[11px] text-white/50">Criação visual instantânea</p>
-                            </div>
-                        </button>
-                        <button onclick="setPrompt('Escreva um roteiro de 20s para Reels sobre consistência e execução')" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
-                            <i class="fa-solid fa-clapperboard text-cyan-400 mt-0.5"></i>
-                            <div>
-                                <span class="font-semibold">Roteiro 10x com Minha Voz</span>
-                                <p class="text-[11px] text-white/50">Cortes e gancho de 3 segundos</p>
-                            </div>
-                        </button>
-                        <button onclick="setPrompt('Agende uma reunião de alinhamento com a equipe de marketing no Google Calendar para amanhã às 15h')" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
-                            <i class="fa-solid fa-calendar-check text-blue-400 mt-0.5"></i>
-                            <div>
-                                <span class="font-semibold">Ação Google Calendar</span>
-                                <p class="text-[11px] text-white/50">Plugin de agendamento</p>
-                            </div>
-                        </button>
-                        <button onclick="setPrompt('Como está o clima e a temperatura em João Pessoa agora?')" class="p-3.5 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
-                            <i class="fa-solid fa-cloud-sun text-emerald-400 mt-0.5"></i>
-                            <div>
-                                <span class="font-semibold">Busca Meteorológica ao Vivo</span>
-                                <p class="text-[11px] text-white/50">Open-Meteo com fontes reais</p>
-                            </div>
-                        </button>
-                    </div>
+        <main class="flex-1 overflow-y-auto p-3 sm:p-4 md:px-0 flex flex-col items-center" id="scrollContainer">
+            <!-- Welcome Screen independente (NUNCA DESTRUÍDO POR innerHTML = '') -->
+            <div id="welcomeScreen" class="w-full max-w-3xl flex-1 flex flex-col items-center justify-center text-center my-auto py-8 sm:py-12 space-y-4">
+                <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center bg-gradient-to-tr from-blue-600 via-indigo-600 to-pink-500 shadow-xl">
+                    <i class="fa-solid fa-sparkles text-xl sm:text-2xl text-white"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl sm:text-3xl font-bold">
+                        Olá, <span class="gemini-gradient-text">Coach Montanha</span>
+                    </h2>
+                    <p class="text-xs sm:text-sm text-white/50 mt-1 max-w-md mx-auto">
+                        Montanha AI Studio: modelos rápidos, fontes reais e zero enrolação.
+                    </p>
                 </div>
 
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 w-full max-w-lg pt-2 sm:pt-4 text-left">
+                    <button onclick="setPrompt('/imagem Atleta determinado correndo sob chuva iluminação dramática 8k')" class="p-3 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
+                        <i class="fa-solid fa-image text-purple-400 mt-0.5"></i>
+                        <div>
+                            <span class="font-semibold">Gerar Imagem Flux 1024x1024</span>
+                            <p class="text-[10px] sm:text-[11px] text-white/50">Criação visual instantânea</p>
+                        </div>
+                    </button>
+                    <button onclick="setPrompt('Escreva um roteiro de 20s para Reels sobre consistência e execução')" class="p-3 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
+                        <i class="fa-solid fa-clapperboard text-cyan-400 mt-0.5"></i>
+                        <div>
+                            <span class="font-semibold">Roteiro 10x com Minha Voz</span>
+                            <p class="text-[10px] sm:text-[11px] text-white/50">Cortes e gancho de 3 segundos</p>
+                        </div>
+                    </button>
+                    <button onclick="setPrompt('Agende uma reunião de alinhamento com a equipe de marketing no Google Calendar para amanhã às 15h')" class="p-3 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
+                        <i class="fa-solid fa-calendar-check text-blue-400 mt-0.5"></i>
+                        <div>
+                            <span class="font-semibold">Ação Google Calendar</span>
+                            <p class="text-[10px] sm:text-[11px] text-white/50">Plugin de agendamento</p>
+                        </div>
+                    </button>
+                    <button onclick="setPrompt('Como está o clima e a temperatura em João Pessoa agora?')" class="p-3 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
+                        <i class="fa-solid fa-cloud-sun text-emerald-400 mt-0.5"></i>
+                        <div>
+                            <span class="font-semibold">Busca Meteorológica ao Vivo</span>
+                            <p class="text-[10px] sm:text-[11px] text-white/50">Open-Meteo com fontes reais</p>
+                        </div>
+                    </button>
+                </div>
             </div>
+
+            <!-- Messages Container (apenas mensagens, limpo com segurança) -->
+            <div class="w-full max-w-3xl flex flex-col justify-start space-y-4 pb-28 hidden" id="messagesList"></div>
         </main>
 
         <!-- Bottom Input Dock com Botões Alinhados e Rótulos Inteligentes -->
-        <div class="w-full max-w-3xl mx-auto px-4 pb-4" style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem))">
+        <div class="w-full max-w-3xl mx-auto px-2 sm:px-4 pb-2 sm:pb-4" style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0.5rem))">
             <!-- Image Attachment Preview -->
             <div id="imagePreviewBar" class="hidden mb-2 p-2 rounded-xl bg-[#1e1f20] border border-[#37393b] flex items-center justify-between">
                 <div class="flex items-center space-x-2">
@@ -230,41 +229,41 @@
                 </button>
             </div>
 
-            <!-- Botões Inferiores em Linha Única Perfeita (Flex Row Alinhado) -->
-            <div class="mt-2.5 px-1 flex flex-row items-center justify-between gap-2 text-xs overflow-x-auto">
-                <div class="flex items-center space-x-2 flex-nowrap">
-                    <!-- Engine Button: Exibe nome limpo; ao abrir mostra nomes completos com detalhes -->
-                    <div class="relative flex items-center bg-[#1e1f20] border border-[#37393b] rounded-xl px-2.5 py-1.5">
-                        <span class="text-white/50 text-[11px] mr-1.5">Motor:</span>
-                        <select id="selectModelEngine" onchange="updateEngineDisplay(this.value)" class="bg-transparent text-white text-[11px] font-semibold focus:outline-none cursor-pointer pr-1">
+            <!-- Botões Inferiores em Linha Única com overflow suave -->
+            <div class="mt-1.5 px-0.5 flex flex-row items-center justify-between gap-1.5 text-xs overflow-x-auto no-scrollbar">
+                <div class="flex items-center space-x-1.5 flex-nowrap">
+                    <!-- Engine Button -->
+                    <div class="relative flex items-center bg-[#1e1f20] border border-[#37393b] rounded-xl px-2 py-1">
+                        <span class="text-white/50 text-[10px] sm:text-[11px] mr-1 hidden xs:inline">Motor:</span>
+                        <select id="selectModelEngine" onchange="updateEngineDisplay(this.value)" class="bg-transparent text-white text-[10px] sm:text-[11px] font-semibold focus:outline-none cursor-pointer pr-1 max-w-[110px] sm:max-w-none truncate">
                             <option value="auto-omniroute" class="bg-[#1e1f20] text-white">⚡ Auto (OmniRoute)</option>
                             <option value="openrouter-deepseek" class="bg-[#1e1f20] text-white">🔮 DeepSeek R1 (OpenRouter)</option>
-                            <option value="gemini-flash-lite-latest" class="bg-[#1e1f20] text-white">Gemini Flash Lite (Ultra Rápido)</option>
-                            <option value="gemini-flash-latest" class="bg-[#1e1f20] text-white">Gemini Flash (Multimodal Visão)</option>
-                            <option value="groq-llama-3.3-70b" class="bg-[#1e1f20] text-white">Groq Llama 3.3 70B (&lt;500ms)</option>
+                            <option value="gemini-flash-lite-latest" class="bg-[#1e1f20] text-white">Gemini Flash Lite</option>
+                            <option value="gemini-flash-latest" class="bg-[#1e1f20] text-white">Gemini Flash Visão</option>
+                            <option value="groq-llama-3.3-70b" class="bg-[#1e1f20] text-white">Groq Llama 3.3</option>
                         </select>
                     </div>
 
-                    <!-- Skill Button: Exibe nome limpo; ao abrir mostra nomes completos -->
-                    <div class="relative flex items-center bg-[#1e1f20] border border-[#37393b] rounded-xl px-2.5 py-1.5">
-                        <span class="text-white/50 text-[11px] mr-1.5">Habilidade:</span>
-                        <select id="selectSkill" class="bg-transparent text-white text-[11px] font-semibold focus:outline-none cursor-pointer pr-1">
-                            <option value="minha-voz" class="bg-[#1e1f20] text-white" selected>🔥 Coach Montanha (Minha Voz)</option>
-                            <option value="programador" class="bg-[#1e1f20] text-white">💻 Engenheiro Sênior (Ponytail & Karpathy)</option>
-                            <option value="roteiros-10x" class="bg-[#1e1f20] text-white">🎬 Roteiros 10x (Stories & Reels)</option>
-                            <option value="personal-trainer" class="bg-[#1e1f20] text-white">🏋️ Personal Trainer & Fisiologia</option>
-                            <option value="lpo-crosstraining" class="bg-[#1e1f20] text-white">🏋️ LPO Everett Biomecânica</option>
-                            <option value="lyle-mcdonald" class="bg-[#1e1f20] text-white">🥩 Nutrição Lyle McDonald & PSMF</option>
-                            <option value="stories-10x-copy" class="bg-[#1e1f20] text-white">📱 Copy Stories 10x Leandro Ladeira</option>
-                            <option value="matriz-anti-saas" class="bg-[#1e1f20] text-white">🛡️ Matriz Anti-SaaS Local</option>
+                    <!-- Skill Button -->
+                    <div class="relative flex items-center bg-[#1e1f20] border border-[#37393b] rounded-xl px-2 py-1">
+                        <span class="text-white/50 text-[10px] sm:text-[11px] mr-1 hidden xs:inline">Skill:</span>
+                        <select id="selectSkill" class="bg-transparent text-white text-[10px] sm:text-[11px] font-semibold focus:outline-none cursor-pointer pr-1 max-w-[110px] sm:max-w-none truncate">
+                            <option value="minha-voz" class="bg-[#1e1f20] text-white" selected>🔥 Minha Voz (Coach Montanha)</option>
+                            <option value="programador" class="bg-[#1e1f20] text-white">💻 Engenheiro Sênior</option>
+                            <option value="roteiros-10x" class="bg-[#1e1f20] text-white">🎬 Roteiros 10x</option>
+                            <option value="personal-trainer" class="bg-[#1e1f20] text-white">🏋️ Personal Trainer</option>
+                            <option value="lpo-crosstraining" class="bg-[#1e1f20] text-white">🏋️ LPO Everett</option>
+                            <option value="lyle-mcdonald" class="bg-[#1e1f20] text-white">🥩 Nutrição Lyle McDonald</option>
+                            <option value="stories-10x-copy" class="bg-[#1e1f20] text-white">📱 Copy Stories 10x</option>
+                            <option value="matriz-anti-saas" class="bg-[#1e1f20] text-white">🛡️ Matriz Anti-SaaS</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- Voice Speed Button: Exibe apenas "Voz: 1.06x" -->
-                <div class="flex items-center bg-[#1e1f20] border border-[#37393b] rounded-xl px-2.5 py-1.5 flex-shrink-0">
-                    <span class="text-white/50 text-[11px] mr-1.5">Voz:</span>
-                    <select id="selectAudioSpeed" class="bg-transparent text-white text-[11px] font-mono focus:outline-none cursor-pointer">
+                <!-- Voice Speed Button -->
+                <div class="flex items-center bg-[#1e1f20] border border-[#37393b] rounded-xl px-2 py-1 flex-shrink-0">
+                    <span class="text-white/50 text-[10px] sm:text-[11px] mr-1">Voz:</span>
+                    <select id="selectAudioSpeed" class="bg-transparent text-white text-[10px] sm:text-[11px] font-mono focus:outline-none cursor-pointer">
                         <option value="0.9" class="bg-[#1e1f20] text-white">0.90x</option>
                         <option value="1.0" class="bg-[#1e1f20] text-white">1.00x</option>
                         <option value="1.06" class="bg-[#1e1f20] text-white" selected>1.06x</option>
@@ -524,17 +523,20 @@
         function applyPreferencesToUI() {
             const badge = document.getElementById('keyStatusBadge');
             const gemStatus = document.getElementById('geminiKeyStatus');
-            if (localKeys.gemini) {
-                badge.innerText = "🔒 Chave Ativa";
-                badge.className = "text-[10px] uppercase tracking-wider bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full text-emerald-300 font-mono";
-                if (gemStatus) {
+            if (badge) {
+                if (localKeys.gemini) {
+                    badge.innerText = "🔒 Chave Ativa";
+                    badge.className = "hidden md:inline-flex text-[10px] uppercase tracking-wider bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full text-emerald-300 font-mono";
+                } else {
+                    badge.innerText = "⚠️ Sem Chave";
+                    badge.className = "hidden md:inline-flex text-[10px] uppercase tracking-wider bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full text-amber-300 font-mono";
+                }
+            }
+            if (gemStatus) {
+                if (localKeys.gemini) {
                     gemStatus.innerText = "● Ativa (" + localKeys.gemini.substring(0, 4) + "..." + localKeys.gemini.slice(-4) + ")";
                     gemStatus.className = "text-[10px] text-emerald-400 font-mono";
-                }
-            } else {
-                badge.innerText = "⚠️ Sem Chave";
-                badge.className = "text-[10px] uppercase tracking-wider bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full text-amber-300 font-mono";
-                if (gemStatus) {
+                } else {
                     gemStatus.innerText = "Pendente";
                     gemStatus.className = "text-[10px] text-amber-400";
                 }
@@ -831,13 +833,22 @@
             }
         }
 
+        function toggleChatMode(hasMessages) {
+            const ws = document.getElementById('welcomeScreen');
+            const ml = document.getElementById('messagesList');
+            if (ws) ws.classList.toggle('hidden', hasMessages);
+            if (ml) ml.classList.toggle('hidden', !hasMessages);
+        }
+
         async function createNewChat() {
             currentChatId = 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
-            document.getElementById('currentChatTitle').innerText = "Nova Conversa";
-            document.getElementById('messagesList').innerHTML = '';
-            document.getElementById('welcomeScreen').classList.remove('hidden');
-            document.getElementById('promptInput').value = '';
-            document.getElementById('promptInput').focus();
+            const titleEl = document.getElementById('currentChatTitle');
+            if (titleEl) titleEl.innerText = "Nova Conversa";
+            const ml = document.getElementById('messagesList');
+            if (ml) ml.innerHTML = '';
+            toggleChatMode(false);
+            const pInput = document.getElementById('promptInput');
+            if (pInput) { pInput.value = ''; pInput.focus(); }
             removeAttachedImage();
             closeSidebarMobile();
             localStorage.removeItem('montanha_last_active_chat');
@@ -880,10 +891,10 @@
             }
 
             const container = document.getElementById('messagesList');
-            container.innerHTML = '';
+            if (container) container.innerHTML = '';
 
             if (messages && messages.length > 0) {
-                document.getElementById('welcomeScreen').classList.add('hidden');
+                toggleChatMode(true);
                 messages.forEach(msg => {
                     if (msg.role === 'user') {
                         appendUserMessage(msg.prompt, msg.image);
@@ -893,7 +904,7 @@
                 });
                 scrollToBottom();
             } else {
-                document.getElementById('welcomeScreen').classList.remove('hidden');
+                toggleChatMode(false);
             }
             loadChatsIndex();
         }
@@ -933,7 +944,7 @@
         }
 
         function appendUserMessage(text, hasImage=false) {
-            document.getElementById('welcomeScreen').classList.add('hidden');
+            toggleChatMode(true);
             const container = document.getElementById('messagesList');
             const div = document.createElement('div');
             div.className = "w-full flex justify-end";
@@ -948,7 +959,7 @@
         }
 
         function appendBotMessage(markdownText, sources=null) {
-            document.getElementById('welcomeScreen').classList.add('hidden');
+            toggleChatMode(true);
             const container = document.getElementById('messagesList');
             const div = document.createElement('div');
             div.className = "w-full flex space-x-3 items-start";
@@ -1007,7 +1018,7 @@
         }
 
         function appendImageMessage(imageUrl, prompt, provider) {
-            document.getElementById('welcomeScreen').classList.add('hidden');
+            toggleChatMode(true);
             const container = document.getElementById('messagesList');
             const div = document.createElement('div');
             div.className = "w-full flex space-x-3 items-start";
@@ -1092,7 +1103,7 @@
             }
 
             // Sem chave local: só bloqueia se Gemini E sem chave de env (Groq sempre passa)
-            if (!localKeys.gemini && !engine.includes('groq') && !attachedImageBase64) {
+            if (!localKeys.gemini && !localKeys.openrouter && !engine.includes('groq') && !attachedImageBase64) {
                 // Silently downgrade to Groq instead of blocking
                 engine = 'groq-llama-3.3-70b';
             }
