@@ -50,8 +50,9 @@ jobs:
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android"
               package="com.montanhagemini.app"
-              android:versionCode="1"
-              android:versionName="1.0">
+              android:versionCode="2"
+              android:versionName="1.1">
+              <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="34" />
               <uses-permission android:name="android.permission.INTERNET" />
               <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
               <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -157,10 +158,10 @@ jobs:
           }
           EOF
 
-          aapt package -f -m -J build_apk/src -M build_apk/AndroidManifest.xml -S build_apk/res -I "$ANDROID_JAR"
-          javac -d build_apk/obj -classpath "$ANDROID_JAR" $(find build_apk/src -name "*.java")
-          d8 --output build_apk/bin build_apk/obj/com/montanhagemini/app/*.class
-          aapt package -f -M build_apk/AndroidManifest.xml -S build_apk/res -I "$ANDROID_JAR" -F build_apk/bin/unsigned.apk
+          aapt package -f -m --min-sdk-version 26 --target-sdk-version 34 -J build_apk/src -M build_apk/AndroidManifest.xml -S build_apk/res -I "$ANDROID_JAR"
+          javac -source 8 -target 8 -d build_apk/obj -classpath "$ANDROID_JAR" $(find build_apk/src -name "*.java")
+          d8 --min-api 26 --output build_apk/bin build_apk/obj/com/montanhagemini/app/*.class
+          aapt package -f --min-sdk-version 26 --target-sdk-version 34 -M build_apk/AndroidManifest.xml -S build_apk/res -I "$ANDROID_JAR" -F build_apk/bin/unsigned.apk
           cd build_apk/bin
           aapt add unsigned.apk classes.dex
 
