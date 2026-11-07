@@ -43,15 +43,17 @@ jobs:
 
           mkdir -p build_apk/src/com/montanhagemini/app
           mkdir -p build_apk/res/values
+          mkdir -p build_apk/res/drawable
           mkdir -p build_apk/obj
           mkdir -p build_apk/bin
+          cp public/icon.png build_apk/res/drawable/ic_launcher.png
 
           cat << 'EOF' > build_apk/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android"
               package="com.montanhagemini.app"
-              android:versionCode="3"
-              android:versionName="1.2">
+              android:versionCode="4"
+              android:versionName="1.4">
               <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="34" />
               <uses-permission android:name="android.permission.INTERNET" />
               <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -59,6 +61,8 @@ jobs:
               <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
               <application
                   android:label="Montanha AI Studio"
+                  android:icon="@drawable/ic_launcher"
+                  android:roundIcon="@drawable/ic_launcher"
                   android:usesCleartextTraffic="true"
                   android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
                   <activity
