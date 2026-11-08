@@ -148,6 +148,7 @@
                     <h1 class="text-xs sm:text-sm font-semibold tracking-tight flex items-center space-x-2">
                         <span id="currentChatTitle" class="truncate max-w-[130px] sm:max-w-[220px]">Montanha AI Studio</span>
                         <span id="keyStatusBadge" class="hidden sm:inline-flex text-[10px] font-mono tracking-wider bg-white/5 px-2 py-0.5 rounded-full text-zinc-400 border border-white/5">Zero-Leak</span>
+                        <span id="memoryStatusBadge" class="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono bg-purple-500/15 text-purple-300 border border-purple-500/25 px-2 py-0.5 rounded-full shadow-sm" title="Memória Contínua Graphify Ativa"><i class="fa-solid fa-brain text-[9px] text-purple-400"></i> <span id="memoryTurnsCount">0 msgs</span></span>
                     </h1>
                 </div>
             </div>
@@ -273,6 +274,10 @@
                         <button onclick="openGoogleHubModal(); toggleContextDropdown();" class="w-full min-h-[44px] px-3.5 py-2 text-left hover:bg-white/10 text-zinc-200 hover:text-white flex items-center space-x-3 spring-transition">
                             <i class="fa-brands fa-google text-zinc-400 w-4"></i>
                             <span>Google Apps & Notas</span>
+                        </button>
+                        <button onclick="insertPrompt('/graphify'); toggleContextDropdown();" class="w-full min-h-[44px] px-3.5 py-2 text-left hover:bg-white/10 text-purple-300 hover:text-white flex items-center space-x-3 spring-transition border-t border-white/5">
+                            <i class="fa-solid fa-diagram-project text-purple-400 w-4"></i>
+                            <span>Mapear Grafo Mental (/graphify)</span>
                         </button>
                     </div>
                 </div>
@@ -1160,8 +1165,16 @@
 
             const localChats = getLocalChats();
             const currentChatObj = localChats[currentChatId] || { id: currentChatId, title: prompt.substring(0, 30), messages: [] };
+            
+            // Captura histórico anterior para memória contínua (Graphify)
+            const historyToSend = (currentChatObj.messages || []).slice(-16).map(m => ({
+                role: m.role === 'model' ? 'model' : 'user',
+                content: m.role === 'model' ? (m.response || '') : (m.prompt || '')
+            }));
+
             currentChatObj.messages.push({ role: 'user', prompt: prompt, image: !!attachedImageBase64 });
             saveLocalChat(currentChatId, currentChatObj.title, currentChatObj.messages);
+            updateMemoryBadge();
 
             const skill = document.getElementById('selectSkill').value;
             const engine = document.getElementById('selectModelEngine').value;
@@ -1169,6 +1182,7 @@
             const payload = {
                 chat_id: currentChatId,
                 prompt: prompt,
+                history: historyToSend,
                 skill: skill,
                 engine: engine,
                 plugins: appPreferences.plugins,
@@ -1202,8 +1216,10 @@
                 if (data.status === 'success') {
                     appendBotMessage(data.response, data.sources);
                     currentChatObj.messages.push({ role: 'model', response: data.response, sources: data.sources });
+                    updateMemoryBadge();
                     saveLocalChat(currentChatId, currentChatObj.title, currentChatObj.messages);
                     loadChatsIndex();
+                    updateMemoryBadge();
 
                     if (isLiveAudioActive) {
                         speakTextAndListenNext(data.response);
@@ -1780,6 +1796,31 @@
             if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault();
                 sendMessage();
+            }
+        }
+
+                function insertPrompt(text) {
+            const input = document.getElementById('promptInput');
+            if (input) {
+                input.value = text;
+                input.focus();
+                autoGrow(input);
+            }
+        }
+
+        function updateMemoryBadge() {
+            const el = document.getElementById('memoryTurnsCount');
+            const badge = document.getElementById('memoryStatusBadge');
+            if (!el || !badge) return;
+            const localChats = getLocalChats();
+            const count = (localChats[currentChatId]?.messages || []).length;
+            el.innerText = `${count} msgs`;
+            if (count > 0) {
+                badge.classList.remove('hidden');
+                badge.classList.add('inline-flex');
+            } else {
+                badge.classList.add('hidden');
+                badge.classList.remove('inline-flex');
             }
         }
 
