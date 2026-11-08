@@ -388,6 +388,8 @@ class handler(BaseHTTPRequestHandler):
                 "system_instruction": {"parts": [{"text": system_prompt}]},
                 "generationConfig": {"temperature": 0.7, "maxOutputTokens": 2048}
             }
+            if plugins_config.get("web_search", True):
+                payload["tools"] = [{"googleSearch": {}}]
 
             model_candidates = ["gemini-flash-lite-latest", "gemini-flash-latest"]
             if engine in model_candidates:
@@ -409,6 +411,16 @@ class handler(BaseHTTPRequestHandler):
                         parts = candidate_resp.get("content", {}).get("parts", [])
                         text_ans = "".join([p.get("text", "") for p in parts]).strip()
                         if text_ans:
+                            # Extrair fontes reais de Grounding do Google Search
+                            grounding = candidate_resp.get("groundingMetadata", {})
+                            if grounding:
+                                g_chunks = grounding.get("groundingChunks", [])
+                                if not sources:
+                                    sources = []
+                                for ch in g_chunks:
+                                    w = ch.get("web", {})
+                                    if w.get("uri"):
+                                        sources.append({"title": w.get("title") or w.get("uri"), "url": w.get("uri")})
                             self._send_json({
                                 "status": "success",
                                 "response": text_ans,
@@ -424,11 +436,52 @@ class handler(BaseHTTPRequestHandler):
 
         elif any(p in all_routes for p in ["/generate-image", "generate-image"]):
             prompt = body.get("prompt", "").strip()
+            img_engine = body.get("engine", "flux").lower()
+            user_gemini_key = self.headers.get("X-Gemini-Key") or body.get("api_key") or os.environ.get("GEMINI_API_KEY", "")
+
+            # 1. Google Imagen 3 (Oficial Gemini)
+            if ("gemini" in img_engine or "imagen" in img_engine) and user_gemini_key:
+                try:
+                    imagen_url = f"https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key={user_gemini_key}"
+                    payload_img = {
+                        "instances": [{"prompt": prompt}],
+                        "parameters": {"sampleCount": 1, "aspectRatio": "1:1", "outputMimeType": "image/jpeg"}
+                    }
+                    req_img = urllib.request.Request(
+                        imagen_url,
+                        data=json.dumps(payload_img).encode("utf-8"),
+                        headers={"Content-Type": "application/json"}
+                    )
+                    with urllib.request.urlopen(req_img, timeout=35) as r_img:
+                        d_img = json.loads(r_img.read().decode())
+                        preds = d_img.get("predictions", [])
+                        if preds and preds[0].get("bytesBase64Encoded"):
+                            b64 = preds[0]["bytesBase64Encoded"]
+                            self._send_json({
+                                "status": "success",
+                                "image_url": f"data:image/jpeg;base64,{b64}",
+                                "provider": "Google Imagen 3 (Oficial)"
+                            })
+                            return
+                except Exception:
+                    pass # Fallback automático para motor gratuito
+
+            # 2. Motores Gratuitos de Alta Velocidade (Flux, SDXL, Midjourney Style)
             import random
             seed = random.randint(1000, 999999)
             enc_prompt = urllib.parse.quote(prompt)
-            image_url = f"https://image.pollinations.ai/prompt/{enc_prompt}?model=flux&width=1024&height=1024&nologo=true&seed={seed}"
-            self._send_json({"status": "success", "image_url": image_url, "provider": "Flux.1 Ultra HD"})
+            m_param = "flux"
+            p_label = "Flux.1 Schnell (Grátis)"
+
+            if "sdxl" in img_engine or "turbo" in img_engine:
+                m_param = "turbo"
+                p_label = "Stable Diffusion XL (Grátis)"
+            elif "midjourney" in img_engine or "art" in img_engine:
+                m_param = "midjourney"
+                p_label = "Midjourney Style (Grátis)"
+
+            image_url = f"https://image.pollinations.ai/prompt/{enc_prompt}?model={m_param}&width=1024&height=1024&nologo=true&seed={seed}"
+            self._send_json({"status": "success", "image_url": image_url, "provider": p_label})
             return
 
         self._send_json({"status": "error", "message": "Endpoint não encontrado"}, 404)

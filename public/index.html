@@ -1,274 +1,348 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Montanha AI Studio</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        apple: {
+                            base: '#090a0f',
+                            surface: '#12141a',
+                            elevated: '#1a1c24',
+                            border: 'rgba(255, 255, 255, 0.08)',
+                            borderLight: 'rgba(255, 255, 255, 0.14)',
+                            blue: '#0071e3',
+                            blueHover: '#0077ed',
+                            text: '#f5f5f7',
+                            muted: '#86868b'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"SF Pro Text"', 'Inter', 'sans-serif'],
+                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         :root {
-            --bg-base: #131314;
-            --bg-surface: #1e1f20;
-            --bg-input: #282a2c;
-            --border-gemini: #37393b;
-            --gemini-sparkle: linear-gradient(135deg, #4285f4, #9b72cb, #d96570);
+            --bg-base: #090a0f;
+            --bg-surface: #12141a;
+            --bg-elevated: #1a1c24;
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --apple-blue: #0071e3;
         }
         body {
             background-color: var(--bg-base);
-            color: #e3e3e3;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #f5f5f7;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            touch-action: manipulation;
         }
+        /* Mobile-First Input Rule: Min 16px to prevent iOS auto-zoom */
+        input, textarea, select {
+            font-size: 16px !important;
+        }
+        @media (min-width: 768px) {
+            input, textarea, select {
+                font-size: 14px !important;
+            }
+        }
+        /* Apple HIG Squircle and Scrollbars */
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #37393b; border-radius: 9999px; }
-        ::-webkit-scrollbar-thumb:hover { background: #4a4d51; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.25); }
 
-        .gemini-gradient-text {
-            background: var(--gemini-sparkle);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .glass-panel {
+            background: rgba(18, 20, 26, 0.85);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-top: 1px solid rgba(255, 255, 255, 0.14);
+        }
+        .spring-transition {
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .markdown-body pre {
-            background-color: #1e1f20;
-            padding: 12px;
-            border-radius: 8px;
+            background-color: #12141a;
+            padding: 14px;
+            border-radius: 12px;
             overflow-x: auto;
-            margin: 8px 0;
-            border: 1px solid #37393b;
+            margin: 10px 0;
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
         .markdown-body code {
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             font-size: 13px;
         }
-        .markdown-body p { margin-bottom: 8px; line-height: 1.6; }
+        .markdown-body p { margin-bottom: 8px; line-height: 1.65; }
         .markdown-body ul, .markdown-body ol { margin-left: 20px; margin-bottom: 8px; }
         .markdown-body li { margin-bottom: 4px; }
         .markdown-body h1, .markdown-body h2, .markdown-body h3 {
-            font-weight: 700;
+            font-weight: 600;
             margin-top: 14px;
             margin-bottom: 6px;
             color: #ffffff;
+            letter-spacing: -0.02em;
         }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="h-screen h-[100dvh] w-screen flex overflow-hidden relative">
+<body class="h-screen h-[100dvh] w-screen flex overflow-hidden relative select-none">
 
-    <div id="sidebarBackdrop" onclick="closeSidebarMobile()" class="hidden md:hidden fixed inset-0 bg-black/60 z-30 transition-opacity"></div>
+    <!-- Mobile Backdrop -->
+    <div id="sidebarBackdrop" onclick="closeSidebarMobile()" class="hidden md:hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-30 transition-opacity"></div>
 
-    <!-- Sidebar: Multi-Chat & Context Memory -->
-    <aside id="sidebar" class="fixed md:static inset-y-0 left-0 w-72 bg-[#1e1f20] border-r border-[#282a2c] flex flex-col flex-shrink-0 transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0 z-40">
-        <div class="h-14 border-b border-[#282a2c] flex items-center justify-between px-3">
-            <button onclick="createNewChat()" class="flex-1 flex items-center justify-center space-x-2 py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-semibold border border-white/5 transition active:scale-95 shadow">
-                <i class="fa-solid fa-plus text-cyan-400"></i>
+    <!-- Sidebar: Multi-Chat & Context Memory (Apple Style) -->
+    <aside id="sidebar" class="fixed md:static inset-y-0 left-0 w-72 bg-[#12141a] border-r border-white/5 flex flex-col flex-shrink-0 transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0 z-40">
+        <!-- Sidebar Header -->
+        <div class="h-14 border-b border-white/5 flex items-center justify-between px-3">
+            <button onclick="createNewChat()" class="flex-1 min-h-[44px] flex items-center justify-center space-x-2 py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-semibold border border-white/10 spring-transition active:scale-[0.98]">
+                <i class="fa-solid fa-plus text-apple-blue"></i>
                 <span>Novo Chat</span>
             </button>
-            <button onclick="closeSidebarMobile()" class="ml-2 p-2 rounded-lg hover:bg-white/10 text-white/50 hover:text-white md:hidden">
-                <i class="fa-solid fa-xmark"></i>
+            <button onclick="closeSidebarMobile()" class="ml-2 min-h-[44px] min-w-[44px] rounded-xl hover:bg-white/10 text-white/50 hover:text-white flex items-center justify-center md:hidden spring-transition">
+                <i class="fa-solid fa-xmark text-sm"></i>
             </button>
         </div>
 
+        <!-- Chats List -->
         <div class="flex-1 overflow-y-auto p-2 space-y-1" id="chatsListContainer"></div>
 
-        <div class="p-3 border-t border-[#282a2c] bg-black/20 text-[11px] text-white/50 flex items-center justify-between">
-            <button onclick="openSettingsModal()" class="flex items-center space-x-1.5 hover:text-white transition">
-                <i class="fa-solid fa-gear text-cyan-400"></i>
-                <span>Configurações</span>
+        <!-- Sidebar Footer Tools -->
+        <div class="p-3 border-t border-white/5 bg-black/30 flex items-center justify-between text-xs text-white/60">
+            <button onclick="openSettingsModal()" class="min-h-[44px] flex items-center space-x-2 hover:text-white spring-transition px-2 py-1 rounded-lg">
+                <i class="fa-solid fa-gear text-white/70"></i>
+                <span>Ajustes & Plugins</span>
             </button>
-            <span class="text-emerald-400 font-mono text-[10px] bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Zero-Leak</span>
+            <span class="text-[10px] uppercase font-mono tracking-wider bg-white/5 px-2 py-1 rounded-md text-white/50 border border-white/5">v5.0 Pro</span>
         </div>
     </aside>
 
     <!-- Main Workspace -->
     <div class="flex-1 flex flex-col h-full w-full overflow-hidden relative min-w-0">
 
-        <!-- Top Header -->
-        <header class="h-14 border-b border-[#282a2c] flex items-center justify-between px-3 sm:px-4 bg-[#131314]/95 backdrop-blur z-20">
-            <div class="flex items-center space-x-3">
-                <button onclick="toggleSidebar()" class="p-2 rounded-lg hover:bg-white/10 text-white/60 hover:text-white transition">
-                    <i class="fa-solid fa-bars"></i>
+        <!-- Top Header (Apple HIG Frosted Glass) -->
+        <header class="h-14 border-b border-white/5 flex items-center justify-between px-3 sm:px-4 bg-[#090a0f]/90 backdrop-blur-xl z-20">
+            <div class="flex items-center space-x-2.5">
+                <button onclick="toggleSidebar()" class="min-h-[44px] min-w-[44px] rounded-xl hover:bg-white/10 text-white/70 hover:text-white flex items-center justify-center spring-transition" title="Menu lateral">
+                    <i class="fa-solid fa-bars text-sm"></i>
                 </button>
-                <div class="w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500 shadow-md">
-                    <i class="fa-solid fa-sparkles text-white text-xs"></i>
+                <div class="w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white shadow-sm">
+                    <i class="fa-solid fa-sparkles text-xs text-apple-blue"></i>
                 </div>
                 <div class="min-w-0">
-                    <h1 class="text-xs sm:text-sm font-semibold tracking-wide flex items-center space-x-1.5">
-                        <span id="currentChatTitle" class="truncate max-w-[120px] sm:max-w-[220px]">Montanha AI Studio</span>
-                        <span id="keyStatusBadge" class="hidden md:inline-flex text-[10px] uppercase tracking-wider bg-white/10 px-2 py-0.5 rounded-full text-emerald-300 font-mono">🔒 Protegido</span>
+                    <h1 class="text-xs sm:text-sm font-semibold tracking-tight flex items-center space-x-2">
+                        <span id="currentChatTitle" class="truncate max-w-[130px] sm:max-w-[220px]">Montanha AI Studio</span>
+                        <span id="keyStatusBadge" class="hidden sm:inline-flex text-[10px] font-mono tracking-wider bg-white/5 px-2 py-0.5 rounded-full text-zinc-400 border border-white/5">Zero-Leak</span>
                     </h1>
                 </div>
             </div>
 
-            <div class="flex items-center space-x-2">
-                <!-- Settings Button (Sempre Acessível) -->
-                <button onclick="openSettingsModal()" title="Configurações, Plugins & Chaves" class="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/80 hover:text-white text-xs flex items-center space-x-1.5 transition border border-white/5">
-                    <i class="fa-solid fa-gear text-cyan-400"></i>
-                    <span class="hidden sm:inline">Configuração</span>
+            <div class="flex items-center space-x-1.5 sm:space-x-2">
+                <!-- Browser Interno Button -->
+                <button onclick="openBrowserModal()" title="Abrir Browser Interno / Busca Web" class="min-h-[40px] px-2.5 sm:px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs flex items-center space-x-1.5 border border-white/5 spring-transition active:scale-[0.98]">
+                    <i class="fa-solid fa-compass text-apple-blue text-xs"></i>
+                    <span class="hidden sm:inline font-medium">Browser</span>
                 </button>
 
-                <!-- Live Voice Call -->
-                <button id="liveAudioCallBtn" onclick="toggleLiveAudioMode()" title="Modo Conversa por Voz Contínua (Gemini Live)" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:brightness-110 text-white font-bold text-xs flex items-center space-x-1.5 transition shadow active:scale-95">
-                    <i id="liveAudioIcon" class="fa-solid fa-phone"></i>
+                <!-- Google Apps Hub -->
+                <button onclick="openGoogleHubModal()" title="Google Workspace & Notas Rápidas" class="min-h-[40px] px-2.5 sm:px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs flex items-center space-x-1.5 border border-white/5 spring-transition active:scale-[0.98]">
+                    <i class="fa-brands fa-google text-zinc-300 text-xs"></i>
+                    <span class="hidden sm:inline font-medium">Google Apps</span>
+                </button>
+
+                <!-- Live Voice Call Button -->
+                <button id="liveAudioCallBtn" onclick="toggleLiveAudioMode()" title="Modo Conversa por Voz Contínua (Gemini Live)" class="min-h-[40px] px-3 py-1.5 rounded-xl bg-apple-blue hover:bg-apple-blueHover text-white text-xs font-semibold flex items-center space-x-1.5 shadow-sm spring-transition active:scale-[0.98]">
+                    <i id="liveAudioIcon" class="fa-solid fa-phone text-xs"></i>
                     <span id="liveAudioText" class="hidden sm:inline">Conversa Live</span>
                 </button>
 
-                <button onclick="openPdfModal()" title="Ler Livro ou Artigo em PDF" class="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/80 hover:text-white text-xs flex items-center space-x-1 transition border border-white/5">
-                    <i class="fa-solid fa-file-pdf text-red-400"></i>
-                    <span class="hidden sm:inline">PDF</span>
-                </button>
-
-                <button onclick="deleteCurrentChat()" title="Excluir este chat" class="p-2 rounded-full hover:bg-white/10 text-white/60 hover:text-red-400 transition">
+                <!-- Delete Chat -->
+                <button onclick="deleteCurrentChat()" title="Excluir este chat" class="min-h-[40px] min-w-[40px] rounded-xl hover:bg-white/10 text-white/50 hover:text-red-400 flex items-center justify-center spring-transition">
                     <i class="fa-regular fa-trash-can text-sm"></i>
                 </button>
             </div>
         </header>
 
         <!-- Messages Scroll Area -->
-        <main class="flex-1 overflow-y-auto p-3 sm:p-4 md:px-0 flex flex-col items-center" id="scrollContainer">
-            <!-- Welcome Screen independente (NUNCA DESTRUÍDO POR innerHTML = '') -->
-            <div id="welcomeScreen" class="w-full max-w-3xl flex-1 flex flex-col items-center justify-center text-center my-auto py-8 sm:py-12 space-y-4">
-                <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center bg-gradient-to-tr from-blue-600 via-indigo-600 to-pink-500 shadow-xl">
-                    <i class="fa-solid fa-sparkles text-xl sm:text-2xl text-white"></i>
+        <main class="flex-1 overflow-y-auto p-3 sm:p-4 md:px-0 flex flex-col items-center select-text" id="scrollContainer">
+            <!-- Welcome Screen (Apple Bento Minimalist) -->
+            <div id="welcomeScreen" class="w-full max-w-3xl flex-1 flex flex-col items-center justify-center text-center my-auto py-8 sm:py-12 space-y-5">
+                <div class="w-16 h-16 rounded-3xl flex items-center justify-center bg-white/5 border border-white/10 shadow-lg text-white">
+                    <i class="fa-solid fa-sparkles text-2xl text-apple-blue"></i>
                 </div>
                 <div>
-                    <h2 class="text-xl sm:text-3xl font-bold">
-                        Olá, <span class="gemini-gradient-text">Coach Montanha</span>
+                    <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-white">
+                        Montanha AI Studio
                     </h2>
-                    <p class="text-xs sm:text-sm text-white/50 mt-1 max-w-md mx-auto">
-                        Montanha AI Studio: modelos rápidos, fontes reais e zero enrolação.
+                    <p class="text-xs sm:text-sm text-zinc-400 mt-1 max-w-md mx-auto">
+                        Inteligência multimodal de alta precisão, busca web ativa e integração Google Workspace.
                     </p>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 w-full max-w-lg pt-2 sm:pt-4 text-left">
-                    <button onclick="setPrompt('/imagem Atleta determinado correndo sob chuva iluminação dramática 8k')" class="p-3 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
-                        <i class="fa-solid fa-image text-purple-400 mt-0.5"></i>
+                <!-- Bento Quick Action Grid (Apple Minimalist) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 w-full max-w-lg pt-2 text-left">
+                    <button onclick="openImageGeneratorModal()" class="p-3.5 rounded-2xl bg-[#12141a] hover:bg-[#1a1c24] border border-white/5 text-xs text-white spring-transition active:scale-[0.99] flex items-start space-x-3">
+                        <div class="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-image text-zinc-300 text-xs"></i>
+                        </div>
                         <div>
-                            <span class="font-semibold">Gerar Imagem Flux 1024x1024</span>
-                            <p class="text-[10px] sm:text-[11px] text-white/50">Criação visual instantânea</p>
+                            <span class="font-semibold block text-white">Gerar Imagens (Gemini / Flux / SDXL)</span>
+                            <span class="text-[11px] text-zinc-400">Seleção de motores gratuitos e oficiais</span>
                         </div>
                     </button>
-                    <button onclick="setPrompt('Escreva um roteiro de 20s para Reels sobre consistência e execução')" class="p-3 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
-                        <i class="fa-solid fa-clapperboard text-cyan-400 mt-0.5"></i>
+
+                    <button onclick="openBrowserModal()" class="p-3.5 rounded-2xl bg-[#12141a] hover:bg-[#1a1c24] border border-white/5 text-xs text-white spring-transition active:scale-[0.99] flex items-start space-x-3">
+                        <div class="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-compass text-zinc-300 text-xs"></i>
+                        </div>
                         <div>
-                            <span class="font-semibold">Roteiro 10x com Minha Voz</span>
-                            <p class="text-[10px] sm:text-[11px] text-white/50">Cortes e gancho de 3 segundos</p>
+                            <span class="font-semibold block text-white">Browser & Pesquisa Web</span>
+                            <span class="text-[11px] text-zinc-400">Navegue e pesquise direto no app</span>
                         </div>
                     </button>
-                    <button onclick="setPrompt('Agende uma reunião de alinhamento com a equipe de marketing no Google Calendar para amanhã às 15h')" class="p-3 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
-                        <i class="fa-solid fa-calendar-check text-blue-400 mt-0.5"></i>
+
+                    <button onclick="openGoogleHubModal()" class="p-3.5 rounded-2xl bg-[#12141a] hover:bg-[#1a1c24] border border-white/5 text-xs text-white spring-transition active:scale-[0.99] flex items-start space-x-3">
+                        <div class="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-brands fa-google text-zinc-300 text-xs"></i>
+                        </div>
                         <div>
-                            <span class="font-semibold">Ação Google Calendar</span>
-                            <p class="text-[10px] sm:text-[11px] text-white/50">Plugin de agendamento</p>
+                            <span class="font-semibold block text-white">Google Apps & Notas</span>
+                            <span class="text-[11px] text-zinc-400">Calendar, Docs, Sheets, Keep e Notas</span>
                         </div>
                     </button>
-                    <button onclick="setPrompt('Como está o clima e a temperatura em João Pessoa agora?')" class="p-3 rounded-xl bg-[#1e1f20] hover:bg-[#282a2c] border border-[#37393b] text-xs text-white/80 hover:text-white transition group flex items-start space-x-2.5">
-                        <i class="fa-solid fa-cloud-sun text-emerald-400 mt-0.5"></i>
+
+                    <button onclick="setPrompt('Escreva uma prescrição de treino funcional com blocos estruturados e esteira de progressão de carga.')" class="p-3.5 rounded-2xl bg-[#12141a] hover:bg-[#1a1c24] border border-white/5 text-xs text-white spring-transition active:scale-[0.99] flex items-start space-x-3">
+                        <div class="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-dumbbell text-zinc-300 text-xs"></i>
+                        </div>
                         <div>
-                            <span class="font-semibold">Busca Meteorológica ao Vivo</span>
-                            <p class="text-[10px] sm:text-[11px] text-white/50">Open-Meteo com fontes reais</p>
+                            <span class="font-semibold block text-white">Prescrição & Fisiologia</span>
+                            <span class="text-[11px] text-zinc-400">Tom direto Coach Montanha sem clichês</span>
                         </div>
                     </button>
                 </div>
             </div>
 
-            <!-- Messages Container (apenas mensagens, limpo com segurança) -->
+            <!-- Messages List -->
             <div class="w-full max-w-3xl flex flex-col justify-start space-y-4 pb-28 hidden" id="messagesList"></div>
         </main>
 
-        <!-- Bottom Input Dock com Botões Alinhados e Rótulos Inteligentes -->
-        <div class="w-full max-w-3xl mx-auto px-3 sm:px-4 pb-2 sm:pb-4" style="padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0.75rem))">
+        <!-- Bottom Input Dock (Ergonomic Thumb Zone) -->
+        <div class="w-full max-w-3xl mx-auto px-3 sm:px-4 pb-2 sm:pb-3" style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0.5rem))">
             <!-- Image Attachment Preview -->
-            <div id="imagePreviewBar" class="hidden mb-2 p-2 rounded-xl bg-[#1e1f20] border border-[#37393b] flex items-center justify-between">
+            <div id="imagePreviewBar" class="hidden mb-2 p-2 rounded-2xl bg-[#12141a] border border-white/10 flex items-center justify-between">
                 <div class="flex items-center space-x-2">
-                    <img id="imgPreviewThumb" class="w-10 h-10 object-cover rounded-lg border border-white/10" src="">
-                    <span id="imgPreviewName" class="text-xs text-white/80 truncate max-w-xs">imagem.jpg</span>
+                    <img id="imgPreviewThumb" class="w-10 h-10 object-cover rounded-xl border border-white/10" src="">
+                    <span id="imgPreviewName" class="text-xs text-zinc-300 truncate max-w-xs font-mono">imagem.jpg</span>
                 </div>
-                <button onclick="removeAttachedImage()" class="p-1.5 rounded-full hover:bg-white/10 text-white/60 hover:text-red-400">
-                    <i class="fa-solid fa-xmark"></i>
+                <button onclick="removeAttachedImage()" class="min-h-[36px] min-w-[36px] rounded-xl hover:bg-white/10 text-zinc-400 hover:text-red-400 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
 
-            <!-- Main Input Box -->
-            <div class="relative bg-[#1e1f20] rounded-2xl border border-[#37393b] focus-within:border-white/30 transition shadow-2xl p-2.5 flex items-end space-x-2">
+            <!-- Main Input Bar -->
+            <div class="relative bg-[#12141a] rounded-2xl border border-white/10 focus-within:border-white/20 transition-all shadow-xl p-2 flex items-end space-x-1.5 sm:space-x-2">
                 <input type="file" id="fileInput" accept="image/*,audio/*,video/*" class="hidden" onchange="handleFileSelect(event)">
-                
-                <!-- Botão '+' de Adicionar Contexto -->
+
+                <!-- Botão '+' Menu Rápido -->
                 <div class="relative">
-                    <button id="addContextBtn" onclick="toggleContextDropdown()" title="Adicionar Contexto (+)" class="w-9 h-9 rounded-xl hover:bg-white/10 text-white/70 hover:text-white flex items-center justify-center transition text-base font-bold">
+                    <button id="addContextBtn" onclick="toggleContextDropdown()" title="Adicionar arquivo ou ferramenta" class="min-h-[44px] min-w-[44px] rounded-xl hover:bg-white/10 text-zinc-300 hover:text-white flex items-center justify-center spring-transition text-base font-semibold">
                         <i class="fa-solid fa-plus"></i>
                     </button>
-                    <!-- Context Menu Dropdown -->
-                    <div id="contextDropdown" class="hidden absolute bottom-11 left-0 w-48 bg-[#1e1f20] border border-[#37393b] rounded-xl shadow-2xl py-1.5 z-30 text-xs">
-                        <button onclick="document.getElementById('fileInput').click(); toggleContextDropdown();" class="w-full px-3 py-2 text-left hover:bg-white/10 text-white/80 hover:text-white flex items-center space-x-2.5">
-                            <i class="fa-solid fa-paperclip text-cyan-400"></i>
-                            <span>Anexar Imagem / Arquivo</span>
+                    <!-- Context Menu Dropdown (Apple Popover) -->
+                    <div id="contextDropdown" class="hidden absolute bottom-12 left-0 w-52 bg-[#12141a] border border-white/10 rounded-2xl shadow-2xl py-2 z-30 text-xs">
+                        <button onclick="document.getElementById('fileInput').click(); toggleContextDropdown();" class="w-full min-h-[44px] px-3.5 py-2 text-left hover:bg-white/10 text-zinc-200 hover:text-white flex items-center space-x-3 spring-transition">
+                            <i class="fa-solid fa-paperclip text-zinc-400 w-4"></i>
+                            <span>Anexar Foto ou Arquivo</span>
                         </button>
-                        <button onclick="triggerImageMode(); toggleContextDropdown();" class="w-full px-3 py-2 text-left hover:bg-white/10 text-white/80 hover:text-white flex items-center space-x-2.5">
-                            <i class="fa-solid fa-image text-purple-400"></i>
-                            <span>Gerar Imagem Flux</span>
+                        <button onclick="openImageGeneratorModal(); toggleContextDropdown();" class="w-full min-h-[44px] px-3.5 py-2 text-left hover:bg-white/10 text-zinc-200 hover:text-white flex items-center space-x-3 spring-transition">
+                            <i class="fa-solid fa-image text-zinc-400 w-4"></i>
+                            <span>Gerar Imagem com IA</span>
                         </button>
-                        <button onclick="openPdfModal(); toggleContextDropdown();" class="w-full px-3 py-2 text-left hover:bg-white/10 text-white/80 hover:text-white flex items-center space-x-2.5">
-                            <i class="fa-solid fa-file-pdf text-red-400"></i>
+                        <button onclick="openPdfModal(); toggleContextDropdown();" class="w-full min-h-[44px] px-3.5 py-2 text-left hover:bg-white/10 text-zinc-200 hover:text-white flex items-center space-x-3 spring-transition">
+                            <i class="fa-solid fa-file-pdf text-zinc-400 w-4"></i>
                             <span>Ler Livro / Artigo PDF</span>
+                        </button>
+                        <button onclick="openBrowserModal(); toggleContextDropdown();" class="w-full min-h-[44px] px-3.5 py-2 text-left hover:bg-white/10 text-zinc-200 hover:text-white flex items-center space-x-3 spring-transition">
+                            <i class="fa-solid fa-compass text-zinc-400 w-4"></i>
+                            <span>Abrir Navegador Interno</span>
+                        </button>
+                        <button onclick="openGoogleHubModal(); toggleContextDropdown();" class="w-full min-h-[44px] px-3.5 py-2 text-left hover:bg-white/10 text-zinc-200 hover:text-white flex items-center space-x-3 spring-transition">
+                            <i class="fa-brands fa-google text-zinc-400 w-4"></i>
+                            <span>Google Apps & Notas</span>
                         </button>
                     </div>
                 </div>
 
-                <textarea id="promptInput" rows="1" placeholder="Converse com o assistente, fale no microfone ou envie comandos..." onkeydown="handleKeyDown(event)" oninput="autoGrow(this)" class="flex-1 bg-transparent border-0 text-white placeholder-white/40 text-sm focus:outline-none resize-none max-h-40 leading-relaxed py-1.5 px-1"></textarea>
+                <!-- Textarea -->
+                <textarea id="promptInput" rows="1" placeholder="Mensagem, pesquisa web ou comando..." onkeydown="handleKeyDown(event)" oninput="autoGrow(this)" class="flex-1 bg-transparent border-0 text-white placeholder-zinc-500 text-sm focus:outline-none resize-none max-h-40 leading-relaxed py-2 px-1"></textarea>
 
-                <!-- Microfone ao lado do botão de envio -->
-                <button id="micBtn" onclick="toggleSpeechRecognition()" title="Falar por Voz (Microfone)" class="w-9 h-9 rounded-xl hover:bg-cyan-500/20 text-cyan-400 hover:text-cyan-300 flex items-center justify-center transition">
+                <!-- Microfone -->
+                <button id="micBtn" onclick="toggleSpeechRecognition()" title="Falar por Voz (Microfone)" class="min-h-[44px] min-w-[44px] rounded-xl hover:bg-white/10 text-zinc-300 hover:text-white flex items-center justify-center spring-transition">
                     <i id="micIcon" class="fa-solid fa-microphone text-sm"></i>
                 </button>
 
-                <!-- Botão Enviar com seta arredondada -->
-                <button id="sendBtn" onclick="sendMessage()" class="w-9 h-9 rounded-xl bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition disabled:opacity-30 disabled:cursor-not-allowed shadow">
+                <!-- Botão Enviar (Apple Blue) -->
+                <button id="sendBtn" onclick="sendMessage()" class="min-h-[44px] min-w-[44px] rounded-xl bg-apple-blue hover:bg-apple-blueHover text-white flex items-center justify-center spring-transition disabled:opacity-30 disabled:cursor-not-allowed shadow-sm active:scale-[0.98]">
                     <i class="fa-solid fa-arrow-up text-sm"></i>
                 </button>
             </div>
 
-            <!-- Botões Inferiores em Linha Única com overflow suave -->
-            <div class="mt-1.5 px-0.5 flex flex-row items-center justify-between gap-1.5 text-xs overflow-x-auto no-scrollbar">
-                <div class="flex items-center space-x-1.5 flex-nowrap">
-                    <!-- Engine Button -->
-                    <div class="relative flex items-center bg-[#1e1f20] border border-[#37393b] rounded-xl px-2 py-1">
-                        <span class="text-white/50 text-[10px] sm:text-[11px] mr-1 hidden xs:inline">Motor:</span>
-                        <select id="selectModelEngine" onchange="updateEngineDisplay(this.value)" class="bg-transparent text-white text-[10px] sm:text-[11px] font-semibold focus:outline-none cursor-pointer pr-1 max-w-[110px] sm:max-w-none truncate">
-                            <option value="auto-omniroute" class="bg-[#1e1f20] text-white">⚡ Auto (OmniRoute)</option>
-                            <option value="openrouter-deepseek" class="bg-[#1e1f20] text-white">🔮 DeepSeek R1 (OpenRouter)</option>
-                            <option value="gemini-flash-lite-latest" class="bg-[#1e1f20] text-white">Gemini Flash Lite</option>
-                            <option value="gemini-flash-latest" class="bg-[#1e1f20] text-white">Gemini Flash Visão</option>
-                            <option value="groq-llama-3.3-70b" class="bg-[#1e1f20] text-white">Groq Llama 3.3</option>
+            <!-- Controles Inferiores (Apple Monocromático) -->
+            <div class="mt-2 px-1 flex flex-row items-center justify-between gap-2 text-xs overflow-x-auto no-scrollbar">
+                <div class="flex items-center space-x-2 flex-nowrap">
+                    <!-- Engine Selector -->
+                    <div class="flex items-center bg-[#12141a] border border-white/5 rounded-xl px-2.5 py-1">
+                        <span class="text-zinc-500 text-[11px] mr-1 hidden xs:inline">Motor:</span>
+                        <select id="selectModelEngine" onchange="updateEngineDisplay(this.value)" class="bg-transparent text-zinc-200 text-[11px] font-medium focus:outline-none cursor-pointer pr-1 truncate">
+                            <option value="gemini-flash-lite-latest" class="bg-[#12141a] text-white">Gemini Flash Lite (Rápido)</option>
+                            <option value="gemini-flash-latest" class="bg-[#12141a] text-white">Gemini Flash Visão Multimodal</option>
+                            <option value="auto-omniroute" class="bg-[#12141a] text-white">Auto (OmniRoute)</option>
+                            <option value="groq-llama-3.3-70b" class="bg-[#12141a] text-white">Groq Llama 3.3 70B</option>
+                            <option value="openrouter-deepseek" class="bg-[#12141a] text-white">DeepSeek R1 (OpenRouter)</option>
                         </select>
                     </div>
 
-                    <!-- Skill Button -->
-                    <div class="relative flex items-center bg-[#1e1f20] border border-[#37393b] rounded-xl px-2 py-1">
-                        <span class="text-white/50 text-[10px] sm:text-[11px] mr-1 hidden xs:inline">Skill:</span>
-                        <select id="selectSkill" class="bg-transparent text-white text-[10px] sm:text-[11px] font-semibold focus:outline-none cursor-pointer pr-1 max-w-[110px] sm:max-w-none truncate">
-                            <option value="minha-voz" class="bg-[#1e1f20] text-white" selected>🔥 Minha Voz (Coach Montanha)</option>
-                            <option value="programador" class="bg-[#1e1f20] text-white">💻 Engenheiro Sênior</option>
-                            <option value="roteiros-10x" class="bg-[#1e1f20] text-white">🎬 Roteiros 10x</option>
-                            <option value="personal-trainer" class="bg-[#1e1f20] text-white">🏋️ Personal Trainer</option>
-                            <option value="lpo-crosstraining" class="bg-[#1e1f20] text-white">🏋️ LPO Everett</option>
-                            <option value="lyle-mcdonald" class="bg-[#1e1f20] text-white">🥩 Nutrição Lyle McDonald</option>
-                            <option value="stories-10x-copy" class="bg-[#1e1f20] text-white">📱 Copy Stories 10x</option>
-                            <option value="matriz-anti-saas" class="bg-[#1e1f20] text-white">🛡️ Matriz Anti-SaaS</option>
+                    <!-- Skill Selector -->
+                    <div class="flex items-center bg-[#12141a] border border-white/5 rounded-xl px-2.5 py-1">
+                        <span class="text-zinc-500 text-[11px] mr-1 hidden xs:inline">Skill:</span>
+                        <select id="selectSkill" class="bg-transparent text-zinc-200 text-[11px] font-medium focus:outline-none cursor-pointer pr-1 truncate">
+                            <option value="minha-voz" class="bg-[#12141a] text-white" selected>Minha Voz (Coach Montanha)</option>
+                            <option value="personal-trainer" class="bg-[#12141a] text-white">Personal Trainer & Fisiologia</option>
+                            <option value="roteiros-10x" class="bg-[#12141a] text-white">Roteiros & Vídeos 10x</option>
+                            <option value="programador" class="bg-[#12141a] text-white">Engenheiro Sênior Ponytail</option>
+                            <option value="lpo-crosstraining" class="bg-[#12141a] text-white">LPO Everett</option>
+                            <option value="lyle-mcdonald" class="bg-[#12141a] text-white">Nutrição Lyle McDonald</option>
+                            <option value="stories-10x-copy" class="bg-[#12141a] text-white">Copy Stories 10x</option>
+                            <option value="matriz-anti-saas" class="bg-[#12141a] text-white">Matriz Anti-SaaS</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- Voice Speed Button -->
-                <div class="flex items-center bg-[#1e1f20] border border-[#37393b] rounded-xl px-2 py-1 flex-shrink-0">
-                    <span class="text-white/50 text-[10px] sm:text-[11px] mr-1">Voz:</span>
-                    <select id="selectAudioSpeed" class="bg-transparent text-white text-[10px] sm:text-[11px] font-mono focus:outline-none cursor-pointer">
-                        <option value="0.9" class="bg-[#1e1f20] text-white">0.90x</option>
-                        <option value="1.0" class="bg-[#1e1f20] text-white">1.00x</option>
-                        <option value="1.06" class="bg-[#1e1f20] text-white" selected>1.06x</option>
-                        <option value="1.15" class="bg-[#1e1f20] text-white">1.15x</option>
-                        <option value="1.25" class="bg-[#1e1f20] text-white">1.25x</option>
+                <!-- Voice Speed Control -->
+                <div class="flex items-center bg-[#12141a] border border-white/5 rounded-xl px-2 py-1 flex-shrink-0">
+                    <span class="text-zinc-500 text-[11px] mr-1">Voz:</span>
+                    <select id="selectAudioSpeed" class="bg-transparent text-zinc-200 text-[11px] font-mono focus:outline-none cursor-pointer">
+                        <option value="0.9" class="bg-[#12141a] text-white">0.9x</option>
+                        <option value="1.0" class="bg-[#12141a] text-white">1.0x</option>
+                        <option value="1.06" class="bg-[#12141a] text-white" selected>1.06x</option>
+                        <option value="1.15" class="bg-[#12141a] text-white">1.15x</option>
+                        <option value="1.25" class="bg-[#12141a] text-white">1.25x</option>
                     </select>
                 </div>
             </div>
@@ -276,185 +350,316 @@
 
     </div>
 
-    <!-- MODAL DE CONFIGURAÇÃO (Zero-Leak) -->
-    <div id="settingsModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-[#1e1f20] border border-[#37393b] rounded-2xl max-w-xl w-full p-5 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div class="flex items-center justify-between pb-3 border-b border-[#282a2c]">
-                <h3 class="text-sm font-bold text-white flex items-center space-x-2">
-                    <i class="fa-solid fa-gear text-cyan-400"></i>
-                    <span>Configurações & Painel de Segurança</span>
-                </h3>
-                <button onclick="closeSettingsModal()" class="text-white/50 hover:text-white p-1">
-                    <i class="fa-solid fa-xmark text-base"></i>
-                </button>
-            </div>
+    <!-- ======================================================= -->
+    <!-- MODAL 1: BROWSER INTERNO & BUSCA WEB                    -->
+    <!-- ======================================================= -->
+    <div id="browserModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4">
+        <div class="bg-[#12141a] border border-white/10 rounded-2xl max-w-4xl w-full h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <!-- Browser Header Bar (Safari-like) -->
+            <div class="h-14 border-b border-white/5 bg-[#090a0f] flex items-center justify-between px-3 space-x-2">
+                <div class="flex items-center space-x-1.5">
+                    <button onclick="closeBrowserModal()" class="w-8 h-8 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center" title="Fechar">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                    <button onclick="reloadBrowserFrame()" class="w-8 h-8 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center" title="Recarregar">
+                        <i class="fa-solid fa-arrow-rotate-right text-xs"></i>
+                    </button>
+                </div>
 
-            <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 leading-relaxed flex items-start space-x-2">
-                <i class="fa-solid fa-shield-halved text-sm mt-0.5 flex-shrink-0"></i>
-                <div>
-                    <strong>Armazenamento Local Seguro:</strong> Suas chaves ficam salvas somente no seu navegador/dispositivo. O servidor não armazena nem registra suas chaves em disco.
+                <!-- URL Bar -->
+                <div class="flex-1 max-w-xl flex items-center bg-[#171922] border border-white/10 rounded-xl px-3 py-1.5 space-x-2">
+                    <i class="fa-solid fa-lock text-[11px] text-zinc-500"></i>
+                    <input id="browserUrlInput" type="text" placeholder="Digite uma busca ou URL (https://...)" onkeydown="if(event.key==='Enter') navigateBrowser()" class="w-full bg-transparent border-0 text-xs text-white placeholder-zinc-500 focus:outline-none font-mono">
+                    <button onclick="navigateBrowser()" class="text-xs text-apple-blue font-semibold px-1 hover:underline">Ir</button>
+                </div>
+
+                <div class="flex items-center space-x-1">
+                    <button onclick="openCurrentUrlExternal()" class="w-8 h-8 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center" title="Abrir no Microsoft Edge / Navegador">
+                        <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                    </button>
                 </div>
             </div>
 
-            <!-- Chaves de API -->
-            <div class="space-y-3">
-                <label class="text-xs font-bold text-white/80 uppercase tracking-wider flex items-center gap-1.5">
-                    <i class="fa-solid fa-key text-amber-400"></i> Chaves de API Privadas
-                </label>
-                <div class="space-y-2">
-                    <div>
-                        <div class="text-[11px] text-white/60 mb-1 flex items-center justify-between">
-                            <span>Google Gemini API Key:</span>
-                            <span id="geminiKeyStatus" class="text-[10px] text-white/40">Não configurada</span>
-                        </div>
-                        <input type="password" id="settingGeminiKey" placeholder="Cole sua chave AIzaSy..." class="w-full bg-[#131314] border border-[#37393b] rounded-xl p-2.5 text-xs text-white focus:border-amber-400 focus:outline-none font-mono">
-                    </div>
-                    <div>
-                        <div class="text-[11px] text-white/60 mb-1 flex items-center justify-between">
-                            <span>Groq API Key (Llama 3.3 70B Gratuito):</span>
-                            <span id="groqKeyStatus" class="text-[10px] text-white/40">Opcional</span>
-                        </div>
-                        <input type="password" id="settingGroqKey" placeholder="Cole sua chave gsk_..." class="w-full bg-[#131314] border border-[#37393b] rounded-xl p-2.5 text-xs text-white focus:border-cyan-400 focus:outline-none font-mono">
-                    </div>
-                    <div>
-                        <div class="text-[11px] text-white/60 mb-1 flex items-center justify-between">
-                            <span>OpenRouter API Key (DeepSeek R1 / Llama 3.3 / Claude):</span>
-                            <span id="openrouterKeyStatus" class="text-[10px] text-white/40">Opcional</span>
-                        </div>
-                        <input type="password" id="settingOpenRouterKey" placeholder="Cole sua chave sk-or-v1-..." class="w-full bg-[#131314] border border-[#37393b] rounded-xl p-2.5 text-xs text-white focus:border-purple-400 focus:outline-none font-mono">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Gerenciador de Plugins -->
-            <div class="space-y-3 pt-2 border-t border-[#282a2c]">
-                <label class="text-xs font-bold text-white/80 uppercase tracking-wider flex items-center justify-between">
-                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-plug text-cyan-400"></i> Plugins & Ferramentas Ativas</span>
-                    <span class="text-[10px] text-emerald-400 lowercase font-mono">on/off</span>
-                </label>
-                
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                    <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#131314] border border-[#37393b] cursor-pointer">
-                        <span class="flex items-center gap-2"><i class="fa-solid fa-calendar text-blue-400"></i> Google Calendar</span>
-                        <input type="checkbox" id="pluginGCalendar" class="w-4 h-4 rounded accent-blue-500">
-                    </label>
-
-                    <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#131314] border border-[#37393b] cursor-pointer">
-                        <span class="flex items-center gap-2"><i class="fa-solid fa-table text-emerald-400"></i> Google Sheets</span>
-                        <input type="checkbox" id="pluginGSheets" class="w-4 h-4 rounded accent-emerald-500">
-                    </label>
-
-                    <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#131314] border border-[#37393b] cursor-pointer">
-                        <span class="flex items-center gap-2"><i class="fa-solid fa-cloud-sun text-amber-400"></i> Clima ao Vivo</span>
-                        <input type="checkbox" id="pluginWeather" class="w-4 h-4 rounded accent-amber-500">
-                    </label>
-
-                    <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#131314] border border-[#37393b] cursor-pointer">
-                        <span class="flex items-center gap-2"><i class="fa-solid fa-globe text-cyan-400"></i> Busca Web Rápida</span>
-                        <input type="checkbox" id="pluginWebSearch" class="w-4 h-4 rounded accent-cyan-500">
-                    </label>
-                </div>
-            </div>
-
-            <!-- Habilidades Permanentes -->
-            <div class="space-y-3 pt-2 border-t border-[#282a2c]">
-                <label class="text-xs font-bold text-white/80 uppercase tracking-wider flex items-center justify-between">
-                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-purple-400"></i> Habilidades Permanentes Automáticas</span>
-                    <span class="text-[10px] text-purple-400 font-mono">Sempre Ativas</span>
-                </label>
-                <div class="space-y-1.5 text-xs">
-                    <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#131314] border border-[#37393b]">
-                        <div>
-                            <div class="font-semibold text-white">Identidade Coach Montanha (Minha Voz)</div>
-                            <div class="text-[10px] text-white/50">Direto ao ponto, zero enrolação corporativa</div>
-                        </div>
-                        <input type="checkbox" id="permMinhaVoz" checked class="w-4 h-4 rounded accent-purple-500">
-                    </label>
-
-                    <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#131314] border border-[#37393b]">
-                        <div>
-                            <div class="font-semibold text-white">Regra do [CONFERIR]</div>
-                            <div class="text-[10px] text-white/50">Proíbe invenção de métricas financeiras não confirmadas</div>
-                        </div>
-                        <input type="checkbox" id="permConferir" checked class="w-4 h-4 rounded accent-purple-500">
-                    </label>
-
-                    <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#131314] border border-[#37393b]">
-                        <div>
-                            <div class="font-semibold text-white">Disciplina Ponytail & Karpathy</div>
-                            <div class="text-[10px] text-white/50">Simplicidade radical, zero pacotes desnecessários</div>
-                        </div>
-                        <input type="checkbox" id="permPonytail" checked class="w-4 h-4 rounded accent-purple-500">
-                    </label>
-                </div>
-            </div>
-
-            <!-- Baixar Atualizações APK -->
-            <div class="space-y-2 pt-2 border-t border-[#282a2c]">
-                <label class="text-xs font-bold text-white/80 uppercase tracking-wider flex items-center justify-between">
-                    <span class="flex items-center gap-1.5"><i class="fa-brands fa-android text-emerald-400"></i> Baixar Atualizações (APK)</span>
-                    <span class="text-[10px] text-emerald-400 font-mono">v1.0.4 Oficial</span>
-                </label>
-                <div class="p-3 rounded-xl bg-[#131314] border border-[#37393b] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                    <div>
-                        <div class="text-xs font-semibold text-white flex items-center gap-1.5">
-                            <span>Montanha AI Studio APK</span>
-                            <span class="px-1.5 py-0.5 text-[9px] bg-emerald-500/20 text-emerald-300 rounded border border-emerald-500/30">Disponível</span>
-                        </div>
-                        <div class="text-[11px] text-white/50 mt-0.5">Download direto compilado automaticamente pelo GitHub Actions.</div>
-                    </div>
-                    <a href="https://github.com/Coach-Montanha/montanha-gemini-studio/releases/download/v1.0.4/MontanhaGeminiStudio.apk" target="_blank" rel="noopener noreferrer" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold flex items-center gap-1.5 shadow transition whitespace-nowrap">
-                        <i class="fa-solid fa-download text-xs"></i>
-                        <span>Baixar APK Atualizado</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Botões -->
-            <div class="pt-2 border-t border-[#282a2c] flex items-center justify-between">
-                <button onclick="clearStoredKeys()" class="text-xs text-red-400 hover:text-red-300 flex items-center gap-1">
-                    <i class="fa-regular fa-trash-can"></i> Limpar Chaves Locais
-                </button>
-                <div class="flex items-center space-x-2">
-                    <button onclick="closeSettingsModal()" class="px-4 py-2 rounded-xl text-xs text-white/60 hover:text-white transition">Fechar</button>
-                    <button onclick="saveAllSettings()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-xs shadow hover:brightness-110 active:scale-95 transition">
-                        <i class="fa-solid fa-check mr-1.5"></i> Salvar Preferências
+            <!-- Browser Content Frame -->
+            <div class="flex-1 bg-black relative flex flex-col items-center justify-center overflow-hidden">
+                <iframe id="browserFrame" src="about:blank" class="w-full h-full border-0 bg-white" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+                <div id="browserFallbackMsg" class="hidden absolute inset-0 bg-[#090a0f] p-6 flex flex-col items-center justify-center text-center space-y-3">
+                    <i class="fa-solid fa-shield-halved text-2xl text-zinc-500"></i>
+                    <h4 class="text-sm font-semibold text-white">Abertura de Página Protegida</h4>
+                    <p class="text-xs text-zinc-400 max-w-md">Este site bloqueia exibição embutida por política de segurança X-Frame-Options. Use o botão abaixo para abri-lo instantaneamente no navegador:</p>
+                    <button id="btnOpenExternalDirect" onclick="openCurrentUrlExternal()" class="px-4 py-2 rounded-xl bg-apple-blue text-white text-xs font-semibold hover:bg-apple-blueHover spring-transition">
+                        Abrir no Navegador Externo
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal PDF Upload -->
-    <div id="pdfModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-[#1e1f20] border border-[#37393b] rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
-            <div class="flex items-center justify-between pb-2 border-b border-[#282a2c]">
-                <h3 class="text-sm font-bold text-white flex items-center space-x-2">
-                    <i class="fa-solid fa-file-pdf text-red-400"></i>
-                    <span>Ingestão de Livros & Artigos PDF</span>
+    <!-- ======================================================= -->
+    <!-- MODAL 2: GOOGLE APKS & NOTAS RÁPIDAS                    -->
+    <!-- ======================================================= -->
+    <div id="googleHubModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-[#12141a] border border-white/10 rounded-2xl max-w-xl w-full p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between pb-3 border-b border-white/5">
+                <h3 class="text-sm font-semibold text-white flex items-center space-x-2">
+                    <i class="fa-brands fa-google text-zinc-300"></i>
+                    <span>Google Workspace & Hub de Produtividade</span>
                 </h3>
-                <button onclick="closePdfModal()" class="text-white/50 hover:text-white p-1">
-                    <i class="fa-solid fa-xmark"></i>
+                <button onclick="closeGoogleHubModal()" class="w-8 h-8 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
-            <p class="text-xs text-white/60">
-                Envie livros, apostilas ou artigos científicos. O estúdio extrai o texto e injeta diretamente no contexto deste chat.
+
+            <p class="text-xs text-zinc-400">
+                Acesse instantaneamente todos os serviços do ecossistema Google para criar eventos, notas, documentos ou planilhas sincronizadas com o assistente:
             </p>
-            <input type="file" id="pdfFileInput" accept="application/pdf" class="w-full text-xs text-white/70 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-white/10 file:text-white file:text-xs hover:file:bg-white/20">
-            <button id="btnProcessPdf" onclick="processPdfUpload()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold text-xs flex items-center justify-center space-x-2 shadow hover:brightness-110 active:scale-95 transition">
-                <i class="fa-solid fa-bolt"></i>
-                <span>Extrair & Injetar no Chat</span>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                <a href="https://calendar.google.com" target="_blank" rel="noopener noreferrer" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 flex items-center space-x-3 spring-transition active:scale-[0.98]">
+                    <div class="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center">
+                        <i class="fa-solid fa-calendar text-xs"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-semibold text-white block">Google Calendar</span>
+                        <span class="text-[10px] text-zinc-400">Agenda e Reuniões</span>
+                    </div>
+                </a>
+
+                <a href="https://keep.google.com" target="_blank" rel="noopener noreferrer" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 flex items-center space-x-3 spring-transition active:scale-[0.98]">
+                    <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center">
+                        <i class="fa-solid fa-note-sticky text-xs"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-semibold text-white block">Google Keep (Notas)</span>
+                        <span class="text-[10px] text-zinc-400">Lembretes e Notas</span>
+                    </div>
+                </a>
+
+                <a href="https://docs.new" target="_blank" rel="noopener noreferrer" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 flex items-center space-x-3 spring-transition active:scale-[0.98]">
+                    <div class="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center">
+                        <i class="fa-solid fa-file-lines text-xs"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-semibold text-white block">Google Docs</span>
+                        <span class="text-[10px] text-zinc-400">Criar Novo Documento</span>
+                    </div>
+                </a>
+
+                <a href="https://sheets.new" target="_blank" rel="noopener noreferrer" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 flex items-center space-x-3 spring-transition active:scale-[0.98]">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                        <i class="fa-solid fa-table text-xs"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-semibold text-white block">Google Sheets</span>
+                        <span class="text-[10px] text-zinc-400">Criar Nova Planilha</span>
+                    </div>
+                </a>
+
+                <a href="https://drive.google.com" target="_blank" rel="noopener noreferrer" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 flex items-center space-x-3 spring-transition active:scale-[0.98]">
+                    <div class="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center">
+                        <i class="fa-brands fa-google-drive text-xs"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-semibold text-white block">Google Drive</span>
+                        <span class="text-[10px] text-zinc-400">Arquivos em Nuvem</span>
+                    </div>
+                </a>
+
+                <button onclick="createNewQuickNote(); closeGoogleHubModal();" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 flex items-center space-x-3 spring-transition active:scale-[0.98] text-left">
+                    <div class="w-8 h-8 rounded-lg bg-zinc-500/10 border border-white/10 text-white flex items-center justify-center">
+                        <i class="fa-solid fa-pen-to-square text-xs"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-semibold text-white block">Nota Rápida Local</span>
+                        <span class="text-[10px] text-zinc-400">Salva no chat atual</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- MODAL 3: GERADOR DE IMAGENS COM SELEÇÃO DE MOTOR        -->
+    <!-- ======================================================= -->
+    <div id="imageGeneratorModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-[#12141a] border border-white/10 rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between pb-3 border-b border-white/5">
+                <h3 class="text-sm font-semibold text-white flex items-center space-x-2">
+                    <i class="fa-solid fa-wand-magic-sparkles text-zinc-300"></i>
+                    <span>Gerador de Imagens com IA</span>
+                </h3>
+                <button onclick="closeImageGeneratorModal()" class="w-8 h-8 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Seleção de Motor -->
+            <div class="space-y-1.5">
+                <label class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Escolha o Motor Gerador:</label>
+                <select id="selectImageEngine" class="w-full bg-[#171922] border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-white/30 cursor-pointer">
+                    <option value="gemini" selected>Google Imagen 3 (Oficial Gemini API)</option>
+                    <option value="flux">Flux.1 Schnell (Grátis - Ultra HD)</option>
+                    <option value="turbo">Stable Diffusion XL (Grátis - Ultra Rápido)</option>
+                    <option value="midjourney">Midjourney Style (Grátis - Realista & Artístico)</option>
+                </select>
+            </div>
+
+            <!-- Prompt da Imagem -->
+            <div class="space-y-1.5">
+                <label class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Descrição Visual (Prompt):</label>
+                <textarea id="imagePromptInput" rows="3" placeholder="Ex: Atleta de alta performance treinando sob iluminação dramática de estúdio cinematográfico 8k..." class="w-full bg-[#171922] border border-white/10 rounded-xl p-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 resize-none"></textarea>
+            </div>
+
+            <!-- Botão Gerar -->
+            <button id="btnExecuteImageGen" onclick="executeImageGeneration()" class="w-full min-h-[44px] rounded-xl bg-apple-blue hover:bg-apple-blueHover text-white font-semibold text-xs flex items-center justify-center space-x-2 shadow-sm spring-transition active:scale-[0.98]">
+                <i class="fa-solid fa-image text-xs"></i>
+                <span>Gerar Imagem Agora</span>
             </button>
         </div>
     </div>
 
+    <!-- ======================================================= -->
+    <!-- MODAL 4: AJUSTES & PLUGINS (Zero-Leak)                  -->
+    <!-- ======================================================= -->
+    <div id="settingsModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-[#12141a] border border-white/10 rounded-2xl max-w-xl w-full p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between pb-3 border-b border-white/5">
+                <h3 class="text-sm font-semibold text-white flex items-center space-x-2">
+                    <i class="fa-solid fa-gear text-zinc-300"></i>
+                    <span>Configurações & Painel Zero-Leak</span>
+                </h3>
+                <button onclick="closeSettingsModal()" class="w-8 h-8 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <div class="p-3 rounded-xl bg-white/5 border border-white/5 text-xs text-zinc-300 leading-relaxed flex items-start space-x-2.5">
+                <i class="fa-solid fa-shield-halved text-sm mt-0.5 text-zinc-400 flex-shrink-0"></i>
+                <div>
+                    <strong>Privacidade & Segurança Total:</strong> Suas chaves de API nunca são gravadas no servidor ou em banco de dados externo. Ficam estritamente criptografadas no armazenamento local do seu próprio dispositivo.
+                </div>
+            </div>
+
+            <!-- Chaves de API -->
+            <div class="space-y-3">
+                <label class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block">Chaves de API Pessoais</label>
+                <div class="space-y-2">
+                    <div>
+                        <div class="text-[11px] text-zinc-400 mb-1 flex items-center justify-between">
+                            <span>Google Gemini API Key:</span>
+                            <span id="geminiKeyStatus" class="text-[10px] text-zinc-500">Não configurada</span>
+                        </div>
+                        <input type="password" id="settingGeminiKey" placeholder="Cole sua chave AIzaSy..." class="w-full bg-[#171922] border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-white/30 font-mono">
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-zinc-400 mb-1 flex items-center justify-between">
+                            <span>Groq API Key (Llama 3.3 70B Grátis):</span>
+                            <span id="groqKeyStatus" class="text-[10px] text-zinc-500">Opcional</span>
+                        </div>
+                        <input type="password" id="settingGroqKey" placeholder="Cole sua chave gsk_..." class="w-full bg-[#171922] border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-white/30 font-mono">
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-zinc-400 mb-1 flex items-center justify-between">
+                            <span>OpenRouter API Key:</span>
+                            <span id="openrouterKeyStatus" class="text-[10px] text-zinc-500">Opcional</span>
+                        </div>
+                        <input type="password" id="settingOpenRouterKey" placeholder="Cole sua chave sk-or-v1-..." class="w-full bg-[#171922] border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-white/30 font-mono">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gerenciador de Plugins -->
+            <div class="space-y-3 pt-2 border-t border-white/5">
+                <label class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block">Plugins & Conectividade</label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#171922] border border-white/5 cursor-pointer">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-globe text-zinc-400"></i> Busca Web Google Grounding</span>
+                        <input type="checkbox" id="pluginWebSearch" checked class="w-4 h-4 rounded accent-apple-blue">
+                    </label>
+                    <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#171922] border border-white/5 cursor-pointer">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-calendar text-zinc-400"></i> Google Calendar</span>
+                        <input type="checkbox" id="pluginGCalendar" checked class="w-4 h-4 rounded accent-apple-blue">
+                    </label>
+                    <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#171922] border border-white/5 cursor-pointer">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-table text-zinc-400"></i> Google Sheets</span>
+                        <input type="checkbox" id="pluginGSheets" checked class="w-4 h-4 rounded accent-apple-blue">
+                    </label>
+                    <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#171922] border border-white/5 cursor-pointer">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-cloud-sun text-zinc-400"></i> Clima ao Vivo</span>
+                        <input type="checkbox" id="pluginWeather" checked class="w-4 h-4 rounded accent-apple-blue">
+                    </label>
+                </div>
+            </div>
+
+            <!-- Baixar Atualizações APK -->
+            <div class="space-y-2 pt-2 border-t border-white/5">
+                <label class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block">Download do Aplicativo Android (APK)</label>
+                <div class="p-3 rounded-xl bg-[#171922] border border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div>
+                        <div class="text-xs font-semibold text-white">Montanha AI Studio Oficial</div>
+                        <div class="text-[11px] text-zinc-400 mt-0.5">Versão nativa com ponte de voz e áudio contínuo.</div>
+                    </div>
+                    <a href="https://github.com/Coach-Montanha/montanha-gemini-studio/releases/download/v1.0.5/MontanhaGeminiStudio.apk" target="_blank" rel="noopener noreferrer" class="min-h-[40px] px-3.5 py-2 rounded-xl bg-apple-blue hover:bg-apple-blueHover text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm spring-transition active:scale-[0.98]">
+                        <i class="fa-solid fa-download text-xs"></i>
+                        <span>Baixar APK v1.0.5</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Botões de Ação do Modal -->
+            <div class="pt-2 border-t border-white/5 flex items-center justify-between">
+                <button onclick="clearStoredKeys()" class="text-xs text-red-400 hover:text-red-300">
+                    Limpar Chaves
+                </button>
+                <div class="flex items-center space-x-2">
+                    <button onclick="closeSettingsModal()" class="px-4 py-2 rounded-xl text-xs text-zinc-400 hover:text-white spring-transition">Cancelar</button>
+                    <button onclick="saveAllSettings()" class="min-h-[40px] px-5 py-2 rounded-xl bg-white text-black hover:bg-zinc-200 font-semibold text-xs shadow-sm spring-transition active:scale-[0.98]">
+                        Salvar Ajustes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- MODAL 5: PDF INGESTION                                  -->
+    <!-- ======================================================= -->
+    <div id="pdfModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-[#12141a] border border-white/10 rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between pb-3 border-b border-white/5">
+                <h3 class="text-sm font-semibold text-white flex items-center space-x-2">
+                    <i class="fa-solid fa-file-pdf text-zinc-300"></i>
+                    <span>Ingestão de Livros & Documentos PDF</span>
+                </h3>
+                <button onclick="closePdfModal()" class="w-8 h-8 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+            <p class="text-xs text-zinc-400">
+                Selecione um PDF do seu dispositivo. O estúdio extrai o texto e injeta automaticamente no chat atual:
+            </p>
+            <input type="file" id="pdfFileInput" accept="application/pdf" class="w-full text-xs text-zinc-300 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-white/10 file:text-white file:text-xs hover:file:bg-white/20 cursor-pointer">
+            <button id="btnProcessPdf" onclick="processPdfUpload()" class="w-full min-h-[44px] rounded-xl bg-apple-blue hover:bg-apple-blueHover text-white font-semibold text-xs flex items-center justify-center space-x-2 shadow-sm spring-transition active:scale-[0.98]">
+                <i class="fa-solid fa-bolt text-xs"></i>
+                <span>Extrair & Injetar Texto</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- JAVASCRIPT LOGIC (100% HIG & ZERO SYNTAX ERRORS)        -->
+    <!-- ======================================================= -->
     <script>
+        // Variáveis de Estado Únicas e Globais
         let currentChatId = null;
         let attachedImageBase64 = null;
         let attachedImageMime = null;
         let recognition = null;
         let isRecognizing = false;
         let isLiveAudioActive = false;
+        let isBotSpeaking = false;
+        let isWaitingForResponse = false;
+        let speechRestartTimeout = null;
 
         let localKeys = {
             gemini: localStorage.getItem('montanha_user_gemini_key') || '',
@@ -477,6 +682,7 @@
             }
         };
 
+        // Gerenciamento Local de Chats
         function getLocalChats() {
             try {
                 return JSON.parse(localStorage.getItem('montanha_local_chats') || '{}');
@@ -501,430 +707,6 @@
             const chats = getLocalChats();
             delete chats[chatId];
             localStorage.setItem('montanha_local_chats', JSON.stringify(chats));
-            if (localStorage.getItem('montanha_last_active_chat') === chatId) {
-                localStorage.removeItem('montanha_last_active_chat');
-            }
-        }
-
-        async function fetchPreferences() {
-            try {
-                const res = await fetch('/api/settings');
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.status === 'success' && data.settings) {
-                        if (data.settings.plugins) appPreferences.plugins = data.settings.plugins;
-                        if (data.settings.permanent_skills) appPreferences.permanent_skills = data.settings.permanent_skills;
-                    }
-                }
-            } catch (e) {}
-            applyPreferencesToUI();
-        }
-
-        function applyPreferencesToUI() {
-            const badge = document.getElementById('keyStatusBadge');
-            const gemStatus = document.getElementById('geminiKeyStatus');
-            if (badge) {
-                if (localKeys.gemini) {
-                    badge.innerText = "🔒 Chave Ativa";
-                    badge.className = "hidden md:inline-flex text-[10px] uppercase tracking-wider bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full text-emerald-300 font-mono";
-                } else {
-                    badge.innerText = "⚠️ Sem Chave";
-                    badge.className = "hidden md:inline-flex text-[10px] uppercase tracking-wider bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full text-amber-300 font-mono";
-                }
-            }
-            if (gemStatus) {
-                if (localKeys.gemini) {
-                    gemStatus.innerText = "● Ativa (" + localKeys.gemini.substring(0, 4) + "..." + localKeys.gemini.slice(-4) + ")";
-                    gemStatus.className = "text-[10px] text-emerald-400 font-mono";
-                } else {
-                    gemStatus.innerText = "Pendente";
-                    gemStatus.className = "text-[10px] text-amber-400";
-                }
-            }
-
-            if (document.getElementById('settingGeminiKey')) document.getElementById('settingGeminiKey').value = localKeys.gemini;
-            if (document.getElementById('settingGroqKey')) document.getElementById('settingGroqKey').value = localKeys.groq;
-            if (document.getElementById('settingOpenRouterKey')) document.getElementById('settingOpenRouterKey').value = localKeys.openrouter;
-            const orStatus = document.getElementById('openrouterKeyStatus');
-            if (orStatus) {
-                if (localKeys.openrouter) {
-                    orStatus.innerText = "● Ativa (" + localKeys.openrouter.substring(0, 7) + "...)";
-                    orStatus.className = "text-[10px] text-purple-400 font-mono";
-                } else {
-                    orStatus.innerText = "Opcional";
-                    orStatus.className = "text-[10px] text-white/40";
-                }
-            }
-            if (document.getElementById('selectModelEngine')) document.getElementById('selectModelEngine').value = appPreferences.engine;
-
-            // Plugins
-            if (document.getElementById('pluginGCalendar')) document.getElementById('pluginGCalendar').checked = !!appPreferences.plugins.gcalendar;
-            if (document.getElementById('pluginGSheets')) document.getElementById('pluginGSheets').checked = !!appPreferences.plugins.gsheets;
-            if (document.getElementById('pluginWeather')) document.getElementById('pluginWeather').checked = !!appPreferences.plugins.live_weather;
-            if (document.getElementById('pluginWebSearch')) document.getElementById('pluginWebSearch').checked = !!appPreferences.plugins.web_search;
-
-            // Permanent Skills
-            if (document.getElementById('permMinhaVoz')) document.getElementById('permMinhaVoz').checked = !!appPreferences.permanent_skills.minha_voz;
-            if (document.getElementById('permConferir')) document.getElementById('permConferir').checked = !!appPreferences.permanent_skills.conferir_rule;
-            if (document.getElementById('permPonytail')) document.getElementById('permPonytail').checked = !!appPreferences.permanent_skills.karpathy_ponytail;
-        }
-
-        function updateEngineDisplay(val) {
-            appPreferences.engine = val;
-            localStorage.setItem('montanha_engine', val);
-        }
-
-        function toggleContextDropdown() {
-            const dd = document.getElementById('contextDropdown');
-            dd.classList.toggle('hidden');
-        }
-
-        document.addEventListener('click', function(e) {
-            const btn = document.getElementById('addContextBtn');
-            const dd = document.getElementById('contextDropdown');
-            if (btn && dd && !btn.contains(e.target) && !dd.contains(e.target)) {
-                dd.classList.add('hidden');
-            }
-        });
-
-        function openSettingsModal() {
-            applyPreferencesToUI();
-            document.getElementById('settingsModal').classList.remove('hidden');
-        }
-
-        function closeSettingsModal() {
-            document.getElementById('settingsModal').classList.add('hidden');
-        }
-
-        function clearStoredKeys() {
-            if (confirm("Deseja remover as chaves de API salvas neste dispositivo?")) {
-                localStorage.removeItem('montanha_user_gemini_key');
-                localStorage.removeItem('montanha_user_groq_key');
-                localStorage.removeItem('montanha_user_openrouter_key');
-                localKeys.gemini = '';
-                localKeys.groq = '';
-                localKeys.openrouter = '';
-                applyPreferencesToUI();
-                alert("Chaves removidas com segurança deste dispositivo.");
-            }
-        }
-
-        async function saveAllSettings() {
-            const gemKey = document.getElementById('settingGeminiKey').value.trim();
-            const groqKey = document.getElementById('settingGroqKey').value.trim();
-            const orKey = document.getElementById('settingOpenRouterKey') ? document.getElementById('settingOpenRouterKey').value.trim() : '';
-
-            localKeys.gemini = gemKey;
-            localKeys.groq = groqKey;
-            localKeys.openrouter = orKey;
-            localStorage.setItem('montanha_user_gemini_key', gemKey);
-            localStorage.setItem('montanha_user_groq_key', groqKey);
-            localStorage.setItem('montanha_user_openrouter_key', orKey);
-
-            appPreferences.plugins = {
-                gcalendar: document.getElementById('pluginGCalendar').checked,
-                gsheets: document.getElementById('pluginGSheets').checked,
-                live_weather: document.getElementById('pluginWeather').checked,
-                web_search: document.getElementById('pluginWebSearch').checked
-            };
-            appPreferences.permanent_skills = {
-                minha_voz: document.getElementById('permMinhaVoz').checked,
-                conferir_rule: document.getElementById('permConferir').checked,
-                karpathy_ponytail: document.getElementById('permPonytail').checked
-            };
-
-            try {
-                await fetch('/api/settings', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        engine: appPreferences.engine,
-                        plugins: appPreferences.plugins,
-                        permanent_skills: appPreferences.permanent_skills
-                    })
-                });
-            } catch (e) {}
-
-            applyPreferencesToUI();
-            closeSettingsModal();
-            alert("✅ Preferências salvas com segurança!");
-        }
-
-        function toggleSidebar() {
-            const sb = document.getElementById('sidebar');
-            const backdrop = document.getElementById('sidebarBackdrop');
-            if (sb.classList.contains('-translate-x-full')) {
-                sb.classList.remove('-translate-x-full');
-                backdrop.classList.remove('hidden');
-            } else {
-                sb.classList.add('-translate-x-full');
-                backdrop.classList.add('hidden');
-            }
-        }
-
-        function closeSidebarMobile() {
-            const sb = document.getElementById('sidebar');
-            const backdrop = document.getElementById('sidebarBackdrop');
-            if (sb) sb.classList.add('-translate-x-full');
-            if (backdrop) backdrop.classList.add('hidden');
-        }
-
-        function autoGrow(el) {
-            el.style.height = 'auto';
-            el.style.height = Math.min(el.scrollHeight, 160) + 'px';
-        }
-
-        function handleKeyDown(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        }
-
-        function setPrompt(text) {
-            const input = document.getElementById('promptInput');
-            input.value = text;
-            input.focus();
-            autoGrow(input);
-        }
-
-        function triggerImageMode() {
-            const input = document.getElementById('promptInput');
-            if (!input.value.startsWith('/imagem ')) {
-                input.value = '/imagem ' + input.value;
-            }
-            input.focus();
-            autoGrow(input);
-        }
-
-        function openPdfModal() { document.getElementById('pdfModal').classList.remove('hidden'); }
-        function closePdfModal() { document.getElementById('pdfModal').classList.add('hidden'); }
-
-        async function processPdfUpload() {
-            const fileInput = document.getElementById('pdfFileInput');
-            const file = fileInput.files[0];
-            if (!file) return alert("Selecione um arquivo PDF primeiro!");
-
-            const btn = document.getElementById('btnProcessPdf');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Extraindo Páginas...';
-
-            const reader = new FileReader();
-            reader.onload = async function(evt) {
-                const b64 = evt.target.result.split(',')[1];
-                try {
-                    const res = await fetch('/api/read-pdf', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ pdf_base64: b64, filename: file.name })
-                    });
-                    const d = await res.json();
-                    if (d.status === 'success') {
-                        closePdfModal();
-                        const prompt = `Analise o documento "${d.filename}" (${d.total_pages} páginas):\n\n${d.extracted_text}\n\nFaça um resumo executivo com os 5 principais ensinamentos e planos de ação práticos.`;
-                        setPrompt(prompt);
-                        sendMessage();
-                    } else {
-                        alert("Erro ao extrair PDF: " + d.message);
-                    }
-                } catch (e) {
-                    alert("Erro na conexão com o extrator de PDF.");
-                } finally {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-bolt"></i><span>Extrair & Injetar no Chat</span>';
-                }
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function handleFileSelect(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                const fullDataUrl = evt.target.result;
-                if (file.type.startsWith('image/')) {
-                    const img = new Image();
-                    img.onload = function() {
-                        const canvas = document.createElement('canvas');
-                        let w = img.width;
-                        let h = img.height;
-                        const maxDim = 1000;
-                        if (w > maxDim || h > maxDim) {
-                            if (w > h) {
-                                h = Math.round((h * maxDim) / w);
-                                w = maxDim;
-                            } else {
-                                w = Math.round((w * maxDim) / h);
-                                h = maxDim;
-                            }
-                        }
-                        canvas.width = w;
-                        canvas.height = h;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, w, h);
-                        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.80);
-                        attachedImageMime = 'image/jpeg';
-                        attachedImageBase64 = compressedDataUrl.split(',')[1];
-                        document.getElementById('imgPreviewThumb').src = compressedDataUrl;
-                        document.getElementById('imgPreviewName').innerText = file.name;
-                        document.getElementById('imagePreviewBar').classList.remove('hidden');
-                    };
-                    img.src = fullDataUrl;
-                } else {
-                    attachedImageMime = file.type;
-                    attachedImageBase64 = fullDataUrl.split(',')[1];
-                    document.getElementById('imgPreviewThumb').src = fullDataUrl;
-                    document.getElementById('imgPreviewName').innerText = file.name;
-                    document.getElementById('imagePreviewBar').classList.remove('hidden');
-                }
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function removeAttachedImage() {
-            attachedImageBase64 = null;
-            attachedImageMime = null;
-            document.getElementById('fileInput').value = '';
-            document.getElementById('imagePreviewBar').classList.add('hidden');
-        }
-
-        async function loadChatsIndex() {
-            const container = document.getElementById('chatsListContainer');
-            container.innerHTML = '';
-
-            let serverChats = [];
-            try {
-                const res = await fetch('/api/chats');
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.status === 'success' && data.chats) serverChats = data.chats;
-                }
-            } catch (err) {}
-
-            const localChatsMap = getLocalChats();
-            const localChats = Object.values(localChatsMap);
-
-            const combinedMap = {};
-            serverChats.forEach(c => { combinedMap[c.id] = c; });
-            localChats.forEach(c => { combinedMap[c.id] = c; });
-
-            const allChats = Object.values(combinedMap);
-
-            if (allChats.length > 0) {
-                allChats.forEach(chat => {
-                    const item = document.createElement('div');
-                    item.className = `p-2.5 rounded-xl cursor-pointer text-xs flex items-center justify-between group transition ${chat.id === currentChatId ? 'bg-white/10 text-white font-semibold' : 'text-white/70 hover:bg-white/5 hover:text-white'}`;
-                    item.onclick = () => selectChat(chat.id, chat.title);
-                    item.innerHTML = `
-                        <div class="flex items-center space-x-2 truncate">
-                            <i class="fa-regular fa-message text-[10px] text-cyan-400"></i>
-                            <span class="truncate">${escapeHtml(chat.title)}</span>
-                        </div>
-                        <button onclick="event.stopPropagation(); deleteChatById('${chat.id}')" class="opacity-0 group-hover:opacity-100 text-white/40 hover:text-red-400 p-1">
-                            <i class="fa-solid fa-xmark text-xs"></i>
-                        </button>
-                    `;
-                    container.appendChild(item);
-                });
-            } else {
-                container.innerHTML = '<div class="p-3 text-xs text-white/40 text-center">Nenhum chat salvo ainda.</div>';
-            }
-        }
-
-        function toggleChatMode(hasMessages) {
-            const ws = document.getElementById('welcomeScreen');
-            const ml = document.getElementById('messagesList');
-            if (ws) ws.classList.toggle('hidden', hasMessages);
-            if (ml) ml.classList.toggle('hidden', !hasMessages);
-        }
-
-        async function createNewChat() {
-            currentChatId = 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
-            const titleEl = document.getElementById('currentChatTitle');
-            if (titleEl) titleEl.innerText = "Nova Conversa";
-            const ml = document.getElementById('messagesList');
-            if (ml) ml.innerHTML = '';
-            toggleChatMode(false);
-            const pInput = document.getElementById('promptInput');
-            if (pInput) { pInput.value = ''; pInput.focus(); }
-            removeAttachedImage();
-            closeSidebarMobile();
-            localStorage.removeItem('montanha_last_active_chat');
-
-            try {
-                await fetch('/api/chats/new', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ title: "Nova Conversa" })
-                });
-            } catch (err) {}
-
-            loadChatsIndex();
-        }
-
-        async function selectChat(chatId, title) {
-            currentChatId = chatId;
-            document.getElementById('currentChatTitle').innerText = title || "Conversa";
-            closeSidebarMobile();
-            localStorage.setItem('montanha_last_active_chat', chatId);
-
-            let messages = [];
-
-            const localChats = getLocalChats();
-            if (localChats[chatId] && localChats[chatId].messages) {
-                messages = localChats[chatId].messages;
-            }
-
-            if (!messages || messages.length === 0) {
-                try {
-                    const res = await fetch(`/api/chats/${chatId}`);
-                    if (res.ok) {
-                        const d = await res.json();
-                        if (d.status === 'success' && d.messages) {
-                            messages = d.messages;
-                            saveLocalChat(chatId, title, messages);
-                        }
-                    }
-                } catch (err) {}
-            }
-
-            const container = document.getElementById('messagesList');
-            if (container) container.innerHTML = '';
-
-            if (messages && messages.length > 0) {
-                toggleChatMode(true);
-                messages.forEach(msg => {
-                    if (msg.role === 'user') {
-                        appendUserMessage(msg.prompt, msg.image);
-                    } else {
-                        appendBotMessage(msg.response, msg.sources);
-                    }
-                });
-                scrollToBottom();
-            } else {
-                toggleChatMode(false);
-            }
-            loadChatsIndex();
-        }
-
-        async function deleteCurrentChat() {
-            if (!currentChatId) return;
-            if (!confirm("Excluir este chat e histórico?")) return;
-            await deleteChatById(currentChatId);
-        }
-
-        async function deleteChatById(chatId) {
-            deleteLocalChat(chatId);
-            try {
-                await fetch('/api/chats/delete', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ chat_id: chatId })
-                });
-            } catch (e) {}
-
             if (currentChatId === chatId) {
                 createNewChat();
             } else {
@@ -932,211 +714,338 @@
             }
         }
 
-        function scrollToBottom() {
-            const sc = document.getElementById('scrollContainer');
-            sc.scrollTop = sc.scrollHeight;
+        function deleteCurrentChat() {
+            if (!currentChatId) return;
+            if (confirm("Deseja realmente apagar esta conversa?")) {
+                deleteLocalChat(currentChatId);
+            }
         }
 
-        function escapeHtml(text) {
-            if (!text) return '';
-            const map = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'};
-            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        function createNewChat() {
+            currentChatId = 'chat_' + Date.now();
+            document.getElementById('currentChatTitle').innerText = "Novo Chat";
+            document.getElementById('messagesList').innerHTML = '';
+            document.getElementById('messagesList').classList.add('hidden');
+            document.getElementById('welcomeScreen').classList.remove('hidden');
+            removeAttachedImage();
+            loadChatsIndex();
+            closeSidebarMobile();
         }
 
-        function appendUserMessage(text, hasImage=false) {
-            toggleChatMode(true);
-            const container = document.getElementById('messagesList');
-            const div = document.createElement('div');
-            div.className = "w-full flex justify-end";
-            div.innerHTML = `
-                <div class="max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-3 bg-[#282a2c] text-white text-sm shadow-md border border-white/5 space-y-2">
-                    ${hasImage ? '<div class="text-[11px] text-purple-300 font-semibold mb-1"><i class="fa-solid fa-paperclip mr-1"></i> [Arquivo Anexado]</div>' : ''}
-                    <div class="whitespace-pre-wrap">${escapeHtml(text)}</div>
-                </div>
-            `;
-            container.appendChild(div);
-            scrollToBottom();
-        }
+        function selectChat(chatId, title) {
+            currentChatId = chatId;
+            document.getElementById('currentChatTitle').innerText = title || "Chat";
+            const chats = getLocalChats();
+            const chat = chats[chatId];
 
-        function appendBotMessage(markdownText, sources=null) {
-            toggleChatMode(true);
-            const container = document.getElementById('messagesList');
-            const div = document.createElement('div');
-            div.className = "w-full flex space-x-3 items-start";
-            
-            const rawId = 'raw_' + Math.random().toString(36).substr(2, 9);
-            window[rawId] = markdownText;
+            const msgContainer = document.getElementById('messagesList');
+            msgContainer.innerHTML = '';
 
-            let sourceBadgeHtml = '';
-            if (sources && sources.length > 0) {
-                sourceBadgeHtml = `
-                    <div class="mt-2.5 pt-2 border-t border-white/5 flex flex-wrap items-center gap-2 text-[11px] text-white/50">
-                        <span class="flex items-center gap-1 font-semibold text-emerald-400">
-                            <i class="fa-solid fa-globe text-[10px]"></i> Fonte Online:
-                        </span>
-                        ${sources.map(s => `
-                            <a href="${s.url}" target="_blank" rel="noopener noreferrer" class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 text-cyan-300 hover:underline flex items-center gap-1 border border-white/5">
-                                <span class="truncate max-w-[200px]">${escapeHtml(s.title || s.url)}</span>
-                                <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
-                            </a>
-                        `).join('')}
-                    </div>
-                `;
+            if (chat && chat.messages && chat.messages.length > 0) {
+                document.getElementById('welcomeScreen').classList.add('hidden');
+                msgContainer.classList.remove('hidden');
+                chat.messages.forEach(m => {
+                    if (m.role === 'user') {
+                        appendUserMessage(m.prompt, m.image);
+                    } else if (m.role === 'model') {
+                        appendBotMessage(m.response, m.sources);
+                    }
+                });
             } else {
-                sourceBadgeHtml = `
-                    <div class="mt-2.5 pt-2 border-t border-white/5 flex items-center space-x-1.5 text-[10px] text-white/40">
-                        <i class="fa-solid fa-database text-[9px] text-purple-400"></i>
-                        <span>Informação Offline (Base de Conhecimento / IA Interna)</span>
-                    </div>
-                `;
+                msgContainer.classList.add('hidden');
+                document.getElementById('welcomeScreen').classList.remove('hidden');
             }
 
-            div.innerHTML = `
-                <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500 shadow mt-0.5">
-                    <i class="fa-solid fa-sparkles text-white text-xs"></i>
-                </div>
-                <div class="flex-1 overflow-hidden space-y-2">
-                    <div class="markdown-body text-sm text-[#e3e3e3] leading-relaxed">
-                        ${marked.parse(markdownText)}
-                    </div>
-                    ${sourceBadgeHtml}
-                    <!-- Action Buttons: Audio TTS & PDF Export -->
-                    <div class="flex items-center space-x-2 pt-1">
-                        <button onclick="speakText(window['${rawId}'])" title="Ouvir Resposta em Voz Alta" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-cyan-400 text-xs flex items-center space-x-1.5 transition border border-white/5">
-                            <i class="fa-solid fa-volume-high text-[11px]"></i>
-                            <span>Ouvir</span>
-                        </button>
-                        <button onclick="downloadAsPdf(window['${rawId}'])" title="Baixar como Documento PDF Formatado" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-emerald-400 text-xs flex items-center space-x-1.5 transition border border-white/5">
-                            <i class="fa-solid fa-file-pdf text-[11px]"></i>
-                            <span>Baixar PDF</span>
-                        </button>
-                    </div>
-                </div>
-            `;
-            container.appendChild(div);
+            closeSidebarMobile();
+            loadChatsIndex();
             scrollToBottom();
         }
 
-        function appendImageMessage(imageUrl, prompt, provider) {
-            toggleChatMode(true);
-            const container = document.getElementById('messagesList');
-            const div = document.createElement('div');
-            div.className = "w-full flex space-x-3 items-start";
-            div.innerHTML = `
-                <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center bg-gradient-to-tr from-purple-500 to-pink-500 shadow mt-0.5">
-                    <i class="fa-solid fa-image text-white text-xs"></i>
-                </div>
-                <div class="flex-1 space-y-2">
-                    <div class="rounded-2xl overflow-hidden border border-[#37393b] bg-[#1e1f20] max-w-lg shadow-2xl">
-                        <img src="${imageUrl}" alt="${escapeHtml(prompt)}" class="w-full h-auto object-cover hover:scale-[1.01] transition duration-300">
-                        <div class="p-3 bg-[#1e1f20] flex items-center justify-between border-t border-[#37393b]">
-                            <div>
-                                <span class="text-[11px] font-bold text-purple-400 uppercase tracking-wider">${provider || 'Flux.1 Ultra HD'}</span>
-                                <p class="text-xs text-white/70 truncate max-w-xs mt-0.5">${escapeHtml(prompt)}</p>
-                            </div>
-                            <a href="${imageUrl}" target="_blank" download="gemini_art.jpg" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs flex items-center space-x-1 transition">
-                                <i class="fa-solid fa-download"></i>
-                                <span>Salvar</span>
-                            </a>
+        function loadChatsIndex() {
+            const container = document.getElementById('chatsListContainer');
+            if (!container) return;
+            const chats = getLocalChats();
+            const ids = Object.keys(chats).reverse();
+
+            if (ids.length === 0) {
+                container.innerHTML = '<div class="p-3 text-center text-xs text-zinc-500">Nenhum histórico recente.</div>';
+                return;
+            }
+
+            let html = '';
+            ids.forEach(id => {
+                const c = chats[id];
+                const active = (id === currentChatId);
+                const activeCls = active ? 'bg-white/10 text-white font-semibold border-white/10' : 'text-zinc-400 hover:bg-white/5 hover:text-white border-transparent';
+                html += `
+                    <div class="group flex items-center justify-between px-2.5 py-2 rounded-xl text-xs border ${activeCls} spring-transition cursor-pointer" onclick="selectChat('${id}', '${(c.title || 'Chat').replace(/'/g, "\'")}')">
+                        <div class="flex items-center space-x-2 truncate flex-1 min-w-0 mr-1">
+                            <i class="fa-regular fa-message text-[10px] text-zinc-500"></i>
+                            <span class="truncate">${c.title || 'Chat sem título'}</span>
                         </div>
+                        <button onclick="event.stopPropagation(); deleteLocalChat('${id}')" class="opacity-0 group-hover:opacity-100 hover:text-red-400 p-1 text-zinc-500 spring-transition" title="Excluir">
+                            <i class="fa-solid fa-xmark text-xs"></i>
+                        </button>
                     </div>
-                </div>
-            `;
-            container.appendChild(div);
-            scrollToBottom();
+                `;
+            });
+            container.innerHTML = html;
         }
 
-        function appendLoadingSkeleton() {
-            const container = document.getElementById('messagesList');
-            const div = document.createElement('div');
-            div.id = "loadingSkeleton";
-            div.className = "w-full flex space-x-3 items-start";
-            div.innerHTML = `
-                <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center bg-white/10 animate-pulse mt-0.5">
-                    <i class="fa-solid fa-sparkles text-white/40 text-xs"></i>
-                </div>
-                <div class="flex-1 space-y-2 max-w-md pt-1">
-                    <div class="h-3 bg-white/10 rounded-full w-3/4 animate-pulse"></div>
-                    <div class="h-3 bg-white/10 rounded-full w-1/2 animate-pulse"></div>
-                </div>
-            `;
-            container.appendChild(div);
-            scrollToBottom();
+        // ==========================================
+        // SISTEMA NATIVO ANDROID & WEB SPEECH
+        // ==========================================
+        window.onNativeSpeechResult = function(transcript) {
+            if (!transcript) return;
+            const input = document.getElementById('promptInput');
+            input.value = transcript;
+            autoGrow(input);
+            if (isLiveAudioActive) {
+                sendMessage();
+            }
+        };
+
+        window.onNativeSpeechError = function(errorCode) {
+            console.log("Native speech error:", errorCode);
+            if (isLiveAudioActive && !isBotSpeaking && !isWaitingForResponse) {
+                clearTimeout(speechRestartTimeout);
+                speechRestartTimeout = setTimeout(() => {
+                    if (isLiveAudioActive && !isBotSpeaking) {
+                        startLiveVoiceListening();
+                    }
+                }, 400);
+            }
+        };
+
+        window.onNativeSpeechEnd = function() {};
+
+        window.onNativeSpeechUtteranceDone = function() {
+            isBotSpeaking = false;
+            if (isLiveAudioActive) {
+                setTimeout(() => { startLiveVoiceListening(); }, 300);
+            }
+        };
+
+        function hasNativeAndroidBridge() {
+            return (typeof window.AndroidVoiceBridge !== 'undefined' && 
+                    typeof window.AndroidVoiceBridge.startSpeechRecognition === 'function');
         }
 
-        function removeLoadingSkeleton() {
-            const el = document.getElementById('loadingSkeleton');
-            if (el) el.remove();
+        function toggleLiveAudioMode() {
+            isLiveAudioActive = !isLiveAudioActive;
+            updateLiveAudioButtonUI();
+            if (isLiveAudioActive) {
+                startLiveVoiceListening();
+            } else {
+                stopLiveVoiceListening();
+            }
         }
 
+        function updateLiveAudioButtonUI() {
+            const btn = document.getElementById('liveAudioCallBtn');
+            const icon = document.getElementById('liveAudioIcon');
+            const text = document.getElementById('liveAudioText');
+
+            if (isLiveAudioActive) {
+                btn.className = "min-h-[40px] px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-semibold flex items-center space-x-1.5 shadow-sm animate-pulse spring-transition";
+                icon.className = "fa-solid fa-phone-slash text-xs";
+                text.innerText = "Encerrar";
+            } else {
+                btn.className = "min-h-[40px] px-3 py-1.5 rounded-xl bg-apple-blue hover:bg-apple-blueHover text-white text-xs font-semibold flex items-center space-x-1.5 shadow-sm spring-transition active:scale-[0.98]";
+                icon.className = "fa-solid fa-phone text-xs";
+                text.innerText = "Conversa Live";
+            }
+        }
+
+        function toggleSpeechRecognition() {
+            if (isRecognizing) {
+                stopLiveVoiceListening();
+            } else {
+                startLiveVoiceListening();
+            }
+        }
+
+        function startLiveVoiceListening() {
+            if (isBotSpeaking) return;
+
+            // 1. Android Nativo Bridge
+            if (hasNativeAndroidBridge()) {
+                try {
+                    window.AndroidVoiceBridge.startSpeechRecognition();
+                    document.getElementById('micBtn').classList.add('bg-white/20', 'text-white', 'animate-pulse');
+                    return;
+                } catch (e) {
+                    console.log("Erro no bridge nativo:", e);
+                }
+            }
+
+            // 2. Web Speech API (Edge, Chrome, Safari)
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                try {
+                    if (!recognition) {
+                        recognition = new SpeechRecognition();
+                        recognition.lang = 'pt-BR';
+                        recognition.interimResults = false;
+                        recognition.continuous = false;
+
+                        recognition.onstart = function() {
+                            isRecognizing = true;
+                            document.getElementById('micBtn').classList.add('bg-white/20', 'text-white', 'animate-pulse');
+                        };
+
+                        recognition.onresult = function(event) {
+                            if (!event.results || !event.results[0]) return;
+                            const transcript = event.results[0][0].transcript;
+                            const input = document.getElementById('promptInput');
+                            input.value = transcript;
+                            autoGrow(input);
+                            if (isLiveAudioActive) {
+                                sendMessage();
+                            }
+                        };
+
+                        recognition.onerror = function(e) {
+                            isRecognizing = false;
+                            document.getElementById('micBtn').classList.remove('bg-white/20', 'text-white', 'animate-pulse');
+                            if (e.error === 'not-allowed') {
+                                alert("Permissão de microfone negada. Permita o microfone no navegador ou app.");
+                                isLiveAudioActive = false;
+                                updateLiveAudioButtonUI();
+                                return;
+                            }
+                            if (isLiveAudioActive && !isBotSpeaking && !isWaitingForResponse) {
+                                clearTimeout(speechRestartTimeout);
+                                speechRestartTimeout = setTimeout(() => {
+                                    if (isLiveAudioActive && !isBotSpeaking) startLiveVoiceListening();
+                                }, 500);
+                            }
+                        };
+
+                        recognition.onend = function() {
+                            isRecognizing = false;
+                            document.getElementById('micBtn').classList.remove('bg-white/20', 'text-white', 'animate-pulse');
+                            if (isLiveAudioActive && !isBotSpeaking && !isWaitingForResponse) {
+                                clearTimeout(speechRestartTimeout);
+                                speechRestartTimeout = setTimeout(() => {
+                                    if (isLiveAudioActive && !isBotSpeaking) startLiveVoiceListening();
+                                }, 400);
+                            }
+                        };
+                    }
+
+                    if (!isRecognizing) {
+                        recognition.start();
+                    }
+                } catch (err) {
+                    console.log("Erro start speech:", err);
+                }
+                return;
+            }
+
+            alert("Reconhecimento de voz não suportado neste navegador. Use o Microsoft Edge ou o aplicativo APK instalado.");
+            isLiveAudioActive = false;
+            updateLiveAudioButtonUI();
+        }
+
+        function stopLiveVoiceListening() {
+            clearTimeout(speechRestartTimeout);
+            if (hasNativeAndroidBridge()) {
+                try {
+                    window.AndroidVoiceBridge.stopSpeechRecognition();
+                    window.AndroidVoiceBridge.stopSpeaking();
+                } catch (e) {}
+            }
+            if (recognition) {
+                try { recognition.stop(); } catch(e) {}
+            }
+            if (window.speechSynthesis) {
+                try { window.speechSynthesis.cancel(); } catch(e) {}
+            }
+            isRecognizing = false;
+            isBotSpeaking = false;
+            document.getElementById('micBtn').classList.remove('bg-white/20', 'text-white', 'animate-pulse');
+        }
+
+        function speakTextAndListenNext(text) {
+            isBotSpeaking = true;
+            isWaitingForResponse = false;
+            const cleanText = text.replace(/```[\s\S]*?```/g, 'Bloco de código omitido.').replace(/[#*`_~\[\]()]/g, '');
+
+            if (hasNativeAndroidBridge()) {
+                try {
+                    window.AndroidVoiceBridge.speak(cleanText);
+                    return;
+                } catch (e) {}
+            }
+
+            if ('speechSynthesis' in window) {
+                try {
+                    window.speechSynthesis.cancel();
+                    const utterance = new SpeechSynthesisUtterance(cleanText);
+                    utterance.lang = 'pt-BR';
+                    const speedEl = document.getElementById('selectAudioSpeed');
+                    utterance.rate = speedEl ? (parseFloat(speedEl.value) || 1.06) : 1.06;
+
+                    utterance.onend = function() {
+                        isBotSpeaking = false;
+                        if (isLiveAudioActive) {
+                            setTimeout(() => { startLiveVoiceListening(); }, 400);
+                        }
+                    };
+                    utterance.onerror = function() {
+                        isBotSpeaking = false;
+                        if (isLiveAudioActive) {
+                            setTimeout(() => { startLiveVoiceListening(); }, 400);
+                        }
+                    };
+
+                    window.speechSynthesis.speak(utterance);
+                    return;
+                } catch (e) {}
+            }
+
+            isBotSpeaking = false;
+            if (isLiveAudioActive) {
+                setTimeout(() => { startLiveVoiceListening(); }, 400);
+            }
+        }
+
+        function speakText(text) {
+            const cleanText = text.replace(/```[\s\S]*?```/g, 'Bloco de código omitido.').replace(/[#*`_~\[\]()]/g, '');
+            if (hasNativeAndroidBridge()) {
+                try {
+                    window.AndroidVoiceBridge.speak(cleanText);
+                    return;
+                } catch (e) {}
+            }
+            if (!('speechSynthesis' in window)) return alert("Seu dispositivo não suporta síntese de voz.");
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'pt-BR';
+            const speedEl = document.getElementById('selectAudioSpeed');
+            utterance.rate = speedEl ? (parseFloat(speedEl.value) || 1.06) : 1.06;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // ==========================================
+        // ENVIO DE MENSAGENS & CHAT
+        // ==========================================
         async function sendMessage() {
             const input = document.getElementById('promptInput');
             const prompt = input.value.trim();
-            const skill = document.getElementById('selectSkill').value;
-            let engine = document.getElementById('selectModelEngine').value;
-            const sendBtn = document.getElementById('sendBtn');
-
             if (!prompt && !attachedImageBase64) return;
 
-            // Se o usuário anexou imagem, Groq não tem visão; força Gemini multimodal
-            if (attachedImageBase64) {
-                engine = 'gemini-flash-latest'; // usa server env key, não bloqueia
-            }
-
-            // Auto OmniRoute: seleção inteligente de engine
-            if (engine === 'auto-omniroute') {
-                const wordCount = prompt.trim().split(/\s+/).length;
-                const hasCode = prompt.includes('```') || /\b(código|script|função|bug|erro|import|def |class )\b/i.test(prompt);
-                if (attachedImageBase64) {
-                    engine = 'gemini-flash-latest';
-                } else if (wordCount < 20 && !hasCode) {
-                    engine = 'groq-llama-3.3-70b';
-                } else if (hasCode || wordCount > 60) {
-                    if (localKeys.openrouter) {
-                        engine = 'openrouter-deepseek';
-                    } else {
-                        engine = localKeys.gemini ? 'gemini-flash-latest' : 'groq-llama-3.3-70b';
-                    }
-                } else {
-                    engine = localKeys.gemini ? 'gemini-flash-lite-latest' : 'groq-llama-3.3-70b';
-                }
-            }
-
-            // Sem chave local: só bloqueia se Gemini E sem chave de env (Groq sempre passa)
-            if (!localKeys.gemini && !localKeys.openrouter && !engine.includes('groq') && !attachedImageBase64) {
-                // Silently downgrade to Groq instead of blocking
-                engine = 'groq-llama-3.3-70b';
-            }
-
-            input.value = '';
-            input.style.height = 'auto';
+            const sendBtn = document.getElementById('sendBtn');
             sendBtn.disabled = true;
+            input.value = '';
+            autoGrow(input);
 
-            const isImagePrompt = prompt.startsWith('/imagem ') || prompt.startsWith('/image ');
-
-            if (isImagePrompt) {
-                const imgPrompt = prompt.replace(/^\/(imagem|image)\s+/, '').trim();
-                appendUserMessage(prompt);
-                appendLoadingSkeleton();
-                try {
-                    const res = await fetch('/api/generate-image', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ prompt: imgPrompt, engine: "flux" })
-                    });
-                    const d = await res.json();
-                    removeLoadingSkeleton();
-                    if (d.status === 'success') {
-                        appendImageMessage(d.image_url, imgPrompt, d.provider);
-                    } else {
-                        appendBotMessage("⚠️ Erro ao gerar imagem: " + (d.message || "Tente novamente."));
-                    }
-                } catch (e) {
-                    removeLoadingSkeleton();
-                    appendBotMessage("⚠️ Falha de conexão ao gerar imagem.");
-                } finally {
-                    sendBtn.disabled = false;
-                }
+            // Intercepta comando de imagem se digitado direto
+            if (prompt.startsWith('/imagem ') || prompt.startsWith('/image ')) {
+                const imgPrompt = prompt.replace(/^\/(imagem|image)\s+/, '');
+                executeImageDirect(imgPrompt);
+                sendBtn.disabled = false;
                 return;
             }
 
@@ -1145,6 +1054,9 @@
                 document.getElementById('currentChatTitle').innerText = prompt.substring(0, 30);
             }
 
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            document.getElementById('messagesList').classList.remove('hidden');
+
             appendUserMessage(prompt, !!attachedImageBase64);
             appendLoadingSkeleton();
 
@@ -1152,6 +1064,9 @@
             const currentChatObj = localChats[currentChatId] || { id: currentChatId, title: prompt.substring(0, 30), messages: [] };
             currentChatObj.messages.push({ role: 'user', prompt: prompt, image: !!attachedImageBase64 });
             saveLocalChat(currentChatId, currentChatObj.title, currentChatObj.messages);
+
+            const skill = document.getElementById('selectSkill').value;
+            const engine = document.getElementById('selectModelEngine').value;
 
             const payload = {
                 chat_id: currentChatId,
@@ -1169,13 +1084,12 @@
             if (localKeys.groq) headers['X-Groq-Key'] = localKeys.groq;
             if (localKeys.openrouter) headers['X-OpenRouter-Key'] = localKeys.openrouter;
 
-            // Limpa o anexo visual e de memória após montagem do payload
             removeAttachedImage();
+            isWaitingForResponse = true;
 
             try {
-                // Timeout de 40 segundos para evitar trava perpétua
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 40000);
+                const timeoutId = setTimeout(() => controller.abort(), 45000);
 
                 const res = await fetch('/api/chat', {
                     method: 'POST',
@@ -1209,7 +1123,7 @@
             } catch (err) {
                 removeLoadingSkeleton();
                 if (err.name === 'AbortError') {
-                    appendBotMessage("⚠️ O processamento demorou mais de 40s e foi cancelado. Se enviou uma imagem grande, tente uma resolução menor.");
+                    appendBotMessage("⚠️ O processamento demorou mais de 45s e foi cancelado.");
                 } else {
                     appendBotMessage("⚠️ Falha de comunicação com o servidor.");
                 }
@@ -1219,266 +1133,464 @@
                 }
             } finally {
                 sendBtn.disabled = false;
+                isWaitingForResponse = false;
+                scrollToBottom();
             }
+        }
+
+        function appendUserMessage(text, hasImage) {
+            const list = document.getElementById('messagesList');
+            const div = document.createElement('div');
+            div.className = "flex justify-end w-full";
+            div.innerHTML = `
+                <div class="max-w-[85%] sm:max-w-[75%] rounded-2xl rounded-tr-sm bg-white/10 border border-white/10 px-4 py-3 text-white text-xs sm:text-sm shadow-sm leading-relaxed">
+                    ${hasImage ? '<div class="text-[10px] font-mono text-zinc-400 mb-1"><i class="fa-solid fa-image mr-1"></i>[Foto anexada]</div>' : ''}
+                    <div>${escapeHtml(text)}</div>
+                </div>
+            `;
+            list.appendChild(div);
+            scrollToBottom();
+        }
+
+        function appendBotMessage(markdownText, sources) {
+            const list = document.getElementById('messagesList');
+            const div = document.createElement('div');
+            div.className = "flex justify-start w-full";
+
+            let sourcesHtml = '';
+            if (sources && sources.length > 0) {
+                sourcesHtml = '<div class="mt-3 pt-2.5 border-t border-white/5"><div class="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 mb-1.5 flex items-center gap-1"><i class="fa-solid fa-link text-[10px]"></i> Fontes Reais Grounding:</div><div class="flex flex-wrap gap-1.5">';
+                sources.forEach(s => {
+                    sourcesHtml += `
+                        <a href="javascript:void(0)" onclick="openInInternalBrowser('${s.url.replace(/'/g, "\'")}')" class="text-[10px] bg-white/5 hover:bg-white/10 border border-white/5 px-2 py-1 rounded-lg text-zinc-300 flex items-center gap-1.5 truncate max-w-[240px] spring-transition" title="${s.title}">
+                            <i class="fa-solid fa-globe text-[9px] text-apple-blue"></i>
+                            <span class="truncate">${s.title}</span>
+                        </a>
+                    `;
+                });
+                sourcesHtml += '</div></div>';
+            }
+
+            // Detecta e renderiza cards estruturados para Google Calendar
+            let googleActionHtml = '';
+            if (markdownText.includes('workspace_action') || markdownText.includes('calendar_create_event')) {
+                googleActionHtml = `
+                    <div class="mt-3 p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between gap-2">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-calendar-check text-apple-blue text-sm"></i>
+                            <span class="text-xs font-semibold text-white">Ação Google Calendar Detectada</span>
+                        </div>
+                        <a href="https://calendar.google.com" target="_blank" class="px-3 py-1.5 rounded-lg bg-apple-blue text-white text-[11px] font-semibold hover:bg-apple-blueHover spring-transition">
+                            Abrir na Agenda
+                        </a>
+                    </div>
+                `;
+            }
+
+            div.innerHTML = `
+                <div class="max-w-[95%] sm:max-w-[85%] rounded-2xl rounded-tl-sm bg-[#12141a] border border-white/5 px-4 py-3.5 text-zinc-200 text-xs sm:text-sm shadow-md leading-relaxed">
+                    <div class="markdown-body select-text">${marked.parse(markdownText)}</div>
+                    ${sourcesHtml}
+                    ${googleActionHtml}
+                    <div class="mt-3 pt-2 border-t border-white/5 flex items-center justify-between text-zinc-500 text-xs">
+                        <div class="flex items-center space-x-2">
+                            <button onclick="speakText(this.closest('.flex').parentElement.querySelector('.markdown-body').innerText)" class="hover:text-white spring-transition flex items-center gap-1 py-1 px-1.5 rounded-md hover:bg-white/5" title="Ouvir em Voz Alta">
+                                <i class="fa-solid fa-volume-high text-xs"></i>
+                                <span class="text-[11px]">Ouvir</span>
+                            </button>
+                            <button onclick="copyToClipboard(this.closest('.flex').parentElement.querySelector('.markdown-body').innerText)" class="hover:text-white spring-transition flex items-center gap-1 py-1 px-1.5 rounded-md hover:bg-white/5" title="Copiar Texto">
+                                <i class="fa-regular fa-copy text-xs"></i>
+                                <span class="text-[11px]">Copiar</span>
+                            </button>
+                            <button onclick="downloadAsPdf(this.closest('.flex').parentElement.querySelector('.markdown-body').innerText)" class="hover:text-white spring-transition flex items-center gap-1 py-1 px-1.5 rounded-md hover:bg-white/5" title="Exportar PDF">
+                                <i class="fa-solid fa-file-pdf text-xs"></i>
+                                <span class="text-[11px]">PDF</span>
+                            </button>
+                        </div>
+                        <span class="text-[10px] font-mono text-zinc-600">Montanha AI</span>
+                    </div>
+                </div>
+            `;
+            list.appendChild(div);
+            scrollToBottom();
+        }
+
+        function appendImageMessage(imageUrl, prompt, provider) {
+            const list = document.getElementById('messagesList');
+            const div = document.createElement('div');
+            div.className = "flex justify-start w-full";
+            div.innerHTML = `
+                <div class="max-w-[95%] sm:max-w-[85%] rounded-2xl rounded-tl-sm bg-[#12141a] border border-white/5 p-3 text-zinc-200 shadow-md">
+                    <div class="relative rounded-xl overflow-hidden border border-white/10 group bg-black">
+                        <img src="${imageUrl}" class="w-full max-h-[460px] object-contain rounded-xl" alt="${escapeHtml(prompt)}">
+                        <div class="absolute bottom-2 right-2 flex items-center space-x-2">
+                            <a href="${imageUrl}" download="imagem_montanha_ai.jpg" target="_blank" class="px-3 py-1.5 rounded-lg bg-black/70 backdrop-blur text-white text-xs font-semibold flex items-center gap-1.5 hover:bg-black spring-transition">
+                                <i class="fa-solid fa-download text-xs"></i>
+                                <span>Baixar Imagem</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-xs text-zinc-400 flex items-center justify-between">
+                        <span class="truncate max-w-xs font-medium">${escapeHtml(prompt)}</span>
+                        <span class="text-[10px] font-mono text-zinc-500 bg-white/5 px-2 py-0.5 rounded border border-white/5">${provider || 'IA'}</span>
+                    </div>
+                </div>
+            `;
+            list.appendChild(div);
+            scrollToBottom();
+        }
+
+        function appendLoadingSkeleton() {
+            const list = document.getElementById('messagesList');
+            const div = document.createElement('div');
+            div.id = 'loadingSkeleton';
+            div.className = "flex justify-start w-full";
+            div.innerHTML = `
+                <div class="rounded-2xl bg-[#12141a] border border-white/5 px-4 py-3 flex items-center space-x-2 text-xs text-zinc-400">
+                    <div class="w-2 h-2 rounded-full bg-apple-blue animate-ping"></div>
+                    <span class="font-medium">Processando resposta...</span>
+                </div>
+            `;
+            list.appendChild(div);
+            scrollToBottom();
+        }
+
+        function removeLoadingSkeleton() {
+            const el = document.getElementById('loadingSkeleton');
+            if (el) el.remove();
         }
 
         // ==========================================
-        // SISTEMA UNIFICADO DE VOZ & CONVERSA AO VIVO (Live Audio)
-        // Suporta: Bridge Android Nativo + Web Speech API + Audio Resilience
+        // GERADOR DE IMAGENS COM SELETOR DE MOTOR
         // ==========================================
-        let isLiveAudioActive = false;
-        let isBotSpeaking = false;
-        let isWaitingForResponse = false;
-        let recognition = null;
-        let isRecognizing = false;
-        let speechRestartTimeout = null;
-
-        // Callbacks Globais do Bridge Nativo Android
-        window.onNativeSpeechResult = function(transcript) {
-            if (!transcript) return;
-            const input = document.getElementById('promptInput');
-            input.value = transcript;
-            autoGrow(input);
-            if (isLiveAudioActive) {
-                sendMessage();
-            }
-        };
-
-        window.onNativeSpeechError = function(errorCode) {
-            console.log("Native speech error:", errorCode);
-            // Códigos de pausa/silêncio do Android SpeechRecognizer (6 = TIMEOUT, 7 = NO_MATCH):
-            if (isLiveAudioActive && !isBotSpeaking && !isWaitingForResponse) {
-                clearTimeout(speechRestartTimeout);
-                speechRestartTimeout = setTimeout(() => {
-                    if (isLiveAudioActive && !isBotSpeaking) {
-                        startLiveVoiceListening();
-                    }
-                }, 400);
-            }
-        };
-
-        window.onNativeSpeechEnd = function() {
-            // Fim de frase detectado pelo Android
-        };
-
-        window.onNativeSpeechUtteranceDone = function() {
-            isBotSpeaking = false;
-            if (isLiveAudioActive) {
-                setTimeout(() => {
-                    startLiveVoiceListening();
-                }, 300);
-            }
-        };
-
-        function hasNativeAndroidBridge() {
-            return (typeof window.AndroidVoiceBridge !== 'undefined' && 
-                    typeof window.AndroidVoiceBridge.startSpeechRecognition === 'function');
+        function openImageGeneratorModal() {
+            document.getElementById('imageGeneratorModal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('imagePromptInput').focus(), 100);
         }
 
-        // Live Audio Resiliente com Detecção de Permissão
-        function toggleLiveAudioMode() {
-            isLiveAudioActive = !isLiveAudioActive;
-            updateLiveAudioButtonUI();
-            if (isLiveAudioActive) {
-                startLiveVoiceListening();
-            } else {
-                stopLiveVoiceListening();
+        function closeImageGeneratorModal() {
+            document.getElementById('imageGeneratorModal').classList.add('hidden');
+        }
+
+        async function executeImageGeneration() {
+            const input = document.getElementById('imagePromptInput');
+            const prompt = input.value.trim();
+            if (!prompt) return;
+
+            const engine = document.getElementById('selectImageEngine').value;
+            closeImageGeneratorModal();
+
+            if (!currentChatId) {
+                currentChatId = 'chat_' + Date.now();
+                document.getElementById('currentChatTitle').innerText = "Geração de Imagem";
+            }
+
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            document.getElementById('messagesList').classList.remove('hidden');
+
+            appendUserMessage(`/imagem [${engine}] ${prompt}`, false);
+            appendLoadingSkeleton();
+
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (localKeys.gemini) headers['X-Gemini-Key'] = localKeys.gemini;
+
+                const res = await fetch('/api/generate-image', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({ prompt: prompt, engine: engine })
+                });
+                const data = await res.json();
+                removeLoadingSkeleton();
+
+                if (data.status === 'success') {
+                    appendImageMessage(data.image_url, prompt, data.provider);
+                } else {
+                    appendBotMessage("⚠️ " + (data.message || "Erro ao gerar imagem."));
+                }
+            } catch (err) {
+                removeLoadingSkeleton();
+                appendBotMessage("⚠️ Falha de conexão ao gerar imagem.");
             }
         }
 
-        function updateLiveAudioButtonUI() {
-            const btn = document.getElementById('liveAudioCallBtn');
-            const icon = document.getElementById('liveAudioIcon');
-            const text = document.getElementById('liveAudioText');
-
-            if (isLiveAudioActive) {
-                btn.className = "px-3 py-1.5 rounded-xl bg-gradient-to-r from-red-600 to-pink-600 text-white font-bold text-xs flex items-center space-x-1.5 shadow animate-pulse transition";
-                icon.className = "fa-solid fa-phone-slash";
-                text.innerText = "Encerrar";
-            } else {
-                btn.className = "px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:brightness-110 text-white font-bold text-xs flex items-center space-x-1.5 transition shadow active:scale-95";
-                icon.className = "fa-solid fa-phone";
-                text.innerText = "Conversa Live";
-            }
+        function executeImageDirect(prompt) {
+            document.getElementById('imagePromptInput').value = prompt;
+            executeImageGeneration();
         }
 
-        function toggleSpeechRecognition() {
-            if (isRecognizing) {
-                stopLiveVoiceListening();
-            } else {
-                startLiveVoiceListening();
-            }
+        // ==========================================
+        // BROWSER INTERNO & BUSCA WEB
+        // ==========================================
+        function openBrowserModal(initialUrl) {
+            const modal = document.getElementById('browserModal');
+            modal.classList.remove('hidden');
+            const url = initialUrl || "https://html.duckduckgo.com/html/?q=";
+            document.getElementById('browserUrlInput').value = url;
+            navigateBrowserTo(url);
         }
 
-        function startLiveVoiceListening() {
-            if (isBotSpeaking) return;
+        function closeBrowserModal() {
+            document.getElementById('browserModal').classList.add('hidden');
+            document.getElementById('browserFrame').src = 'about:blank';
+        }
 
-            // 1. Prioridade 1: App Nativo Android (Zero dependência de Web Speech API)
-            if (hasNativeAndroidBridge()) {
-                try {
-                    window.AndroidVoiceBridge.startSpeechRecognition();
-                    document.getElementById('micBtn').classList.add('bg-red-500/20', 'text-red-400', 'animate-pulse');
-                    return;
-                } catch (e) {
-                    console.log("Erro no bridge nativo:", e);
+        function navigateBrowser() {
+            let input = document.getElementById('browserUrlInput').value.trim();
+            if (!input) return;
+
+            let targetUrl = input;
+            if (!input.startsWith('http://') && !input.startsWith('https://')) {
+                if (input.includes('.') && !input.includes(' ')) {
+                    targetUrl = 'https://' + input;
+                } else {
+                    targetUrl = 'https://html.duckduckgo.com/html/?q=' + encodeURIComponent(input);
                 }
             }
+            document.getElementById('browserUrlInput').value = targetUrl;
+            navigateBrowserTo(targetUrl);
+        }
 
-            // 2. Prioridade 2: Web Speech API (Google Chrome, Microsoft Edge, Safari)
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (SpeechRecognition) {
+        function navigateBrowserTo(url) {
+            const frame = document.getElementById('browserFrame');
+            const fallback = document.getElementById('browserFallbackMsg');
+            fallback.classList.add('hidden');
+            frame.classList.remove('hidden');
+
+            frame.src = url;
+            // Se falhar em carregar após 4s, exibe atalho externo amigável
+            setTimeout(() => {
                 try {
-                    if (!recognition) {
-                        recognition = new SpeechRecognition();
-                        recognition.lang = 'pt-BR';
-                        recognition.interimResults = false;
-                        recognition.continuous = false;
-
-                        recognition.onstart = function() {
-                            isRecognizing = true;
-                            document.getElementById('micBtn').classList.add('bg-red-500/20', 'text-red-400', 'animate-pulse');
-                        };
-
-                        recognition.onresult = function(event) {
-                            if (!event.results || !event.results[0]) return;
-                            const transcript = event.results[0][0].transcript;
-                            const input = document.getElementById('promptInput');
-                            input.value = transcript;
-                            autoGrow(input);
-                            if (isLiveAudioActive) {
-                                sendMessage();
-                            }
-                        };
-
-                        recognition.onerror = function(e) {
-                            console.log("Speech recognition error:", e.error);
-                            isRecognizing = false;
-                            document.getElementById('micBtn').classList.remove('bg-red-500/20', 'text-red-400', 'animate-pulse');
-                            
-                            if (e.error === 'not-allowed') {
-                                alert("Permissão de microfone negada. Clique no ícone de cadeado do navegador para permitir o áudio.");
-                                isLiveAudioActive = false;
-                                updateLiveAudioButtonUI();
-                                return;
-                            }
-                            // Em caso de silêncio (no-speech) ou timeout, continua ouvindo se o modo live estiver ativo
-                            if (isLiveAudioActive && !isBotSpeaking && !isWaitingForResponse) {
-                                clearTimeout(speechRestartTimeout);
-                                speechRestartTimeout = setTimeout(() => {
-                                    if (isLiveAudioActive && !isBotSpeaking) {
-                                        startLiveVoiceListening();
-                                    }
-                                }, 500);
-                            }
-                        };
-
-                        recognition.onend = function() {
-                            isRecognizing = false;
-                            document.getElementById('micBtn').classList.remove('bg-red-500/20', 'text-red-400', 'animate-pulse');
-                            // Se a chamada ainda está ativa e a IA não está falando, volta a ouvir imediatamente!
-                            if (isLiveAudioActive && !isBotSpeaking && !isWaitingForResponse) {
-                                clearTimeout(speechRestartTimeout);
-                                speechRestartTimeout = setTimeout(() => {
-                                    if (isLiveAudioActive && !isBotSpeaking) {
-                                        startLiveVoiceListening();
-                                    }
-                                }, 400);
-                            }
-                        };
+                    if (frame.contentWindow && frame.contentWindow.location.href === 'about:blank') {
+                        fallback.classList.remove('hidden');
                     }
+                } catch (e) {
+                    // Cross-origin é normal em iframes com sucesso
+                }
+            }, 3000);
+        }
 
-                    if (!isRecognizing) {
-                        recognition.start();
+        function reloadBrowserFrame() {
+            const frame = document.getElementById('browserFrame');
+            frame.src = frame.src;
+        }
+
+        function openCurrentUrlExternal() {
+            const url = document.getElementById('browserUrlInput').value;
+            if (url) window.open(url, '_blank', 'noopener,noreferrer');
+        }
+
+        function openInInternalBrowser(url) {
+            openBrowserModal(url);
+        }
+
+        // ==========================================
+        // GOOGLE HUB & NOTAS RÁPIDAS
+        // ==========================================
+        function openGoogleHubModal() {
+            document.getElementById('googleHubModal').classList.remove('hidden');
+        }
+
+        function closeGoogleHubModal() {
+            document.getElementById('googleHubModal').classList.add('hidden');
+        }
+
+        function createNewQuickNote() {
+            setPrompt("Crie uma nota executiva estruturada sobre os objetivos de hoje para salvar no Google Keep.");
+        }
+
+        // ==========================================
+        // AJUSTES & PERSISTÊNCIA ZERO-LEAK
+        // ==========================================
+        function openSettingsModal() {
+            document.getElementById('settingGeminiKey').value = localKeys.gemini;
+            document.getElementById('settingGroqKey').value = localKeys.groq;
+            document.getElementById('settingOpenRouterKey').value = localKeys.openrouter;
+
+            document.getElementById('pluginWebSearch').checked = !!appPreferences.plugins.web_search;
+            document.getElementById('pluginGCalendar').checked = !!appPreferences.plugins.gcalendar;
+            document.getElementById('pluginGSheets').checked = !!appPreferences.plugins.gsheets;
+            document.getElementById('pluginWeather').checked = !!appPreferences.plugins.live_weather;
+
+            updateKeyStatuses();
+            document.getElementById('settingsModal').classList.remove('hidden');
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').classList.add('hidden');
+        }
+
+        function updateKeyStatuses() {
+            const elG = document.getElementById('geminiKeyStatus');
+            if (localKeys.gemini) {
+                elG.innerText = "Configurada (" + localKeys.gemini.substring(0, 6) + "...)";
+                elG.className = "text-[10px] text-emerald-400";
+            } else {
+                elG.innerText = "Não configurada";
+                elG.className = "text-[10px] text-zinc-500";
+            }
+        }
+
+        function saveAllSettings() {
+            localKeys.gemini = document.getElementById('settingGeminiKey').value.trim();
+            localKeys.groq = document.getElementById('settingGroqKey').value.trim();
+            localKeys.openrouter = document.getElementById('settingOpenRouterKey').value.trim();
+
+            localStorage.setItem('montanha_user_gemini_key', localKeys.gemini);
+            localStorage.setItem('montanha_user_groq_key', localKeys.groq);
+            localStorage.setItem('montanha_user_openrouter_key', localKeys.openrouter);
+
+            appPreferences.plugins.web_search = document.getElementById('pluginWebSearch').checked;
+            appPreferences.plugins.gcalendar = document.getElementById('pluginGCalendar').checked;
+            appPreferences.plugins.gsheets = document.getElementById('pluginGSheets').checked;
+            appPreferences.plugins.live_weather = document.getElementById('pluginWeather').checked;
+
+            localStorage.setItem('montanha_plugins', JSON.stringify(appPreferences.plugins));
+            updateKeyStatuses();
+            closeSettingsModal();
+            alert("Ajustes e preferências salvos com sucesso!");
+        }
+
+        function clearStoredKeys() {
+            if (confirm("Limpar todas as chaves privadas salvas neste dispositivo?")) {
+                localStorage.removeItem('montanha_user_gemini_key');
+                localStorage.removeItem('montanha_user_groq_key');
+                localStorage.removeItem('montanha_user_openrouter_key');
+                localKeys = { gemini: '', groq: '', openrouter: '' };
+                openSettingsModal();
+            }
+        }
+
+        // ==========================================
+        // PDF UPLOAD & EXTRAÇÃO
+        // ==========================================
+        function openPdfModal() {
+            document.getElementById('pdfModal').classList.remove('hidden');
+        }
+
+        function closePdfModal() {
+            document.getElementById('pdfModal').classList.add('hidden');
+            document.getElementById('pdfFileInput').value = '';
+        }
+
+        async function processPdfUpload() {
+            const input = document.getElementById('pdfFileInput');
+            if (!input.files || !input.files[0]) return alert("Selecione um arquivo PDF.");
+
+            const file = input.files[0];
+            const btn = document.getElementById('btnProcessPdf');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="w-3 h-3 rounded-full bg-white animate-ping mr-2"></div> Extraindo texto...';
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const b64 = e.target.result.split(',')[1];
+                try {
+                    const res = await fetch('/api/read-pdf', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ pdf_base64: b64, filename: file.name })
+                    });
+                    const data = await res.json();
+                    btn.disabled = false;
+                    btn.innerHTML = '<span>Extrair & Injetar Texto</span>';
+                    closePdfModal();
+
+                    if (data.status === 'success' && data.extracted_text) {
+                        setPrompt(`[LIVRO/DOCUMENTO PDF: ${data.filename}]\n${data.extracted_text.substring(0, 8000)}\n\nFaça um resumo executivo com os principais pontos práticos deste documento:`);
+                    } else {
+                        alert("Não foi possível extrair o texto deste PDF.");
                     }
                 } catch (err) {
-                    console.log("Speech recognition start issue:", err);
+                    btn.disabled = false;
+                    btn.innerHTML = '<span>Extrair & Injetar Texto</span>';
+                    alert("Erro ao comunicar com o leitor de PDF.");
                 }
-                return;
-            }
-
-            // 3. Fallback informativo
-            alert("Reconhecimento de voz em tempo real ativo via Microfone. No navegador, use Microsoft Edge ou Google Chrome para melhor performance.");
-            isLiveAudioActive = false;
-            updateLiveAudioButtonUI();
+            };
+            reader.readAsDataURL(file);
         }
 
-        function stopLiveVoiceListening() {
-            clearTimeout(speechRestartTimeout);
-            if (hasNativeAndroidBridge()) {
-                try {
-                    window.AndroidVoiceBridge.stopSpeechRecognition();
-                    window.AndroidVoiceBridge.stopSpeaking();
-                } catch (e) {}
-            }
-            if (recognition) {
-                try { recognition.stop(); } catch(e) {}
-            }
-            if (window.speechSynthesis) {
-                try { window.speechSynthesis.cancel(); } catch(e) {}
-            }
-            isRecognizing = false;
-            isBotSpeaking = false;
-            document.getElementById('micBtn').classList.remove('bg-red-500/20', 'text-red-400', 'animate-pulse');
-        }
-
-        function speakTextAndListenNext(text) {
-            isBotSpeaking = true;
-            isWaitingForResponse = false;
-            const cleanText = text.replace(/```[\s\S]*?```/g, 'Bloco de código omitido.').replace(/[#*`_~\[\]()]/g, '');
-
-            // 1. Android Nativo
-            if (hasNativeAndroidBridge()) {
-                try {
-                    window.AndroidVoiceBridge.speak(cleanText);
-                    return;
-                } catch (e) {}
-            }
-
-            // 2. Web SpeechSynthesis
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                const utterance = new SpeechSynthesisUtterance(cleanText);
-                utterance.lang = 'pt-BR';
-                const speedEl = document.getElementById('selectAudioSpeed');
-                utterance.rate = speedEl ? (parseFloat(speedEl.value) || 1.06) : 1.06;
-
-                utterance.onend = function() {
-                    isBotSpeaking = false;
-                    if (isLiveAudioActive) {
-                        setTimeout(() => { startLiveVoiceListening(); }, 400);
-                    }
-                };
-                utterance.onerror = function() {
-                    isBotSpeaking = false;
-                    if (isLiveAudioActive) {
-                        setTimeout(() => { startLiveVoiceListening(); }, 400);
-                    }
-                };
-
-                window.speechSynthesis.speak(utterance);
+        // ==========================================
+        // UTILITÁRIOS DE TELA E INTERAÇÃO
+        // ==========================================
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            const bd = document.getElementById('sidebarBackdrop');
+            if (sb.classList.contains('-translate-x-full')) {
+                sb.classList.remove('-translate-x-full');
+                bd.classList.remove('hidden');
             } else {
-                isBotSpeaking = false;
-                if (isLiveAudioActive) {
-                    setTimeout(() => { startLiveVoiceListening(); }, 400);
-                }
+                sb.classList.add('-translate-x-full');
+                bd.classList.add('hidden');
             }
         }
 
-        function speakText(text) {
-            const cleanText = text.replace(/```[\s\S]*?```/g, 'Bloco de código omitido.').replace(/[#*`_~\[\]()]/g, '');
-            if (hasNativeAndroidBridge()) {
-                try {
-                    window.AndroidVoiceBridge.speak(cleanText);
-                    return;
-                } catch (e) {}
+        function closeSidebarMobile() {
+            document.getElementById('sidebar').classList.add('-translate-x-full');
+            document.getElementById('sidebarBackdrop').classList.add('hidden');
+        }
+
+        function toggleContextDropdown() {
+            const dd = document.getElementById('contextDropdown');
+            dd.classList.toggle('hidden');
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                attachedImageBase64 = e.target.result.split(',')[1];
+                attachedImageMime = file.type || "image/jpeg";
+                document.getElementById('imgPreviewThumb').src = e.target.result;
+                document.getElementById('imgPreviewName').innerText = file.name;
+                document.getElementById('imagePreviewBar').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeAttachedImage() {
+            attachedImageBase64 = null;
+            attachedImageMime = null;
+            document.getElementById('imagePreviewBar').classList.add('hidden');
+            document.getElementById('imgPreviewThumb').src = '';
+            document.getElementById('fileInput').value = '';
+        }
+
+        function setPrompt(text) {
+            const input = document.getElementById('promptInput');
+            input.value = text;
+            autoGrow(input);
+            input.focus();
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
             }
-            if (!('speechSynthesis' in window)) return alert("Seu navegador não suporta síntese de voz.");
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(cleanText);
-            utterance.lang = 'pt-BR';
-            const speedEl = document.getElementById('selectAudioSpeed');
-            utterance.rate = speedEl ? (parseFloat(speedEl.value) || 1.06) : 1.06;
-            window.speechSynthesis.speak(utterance);
+        }
+
+        function autoGrow(element) {
+            element.style.height = 'auto';
+            element.style.height = Math.min(element.scrollHeight, 160) + 'px';
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('scrollContainer');
+            if (container) container.scrollTop = container.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.innerText = text;
+            return div.innerHTML;
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+            alert("Texto copiado para a área de transferência!");
         }
 
         async function downloadAsPdf(text) {
@@ -1504,18 +1616,41 @@
 
         function fallbackClientPdf(text) {
             const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <html><head><title>Documento Montanha Studio</title>
-                <style>body{font-family:sans-serif;padding:30px;line-height:1.6;color:#222;} pre{background:#f4f4f4;padding:10px;border-radius:5px;}</style>
-                </head><body>${marked.parse(text)}</body></html>
-            `);
-            printWindow.document.close();
-            printWindow.print();
+            if (printWindow) {
+                printWindow.document.write(`
+                    <html><head><title>Documento Montanha Studio</title>
+                    <style>body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:30px;line-height:1.6;color:#111;} pre{background:#f4f4f4;padding:12px;border-radius:8px;}</style>
+                    </head><body>${marked.parse(text)}</body></html>
+                `);
+                printWindow.document.close();
+                printWindow.print();
+            }
         }
 
+        function updateEngineDisplay(val) {
+            localStorage.setItem('montanha_engine', val);
+        }
+
+        // Fechar dropdowns ao clicar fora
+        document.addEventListener('click', function(e) {
+            const btn = document.getElementById('addContextBtn');
+            const dd = document.getElementById('contextDropdown');
+            if (btn && dd && !btn.contains(e.target) && !dd.contains(e.target)) {
+                dd.classList.add('hidden');
+            }
+        });
+
         window.onload = function() {
-            fetchPreferences();
             loadChatsIndex();
+            const savedPlugins = localStorage.getItem('montanha_plugins');
+            if (savedPlugins) {
+                try { appPreferences.plugins = JSON.parse(savedPlugins); } catch(e) {}
+            }
+
+            const savedEngine = localStorage.getItem('montanha_engine');
+            if (savedEngine && document.getElementById('selectModelEngine')) {
+                document.getElementById('selectModelEngine').value = savedEngine;
+            }
 
             const lastChat = localStorage.getItem('montanha_last_active_chat');
             if (lastChat) {
