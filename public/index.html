@@ -298,11 +298,12 @@
                     <div class="flex items-center bg-[#12141a] border border-white/5 rounded-xl px-2.5 py-1">
                         <span class="text-zinc-500 text-[11px] mr-1 hidden xs:inline">Motor:</span>
                         <select id="selectModelEngine" onchange="updateEngineDisplay(this.value)" class="bg-transparent text-zinc-200 text-[11px] font-medium focus:outline-none cursor-pointer pr-1 truncate">
-                            <option value="gemini-flash-lite-latest" class="bg-[#12141a] text-white">Gemini Flash Lite (Rápido)</option>
-                            <option value="gemini-flash-latest" class="bg-[#12141a] text-white">Gemini Flash Visão Multimodal</option>
-                            <option value="auto-omniroute" class="bg-[#12141a] text-white">Auto (OmniRoute)</option>
+                            <option value="auto-omniroute" class="bg-[#12141a] text-white">Auto (OmniRoute Inteligente)</option>
+                            <option value="gemini-3.5-flash-lite" class="bg-[#12141a] text-white">Gemini 3.5 Flash Lite (Mais Rápido)</option>
+                            <option value="gemini-flash-lite-latest" class="bg-[#12141a] text-white">Gemini Flash Lite (Estável)</option>
+                            <option value="gemini-3.5-flash" class="bg-[#12141a] text-white">Gemini 3.5 Flash (Visão & Docs)</option>
                             <option value="groq-llama-3.3-70b" class="bg-[#12141a] text-white">Groq Llama 3.3 70B</option>
-                            <option value="openrouter-deepseek" class="bg-[#12141a] text-white">DeepSeek R1 (OpenRouter)</option>
+                            <option value="openrouter" class="bg-[#12141a] text-white">OpenRouter Llama / DeepSeek</option>
                         </select>
                     </div>
 
@@ -541,28 +542,33 @@
 
             <!-- Chaves de API -->
             <div class="space-y-3">
-                <label class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block">Chaves de API Pessoais</label>
+                <div class="flex items-center justify-between">
+                    <label class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block">Chaves de API Pessoais</label>
+                    <button type="button" onclick="validateKeysLive()" id="btnValidateKeys" class="px-2.5 py-1 text-[10px] font-semibold bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-bolt text-[10px]"></i> Testar Validade das Chaves
+                    </button>
+                </div>
                 <div class="space-y-2">
                     <div>
                         <div class="text-[11px] text-zinc-400 mb-1 flex items-center justify-between">
                             <span>Google Gemini API Key:</span>
                             <span id="geminiKeyStatus" class="text-[10px] text-zinc-500">Não configurada</span>
                         </div>
-                        <input type="password" id="settingGeminiKey" placeholder="Cole sua chave AIzaSy..." class="w-full bg-[#171922] border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-white/30 font-mono">
+                        <input type="password" id="settingGeminiKey" autocomplete="new-password" placeholder="Cole sua chave AIzaSy... ou AQ..." class="w-full bg-[#171922] border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-white/30 font-mono">
                     </div>
                     <div>
                         <div class="text-[11px] text-zinc-400 mb-1 flex items-center justify-between">
                             <span>Groq API Key (Llama 3.3 70B Grátis):</span>
                             <span id="groqKeyStatus" class="text-[10px] text-zinc-500">Opcional</span>
                         </div>
-                        <input type="password" id="settingGroqKey" placeholder="Cole sua chave gsk_..." class="w-full bg-[#171922] border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-white/30 font-mono">
+                        <input type="password" id="settingGroqKey" autocomplete="new-password" placeholder="Cole sua chave gsk_..." class="w-full bg-[#171922] border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-white/30 font-mono">
                     </div>
                     <div>
                         <div class="text-[11px] text-zinc-400 mb-1 flex items-center justify-between">
                             <span>OpenRouter API Key:</span>
                             <span id="openrouterKeyStatus" class="text-[10px] text-zinc-500">Opcional</span>
                         </div>
-                        <input type="password" id="settingOpenRouterKey" placeholder="Cole sua chave sk-or-v1-..." class="w-full bg-[#171922] border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-white/30 font-mono">
+                        <input type="password" id="settingOpenRouterKey" autocomplete="new-password" placeholder="Cole sua chave sk-or-v1-..." class="w-full bg-[#171922] border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-white/30 font-mono">
                     </div>
                 </div>
             </div>
@@ -1520,6 +1526,88 @@
             } else {
                 elG.innerText = "Não configurada";
                 elG.className = "text-[10px] text-zinc-500";
+            }
+
+            const elGrq = document.getElementById('groqKeyStatus');
+            if (elGrq) {
+                if (localKeys.groq && localKeys.groq.startsWith('gsk_')) {
+                    elGrq.innerText = "Configurada (" + localKeys.groq.substring(0, 6) + "...)";
+                    elGrq.className = "text-[10px] text-emerald-400";
+                } else if (localKeys.groq) {
+                    elGrq.innerText = "Preenchida (" + localKeys.groq.substring(0, 6) + "...)";
+                    elGrq.className = "text-[10px] text-amber-400";
+                } else {
+                    elGrq.innerText = "Opcional";
+                    elGrq.className = "text-[10px] text-zinc-500";
+                }
+            }
+
+            const elOpr = document.getElementById('openrouterKeyStatus');
+            if (elOpr) {
+                if (localKeys.openrouter && localKeys.openrouter.startsWith('sk-or-')) {
+                    elOpr.innerText = "Configurada (" + localKeys.openrouter.substring(0, 6) + "...)";
+                    elOpr.className = "text-[10px] text-emerald-400";
+                } else if (localKeys.openrouter) {
+                    elOpr.innerText = "Preenchida (" + localKeys.openrouter.substring(0, 6) + "...)";
+                    elOpr.className = "text-[10px] text-amber-400";
+                } else {
+                    elOpr.innerText = "Opcional";
+                    elOpr.className = "text-[10px] text-zinc-500";
+                }
+            }
+        }
+
+        async function validateKeysLive() {
+            const btn = document.getElementById('btnValidateKeys');
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-[10px]"></i> Testando...';
+
+            const gem = document.getElementById('settingGeminiKey').value.trim() || localKeys.gemini;
+            const grq = document.getElementById('settingGroqKey').value.trim() || localKeys.groq;
+            const opr = document.getElementById('settingOpenRouterKey').value.trim() || localKeys.openrouter;
+
+            try {
+                const res = await fetch('/api/validate-keys', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ gemini: gem, groq: grq, openrouter: opr })
+                });
+                const data = await res.json();
+                if (data.results) {
+                    const elG = document.getElementById('geminiKeyStatus');
+                    if (data.results.gemini.valid) {
+                        elG.innerText = "✅ " + data.results.gemini.message;
+                        elG.className = "text-[10px] text-emerald-400 font-semibold";
+                    } else {
+                        elG.innerText = "❌ " + data.results.gemini.message;
+                        elG.className = "text-[10px] text-rose-400 font-semibold";
+                    }
+
+                    const elGrq = document.getElementById('groqKeyStatus');
+                    if (elGrq) {
+                        if (data.results.groq.valid) {
+                            elGrq.innerText = "✅ " + data.results.groq.message;
+                            elGrq.className = "text-[10px] text-emerald-400 font-semibold";
+                        } else {
+                            elGrq.innerText = data.results.groq.message === 'Opcional' ? 'Opcional' : '❌ ' + data.results.groq.message;
+                            elGrq.className = data.results.groq.message === 'Opcional' ? "text-[10px] text-zinc-500" : "text-[10px] text-rose-400 font-semibold";
+                        }
+                    }
+
+                    const elOpr = document.getElementById('openrouterKeyStatus');
+                    if (elOpr) {
+                        if (data.results.openrouter.valid) {
+                            elOpr.innerText = "✅ " + data.results.openrouter.message;
+                            elOpr.className = "text-[10px] text-emerald-400 font-semibold";
+                        } else {
+                            elOpr.innerText = data.results.openrouter.message === 'Opcional' ? 'Opcional' : '❌ ' + data.results.openrouter.message;
+                            elOpr.className = data.results.openrouter.message === 'Opcional' ? "text-[10px] text-zinc-500" : "text-[10px] text-rose-400 font-semibold";
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Falha ao validar chaves:", e);
+            } finally {
+                if (btn) btn.innerHTML = '<i class="fa-solid fa-bolt text-[10px]"></i> Testar Validade das Chaves';
             }
         }
 

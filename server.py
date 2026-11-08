@@ -217,7 +217,8 @@ def get_live_web_context(query, plugins_config):
     return full_context, sources if sources else None
 
 def dispatch_external_engine(engine, prompt, system_prompt, api_key):
-    if "groq" in engine.lower() or "llama" in engine.lower():
+    engine_lower = engine.lower()
+    if "groq" in engine_lower or "llama" in engine_lower:
         url = "https://api.groq.com/openai/v1/chat/completions"
         headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
         payload = {
@@ -227,6 +228,23 @@ def dispatch_external_engine(engine, prompt, system_prompt, api_key):
         }
         req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers)
         with urllib.request.urlopen(req, timeout=20) as resp:
+            data = json.loads(resp.read().decode())
+            return data["choices"][0]["message"]["content"]
+    elif "openrouter" in engine_lower:
+        url = "https://openrouter.ai/api/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://montanha-gemini-studio.vercel.app",
+            "X-Title": "Montanha Gemini Studio"
+        }
+        payload = {
+            "model": "meta-llama/llama-3.3-70b-instruct:free",
+            "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt}],
+            "temperature": 0.6
+        }
+        req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers)
+        with urllib.request.urlopen(req, timeout=25) as resp:
             data = json.loads(resp.read().decode())
             return data["choices"][0]["message"]["content"]
     return None
@@ -312,6 +330,55 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
             body = json.loads(post_data.decode("utf-8")) if post_data else {}
         except Exception:
             body = {}
+
+        if parsed.path == "/api/validate-keys":
+            gem_key = body.get("gemini") or os.environ.get("GEMINI_API_KEY", "")
+            grq_key = body.get("groq") or os.environ.get("GROQ_API_KEY", "")
+            opr_key = body.get("openrouter") or os.environ.get("OPENROUTER_API_KEY", "")
+
+            results = {}
+            if gem_key:
+                try:
+                    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key={gem_key}"
+                    req = urllib.request.Request(url, data=json.dumps({"contents": [{"parts": [{"text": "ping"}]}]}).encode("utf-8"), headers={"Content-Type": "application/json"})
+                    with urllib.request.urlopen(req, timeout=8) as r:
+                        results["gemini"] = {"valid": True, "message": "Ativa e Operacional", "prefix": gem_key[:6]}
+                except urllib.error.HTTPError as he:
+                    err_msg = "Cota Excedida (429)" if he.code == 429 else f"Erro HTTP {he.code}"
+                    results["gemini"] = {"valid": False, "message": err_msg, "prefix": gem_key[:6]}
+                except Exception as e:
+                    results["gemini"] = {"valid": False, "message": str(e)[:30], "prefix": gem_key[:6]}
+            else:
+                results["gemini"] = {"valid": False, "message": "Nao configurada"}
+
+            if grq_key:
+                try:
+                    url = "https://api.groq.com/openai/v1/models"
+                    req = urllib.request.Request(url, headers={"Authorization": f"Bearer {grq_key}"})
+                    with urllib.request.urlopen(req, timeout=8) as r:
+                        results["groq"] = {"valid": True, "message": "Ativa (Llama 3.3 70B)", "prefix": grq_key[:6]}
+                except urllib.error.HTTPError as he:
+                    results["groq"] = {"valid": False, "message": f"Invalida ({he.code})", "prefix": grq_key[:6]}
+                except Exception as e:
+                    results["groq"] = {"valid": False, "message": str(e)[:30], "prefix": grq_key[:6]}
+            else:
+                results["groq"] = {"valid": False, "message": "Opcional"}
+
+            if opr_key:
+                try:
+                    url = "https://openrouter.ai/api/v1/auth/key"
+                    req = urllib.request.Request(url, headers={"Authorization": f"Bearer {opr_key}"})
+                    with urllib.request.urlopen(req, timeout=8) as r:
+                        results["openrouter"] = {"valid": True, "message": "Ativa (OpenRouter)", "prefix": opr_key[:6]}
+                except urllib.error.HTTPError as he:
+                    results["openrouter"] = {"valid": False, "message": f"Invalida ({he.code})", "prefix": opr_key[:6]}
+                except Exception as e:
+                    results["openrouter"] = {"valid": False, "message": str(e)[:30], "prefix": opr_key[:6]}
+            else:
+                results["openrouter"] = {"valid": False, "message": "Opcional"}
+
+            self._send_json({"status": "success", "results": results})
+            return
 
         if parsed.path == "/api/settings":
             save_prefs(body)
@@ -432,10 +499,9 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
                 "system_instruction": {"parts": [{"text": system_prompt}]},
                 "generationConfig": {"temperature": 0.7, "maxOutputTokens": 2048}
             }
-            if plugins_config.get("web_search", True):
-                payload["tools"] = [{"googleSearch": {}}]
+            user_openrouter_key = self.headers.get("X-OpenRouter-Key") or body.get("openrouter_api_key") or os.environ.get("OPENROUTER_API_KEY", "")
 
-            model_candidates = ["gemini-flash-lite-latest", "gemini-flash-latest"]
+            model_candidates = ["gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash"]
             if engine in model_candidates:
                 model_candidates.remove(engine)
                 model_candidates.insert(0, engine)

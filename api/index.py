@@ -374,10 +374,9 @@ class handler(BaseHTTPRequestHandler):
                 "system_instruction": {"parts": [{"text": system_prompt}]},
                 "generationConfig": {"temperature": 0.7, "maxOutputTokens": 2048}
             }
-            if plugins_config.get("web_search", True):
-                payload["tools"] = [{"googleSearch": {}}]
+            user_openrouter_key = self.headers.get("X-OpenRouter-Key") or body.get("openrouter_api_key") or os.environ.get("OPENROUTER_API_KEY", "")
 
-            model_candidates = ["gemini-flash-lite-latest", "gemini-flash-latest"]
+            model_candidates = ["gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash"]
             if engine in model_candidates:
                 model_candidates.remove(engine)
                 model_candidates.insert(0, engine)
