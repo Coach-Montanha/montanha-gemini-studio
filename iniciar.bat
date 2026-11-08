@@ -1,11 +1,11 @@
 @echo off
 title Montanha Gemini Studio
-cd /d "C:\Users\Administrator\Documents\Projetos\Montanha Gemini Studio"
+cd /d "%~dp0"
 
 :: Verificar se já está rodando na porta 4192
 netstat -ano | findstr :4192 >nul
 if %errorlevel% neq 0 (
-    start "" /b python "C:\Users\Administrator\Documents\Projetos\Montanha Gemini Studio\server.py"
+    start "" /b python "%~dp0server.py"
     timeout /t 1 /nobreak >nul
 )
 
