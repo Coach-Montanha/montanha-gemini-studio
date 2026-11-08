@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -27,8 +28,18 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map;
+import org.json.JSONObject;
 
 public class MainActivity extends Activity implements TextToSpeech.OnInitListener {
     private WebView webView;
@@ -37,6 +48,11 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
     private boolean ttsReady = false;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private static final int PERMISSION_REQ_CODE = 200;
+
+    // Configurações do Cofre Persistente (sobrevive à exclusão do app)
+    private static final String VAULT_PREFS = "montanha_persistent_vault";
+    private static final String VAULT_DIR_NAME = "MontanhaStudio";
+    private static final String VAULT_FILE_NAME = "vault_profile.json";
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -73,10 +89,39 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
             }
         });
 
-        webView.setWebViewClient(new WebViewClient());
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                // Restauração automática de chaves, logins e chats do cofre do aparelho
+                String autoRestoreJs =
+                    "(function() {" +
+                    "  try {" +
+                    "    if (window.AndroidStorageBridge && window.AndroidStorageBridge.getAllData) {" +
+                    "      var raw = window.AndroidStorageBridge.getAllData();" +
+                    "      if (raw && raw !== '{}') {" +
+                    "        var data = JSON.parse(raw);" +
+                    "        var restored = false;" +
+                    "        for (var k in data) {" +
+                    "          if (data[k] && (!localStorage.getItem(k) || localStorage.getItem(k) === '""' || localStorage.getItem(k) === '{}')) {" +
+                    "            localStorage.setItem(k, data[k]);" +
+                    "            restored = true;" +
+                    "          }" +
+                    "        }" +
+                    "        if (restored && window.syncRestoredVault) {" +
+                    "          window.syncRestoredVault();" +
+                    "        }" +
+                    "      }" +
+                    "    }" +
+                    "  } catch(e) {}" +
+                    "})();";
+                view.evaluateJavascript(autoRestoreJs, null);
+            }
+        });
 
-        // Ponte nativa para conversas de áudio e reconhecimento de voz contínuo
+        // Pontes nativas: Voz contínua e Cofre de Armazenamento Persistente
         webView.addJavascriptInterface(new AndroidVoiceBridge(), "AndroidVoiceBridge");
+        webView.addJavascriptInterface(new AndroidStorageBridge(), "AndroidStorageBridge");
 
         webView.setDownloadListener(new DownloadListener() {
             @Override
@@ -105,13 +150,68 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
 
     private void checkAndRequestAudioPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            ArrayList<String> perms = new ArrayList<>();
             if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{
-                    Manifest.permission.RECORD_AUDIO,
-                    Manifest.permission.MODIFY_AUDIO_SETTINGS
-                }, PERMISSION_REQ_CODE);
+                perms.add(Manifest.permission.RECORD_AUDIO);
+            }
+            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED && Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
+                perms.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            }
+            if (!perms.isEmpty()) {
+                requestPermissions(perms.toArray(new String[0]), PERMISSION_REQ_CODE);
             }
         }
+    }
+
+    private File getVaultFile(boolean useDownloads) {
+        try {
+            File base = Environment.getExternalStoragePublicDirectory(
+                useDownloads ? Environment.DIRECTORY_DOWNLOADS : Environment.DIRECTORY_DOCUMENTS
+            );
+            File dir = new File(base, VAULT_DIR_NAME);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+            return new File(dir, VAULT_FILE_NAME);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private synchronized void persistVaultToFile(String jsonStr) {
+        for (boolean useDownloads : new boolean[]{false, true}) {
+            try {
+                File target = getVaultFile(useDownloads);
+                if (target != null) {
+                    try (OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(target), StandardCharsets.UTF_8)) {
+                        osw.write(jsonStr);
+                        osw.flush();
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+    }
+
+    private synchronized String readVaultFromFile() {
+        for (boolean useDownloads : new boolean[]{false, true}) {
+            try {
+                File target = getVaultFile(useDownloads);
+                if (target != null && target.exists() && target.length() > 2) {
+                    StringBuilder sb = new StringBuilder();
+                    try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(target), StandardCharsets.UTF_8))) {
+                        String line;
+                        while ((line = br.readLine()) != null) {
+                            sb.append(line).append("\n");
+                        }
+                    }
+                    String res = sb.toString().trim();
+                    if (!res.isEmpty() && res.startsWith("{")) {
+                        return res;
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+        return null;
     }
 
     @Override
@@ -138,6 +238,105 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
         }
     }
 
+    // =========================================================================
+    // PONTE 1: ARMAZENAMENTO PERSISTENTE & AUTO-BACKUP NO DISPOSITIVO
+    // =========================================================================
+    public class AndroidStorageBridge {
+        private final SharedPreferences prefs;
+
+        public AndroidStorageBridge() {
+            prefs = getSharedPreferences(VAULT_PREFS, Context.MODE_PRIVATE);
+            syncFromPersistentVaultFile();
+        }
+
+        private synchronized void syncFromPersistentVaultFile() {
+            try {
+                Map<String, ?> all = prefs.getAll();
+                if (all == null || all.isEmpty()) {
+                    String fileData = readVaultFromFile();
+                    if (fileData != null && !fileData.trim().isEmpty()) {
+                        JSONObject json = new JSONObject(fileData);
+                        SharedPreferences.Editor editor = prefs.edit();
+                        Iterator<String> keys = json.keys();
+                        while (keys.hasNext()) {
+                            String k = keys.next();
+                            editor.putString(k, json.optString(k, ""));
+                        }
+                        editor.apply();
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+
+        @JavascriptInterface
+        public void saveItem(String key, String value) {
+            try {
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putString(key, value);
+                editor.apply();
+
+                new Thread(() -> {
+                    try {
+                        Map<String, ?> all = prefs.getAll();
+                        JSONObject json = new JSONObject();
+                        for (Map.Entry<String, ?> entry : all.entrySet()) {
+                            json.put(entry.getKey(), entry.getValue());
+                        }
+                        persistVaultToFile(json.toString());
+                    } catch (Exception ignored) {}
+                }).start();
+            } catch (Exception ignored) {}
+        }
+
+        @JavascriptInterface
+        public String getItem(String key) {
+            String val = prefs.getString(key, "");
+            if (val == null || val.isEmpty()) {
+                syncFromPersistentVaultFile();
+                val = prefs.getString(key, "");
+            }
+            return val != null ? val : "";
+        }
+
+        @JavascriptInterface
+        public String getAllData() {
+            try {
+                syncFromPersistentVaultFile();
+                Map<String, ?> all = prefs.getAll();
+                JSONObject json = new JSONObject();
+                for (Map.Entry<String, ?> entry : all.entrySet()) {
+                    json.put(entry.getKey(), entry.getValue());
+                }
+                return json.toString();
+            } catch (Exception e) {
+                return "{}";
+            }
+        }
+
+        @JavascriptInterface
+        public void backupAll(String jsonString) {
+            try {
+                JSONObject json = new JSONObject(jsonString);
+                SharedPreferences.Editor editor = prefs.edit();
+                Iterator<String> keys = json.keys();
+                while (keys.hasNext()) {
+                    String k = keys.next();
+                    editor.putString(k, json.optString(k, ""));
+                }
+                editor.apply();
+                persistVaultToFile(jsonString);
+            } catch (Exception ignored) {}
+        }
+
+        @JavascriptInterface
+        public boolean isStorageAvailable() {
+            return true;
+        }
+    }
+
+    // =========================================================================
+    // PONTE 2: VOZ E RECONHECIMENTO CONTÍNUO
+    // =========================================================================
     public class AndroidVoiceBridge {
         @JavascriptInterface
         public boolean isNativeAvailable() {

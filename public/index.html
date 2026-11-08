@@ -542,6 +542,20 @@
                 </div>
             </div>
 
+                        <!-- Cofre Persistente no Telefone -->
+            <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 leading-relaxed flex items-center justify-between">
+                <div class="flex items-center space-x-2.5">
+                    <i class="fa-solid fa-hard-drive text-emerald-400 flex-shrink-0 text-sm"></i>
+                    <div>
+                        <strong class="text-white">Cofre Persistente no Telefone:</strong>
+                        <p class="text-[11px] text-zinc-300">Suas chaves, login e conversas sobrevivem mesmo se o app for atualizado ou excluido e reinstalado.</p>
+                    </div>
+                </div>
+                <button type="button" onclick="backupAllToDeviceVault(); alert('Cofre sincronizado no armazenamento do telefone com sucesso!');" class="px-2.5 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-semibold rounded-lg text-[11px] transition-colors ml-3 flex-shrink-0">
+                    Sincronizar
+                </button>
+            </div>
+
             <!-- Chaves de API -->
             <div class="space-y-3">
                 <label class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block">Chaves de API Pessoais</label>
@@ -663,6 +677,77 @@
         let isWaitingForResponse = false;
         let speechRestartTimeout = null;
 
+                // ==========================================================
+        // COFRE DE PERSISTÊNCIA NATIVA & DISPOSITIVO (ANTI-PERDA)
+        // ==========================================================
+        function syncVaultToDevice(key, value) {
+            if (window.AndroidStorageBridge && window.AndroidStorageBridge.saveItem) {
+                try {
+                    window.AndroidStorageBridge.saveItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+                } catch(e) {
+                    console.warn('Falha no sync com cofre nativo:', e);
+                }
+            }
+        }
+
+        function backupAllToDeviceVault() {
+            try {
+                const all = {};
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    if (k && k.startsWith('montanha_')) {
+                        all[k] = localStorage.getItem(k);
+                    }
+                }
+                if (window.AndroidStorageBridge && window.AndroidStorageBridge.backupAll) {
+                    window.AndroidStorageBridge.backupAll(JSON.stringify(all));
+                }
+                return all;
+            } catch(e) {
+                console.warn('Erro ao salvar cofre completo:', e);
+                return {};
+            }
+        }
+
+        window.syncRestoredVault = function() {
+            try {
+                if (window.AndroidStorageBridge && window.AndroidStorageBridge.getAllData) {
+                    const raw = window.AndroidStorageBridge.getAllData();
+                    if (raw && raw !== '{}') {
+                        const data = JSON.parse(raw);
+                        let updated = false;
+                        for (const k in data) {
+                            if (data[k] && (!localStorage.getItem(k) || localStorage.getItem(k) === '""' || localStorage.getItem(k) === '{}')) {
+                                localStorage.setItem(k, data[k]);
+                                updated = true;
+                            }
+                        }
+                        if (updated) {
+                            localKeys.gemini = localStorage.getItem('montanha_user_gemini_key') || localKeys.gemini;
+                            localKeys.groq = localStorage.getItem('montanha_user_groq_key') || localKeys.groq;
+                            localKeys.openrouter = localStorage.getItem('montanha_user_openrouter_key') || localKeys.openrouter;
+                            try {
+                                const plugins = JSON.parse(localStorage.getItem('montanha_plugins') || '{}');
+                                if (plugins && Object.keys(plugins).length > 0) {
+                                    appPreferences.plugins = Object.assign(appPreferences.plugins, plugins);
+                                }
+                            } catch(e) {}
+                            if (typeof updateKeyStatuses === 'function') updateKeyStatuses();
+                            if (typeof loadChatsIndex === 'function') loadChatsIndex();
+                        }
+                    }
+                }
+            } catch(e) {
+                console.warn('Vault restore error:', e);
+            }
+        };
+
+        // Auto-restauração inicial e auto-backup preventivo
+        setTimeout(() => {
+            if (window.syncRestoredVault) window.syncRestoredVault();
+            backupAllToDeviceVault();
+        }, 300);
+
         let localKeys = {
             gemini: localStorage.getItem('montanha_user_gemini_key') || '',
             groq: localStorage.getItem('montanha_user_groq_key') || '',
@@ -703,6 +788,8 @@
             };
             localStorage.setItem('montanha_local_chats', JSON.stringify(chats));
             localStorage.setItem('montanha_last_active_chat', chatId);
+            syncVaultToDevice('montanha_local_chats', JSON.stringify(chats));
+            syncVaultToDevice('montanha_last_active_chat', chatId);
         }
 
         function deleteLocalChat(chatId) {
@@ -1448,9 +1535,18 @@
             appPreferences.plugins.live_weather = document.getElementById('pluginWeather').checked;
 
             localStorage.setItem('montanha_plugins', JSON.stringify(appPreferences.plugins));
+            
+            // Sincroniza imediatamente com o cofre persistente do telefone
+            syncVaultToDevice('montanha_user_gemini_key', localKeys.gemini);
+            syncVaultToDevice('montanha_user_groq_key', localKeys.groq);
+            syncVaultToDevice('montanha_user_openrouter_key', localKeys.openrouter);
+            syncVaultToDevice('montanha_plugins', JSON.stringify(appPreferences.plugins));
+            syncVaultToDevice('montanha_engine', appPreferences.engine);
+            backupAllToDeviceVault();
+
             updateKeyStatuses();
             closeSettingsModal();
-            alert("Ajustes e preferências salvos com sucesso!");
+            alert("Ajustes e credenciais salvos no cofre do aparelho com sucesso!");
         }
 
         function clearStoredKeys() {
