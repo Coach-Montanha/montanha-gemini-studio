@@ -49,7 +49,7 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private static final int PERMISSION_REQ_CODE = 200;
 
-    // Configurações do Cofre Persistente (sobrevive à exclusão do app)
+    // Configuracoes do Cofre Persistente (sobrevive a exclusao do app)
     private static final String VAULT_PREFS = "montanha_persistent_vault";
     private static final String VAULT_DIR_NAME = "MontanhaStudio";
     private static final String VAULT_FILE_NAME = "vault_profile.json";
@@ -59,7 +59,7 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Barra de status translúcida e áreas seguras
+        // Barra de status translucida e areas seguras
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         checkAndRequestAudioPermissions();
@@ -81,10 +81,13 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onPermissionRequest(final PermissionRequest request) {
-                runOnUiThread(() -> {
-                    try {
-                        request.grant(request.getResources());
-                    } catch (Exception ignored) {}
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            request.grant(request.getResources());
+                        } catch (Exception ignored) {}
+                    }
                 });
             }
         });
@@ -93,33 +96,12 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                // Restauração automática de chaves, logins e chats do cofre do aparelho
-                String autoRestoreJs =
-                    "(function() {" +
-                    "  try {" +
-                    "    if (window.AndroidStorageBridge && window.AndroidStorageBridge.getAllData) {" +
-                    "      var raw = window.AndroidStorageBridge.getAllData();" +
-                    "      if (raw && raw !== '{}') {" +
-                    "        var data = JSON.parse(raw);" +
-                    "        var restored = false;" +
-                    "        for (var k in data) {" +
-                    "          if (data[k] && (!localStorage.getItem(k) || localStorage.getItem(k) === '""' || localStorage.getItem(k) === '{}')) {" +
-                    "            localStorage.setItem(k, data[k]);" +
-                    "            restored = true;" +
-                    "          }" +
-                    "        }" +
-                    "        if (restored && window.syncRestoredVault) {" +
-                    "          window.syncRestoredVault();" +
-                    "        }" +
-                    "      }" +
-                    "    }" +
-                    "  } catch(e) {}" +
-                    "})();";
-                view.evaluateJavascript(autoRestoreJs, null);
+                // Restaura automaticamente credenciais e dados se o localStorage estiver limpo
+                view.evaluateJavascript("if (window.syncRestoredVault) { window.syncRestoredVault(); }", null);
             }
         });
 
-        // Pontes nativas: Voz contínua e Cofre de Armazenamento Persistente
+        // Pontes nativas: Voz continua e Cofre de Armazenamento Persistente
         webView.addJavascriptInterface(new AndroidVoiceBridge(), "AndroidVoiceBridge");
         webView.addJavascriptInterface(new AndroidStorageBridge(), "AndroidStorageBridge");
 
@@ -150,11 +132,11 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
 
     private void checkAndRequestAudioPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            ArrayList<String> perms = new ArrayList<>();
+            ArrayList<String> perms = new ArrayList<String>();
             if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
                 perms.add(Manifest.permission.RECORD_AUDIO);
             }
-            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED && Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
+            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED && Build.VERSION.SDK_INT <= 29) {
                 perms.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
             }
             if (!perms.isEmpty()) {
@@ -225,9 +207,12 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
                         @Override public void onStart(String utteranceId) {}
                         @Override
                         public void onDone(String utteranceId) {
-                            mainHandler.post(() -> {
-                                if (webView != null) {
-                                    webView.evaluateJavascript("window.onNativeSpeechUtteranceDone && window.onNativeSpeechUtteranceDone();", null);
+                            mainHandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (webView != null) {
+                                        webView.evaluateJavascript("window.onNativeSpeechUtteranceDone && window.onNativeSpeechUtteranceDone();", null);
+                                    }
                                 }
                             });
                         }
@@ -275,15 +260,18 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
                 editor.putString(key, value);
                 editor.apply();
 
-                new Thread(() -> {
-                    try {
-                        Map<String, ?> all = prefs.getAll();
-                        JSONObject json = new JSONObject();
-                        for (Map.Entry<String, ?> entry : all.entrySet()) {
-                            json.put(entry.getKey(), entry.getValue());
-                        }
-                        persistVaultToFile(json.toString());
-                    } catch (Exception ignored) {}
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Map<String, ?> all = prefs.getAll();
+                            JSONObject json = new JSONObject();
+                            for (Map.Entry<String, ?> entry : all.entrySet()) {
+                                json.put(entry.getKey(), entry.getValue());
+                            }
+                            persistVaultToFile(json.toString());
+                        } catch (Exception ignored) {}
+                    }
                 }).start();
             } catch (Exception ignored) {}
         }
@@ -335,7 +323,7 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
     }
 
     // =========================================================================
-    // PONTE 2: VOZ E RECONHECIMENTO CONTÍNUO
+    // PONTE 2: VOZ E RECONHECIMENTO CONTINUO
     // =========================================================================
     public class AndroidVoiceBridge {
         @JavascriptInterface
@@ -345,80 +333,92 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
 
         @JavascriptInterface
         public void startSpeechRecognition() {
-            mainHandler.post(() -> {
-                try {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                            checkAndRequestAudioPermissions();
-                            return;
-                        }
-                    }
-                    if (speechRecognizer != null) {
-                        try { speechRecognizer.destroy(); } catch (Exception ignored) {}
-                    }
-                    speechRecognizer = SpeechRecognizer.createSpeechRecognizer(MainActivity.this);
-                    speechRecognizer.setRecognitionListener(new RecognitionListener() {
-                        @Override public void onReadyForSpeech(Bundle params) {}
-                        @Override public void onBeginningOfSpeech() {}
-                        @Override public void onRmsChanged(float rmsdB) {}
-                        @Override public void onBufferReceived(byte[] buffer) {}
-                        @Override public void onEndOfSpeech() {
-                            webView.evaluateJavascript("window.onNativeSpeechEnd && window.onNativeSpeechEnd();", null);
-                        }
-                        @Override
-                        public void onError(int error) {
-                            webView.evaluateJavascript("window.onNativeSpeechError && window.onNativeSpeechError(" + error + ");", null);
-                        }
-                        @Override
-                        public void onResults(Bundle results) {
-                            ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                            if (matches != null && !matches.isEmpty()) {
-                                String text = matches.get(0).replace("'", "\\'").replace("\n", " ");
-                                webView.evaluateJavascript("window.onNativeSpeechResult && window.onNativeSpeechResult('" + text + "');", null);
+            mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                                checkAndRequestAudioPermissions();
+                                return;
                             }
                         }
-                        @Override public void onPartialResults(Bundle partialResults) {}
-                        @Override public void onEvent(int eventType, Bundle params) {}
-                    });
+                        if (speechRecognizer != null) {
+                            try { speechRecognizer.destroy(); } catch (Exception ignored) {}
+                        }
+                        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(MainActivity.this);
+                        speechRecognizer.setRecognitionListener(new RecognitionListener() {
+                            @Override public void onReadyForSpeech(Bundle params) {}
+                            @Override public void onBeginningOfSpeech() {}
+                            @Override public void onRmsChanged(float rmsdB) {}
+                            @Override public void onBufferReceived(byte[] buffer) {}
+                            @Override public void onEndOfSpeech() {
+                                webView.evaluateJavascript("window.onNativeSpeechEnd && window.onNativeSpeechEnd();", null);
+                            }
+                            @Override
+                            public void onError(int error) {
+                                webView.evaluateJavascript("window.onNativeSpeechError && window.onNativeSpeechError(" + error + ");", null);
+                            }
+                            @Override
+                            public void onResults(Bundle results) {
+                                ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                                if (matches != null && !matches.isEmpty()) {
+                                    String text = matches.get(0).replace("'", "\\'").replace("\n", " ");
+                                    webView.evaluateJavascript("window.onNativeSpeechResult && window.onNativeSpeechResult('" + text + "');", null);
+                                }
+                            }
+                            @Override public void onPartialResults(Bundle partialResults) {}
+                            @Override public void onEvent(int eventType, Bundle params) {}
+                        });
 
-                    Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-                    intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-                    intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "pt-BR");
-                    intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
-                    speechRecognizer.startListening(intent);
-                } catch (Exception e) {
-                    webView.evaluateJavascript("window.onNativeSpeechError && window.onNativeSpeechError(-1);", null);
+                        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "pt-BR");
+                        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
+                        speechRecognizer.startListening(intent);
+                    } catch (Exception e) {
+                        webView.evaluateJavascript("window.onNativeSpeechError && window.onNativeSpeechError(-1);", null);
+                    }
                 }
             });
         }
 
         @JavascriptInterface
         public void stopSpeechRecognition() {
-            mainHandler.post(() -> {
-                if (speechRecognizer != null) {
-                    try { speechRecognizer.stopListening(); } catch (Exception ignored) {}
+            mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (speechRecognizer != null) {
+                        try { speechRecognizer.stopListening(); } catch (Exception ignored) {}
+                    }
                 }
             });
         }
 
         @JavascriptInterface
-        public void speak(String text) {
-            mainHandler.post(() -> {
-                if (ttsReady && tts != null) {
-                    try {
-                        Bundle params = new Bundle();
-                        params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "LIVE_CALL");
-                        tts.speak(text, TextToSpeech.QUEUE_FLUSH, params, "LIVE_CALL");
-                    } catch (Exception ignored) {}
+        public void speak(final String text) {
+            mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (ttsReady && tts != null) {
+                        try {
+                            Bundle params = new Bundle();
+                            params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "LIVE_CALL");
+                            tts.speak(text, TextToSpeech.QUEUE_FLUSH, params, "LIVE_CALL");
+                        } catch (Exception ignored) {}
+                    }
                 }
             });
         }
 
         @JavascriptInterface
         public void stopSpeaking() {
-            mainHandler.post(() -> {
-                if (tts != null) {
-                    try { tts.stop(); } catch (Exception ignored) {}
+            mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (tts != null) {
+                        try { tts.stop(); } catch (Exception ignored) {}
+                    }
                 }
             });
         }
