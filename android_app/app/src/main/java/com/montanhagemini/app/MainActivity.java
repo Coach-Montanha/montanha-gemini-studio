@@ -198,27 +198,38 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
 
     @Override
     public void onInit(int status) {
-        if (status == TextToSpeech.SUCCESS) {
+        if (status == TextToSpeech.SUCCESS && tts != null) {
             try {
                 int res = tts.setLanguage(new Locale("pt", "BR"));
-                if (res != TextToSpeech.LANG_MISSING_DATA && res != TextToSpeech.LANG_NOT_SUPPORTED) {
-                    ttsReady = true;
-                    tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-                        @Override public void onStart(String utteranceId) {}
-                        @Override
-                        public void onDone(String utteranceId) {
-                            mainHandler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if (webView != null) {
-                                        webView.evaluateJavascript("window.onNativeSpeechUtteranceDone && window.onNativeSpeechUtteranceDone();", null);
-                                    }
-                                }
-                            });
-                        }
-                        @Override public void onError(String utteranceId) {}
-                    });
+                if (res == TextToSpeech.LANG_MISSING_DATA || res == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    res = tts.setLanguage(Locale.getDefault());
                 }
+                ttsReady = true;
+                tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                    @Override public void onStart(String utteranceId) {}
+                    @Override
+                    public void onDone(String utteranceId) {
+                        mainHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (webView != null) {
+                                    webView.evaluateJavascript("window.onNativeSpeechUtteranceDone && window.onNativeSpeechUtteranceDone();", null);
+                                }
+                            }
+                        });
+                    }
+                    @Override
+                    public void onError(String utteranceId) {
+                        mainHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (webView != null) {
+                                    webView.evaluateJavascript("window.onNativeSpeechUtteranceDone && window.onNativeSpeechUtteranceDone();", null);
+                                }
+                            }
+                        });
+                    }
+                });
             } catch (Exception ignored) {}
         }
     }
@@ -396,6 +407,11 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
         }
 
         @JavascriptInterface
+        public boolean isTtsReady() {
+            return ttsReady && tts != null;
+        }
+
+        @JavascriptInterface
         public void speak(final String text) {
             mainHandler.post(new Runnable() {
                 @Override
@@ -405,7 +421,11 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
                             Bundle params = new Bundle();
                             params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "LIVE_CALL");
                             tts.speak(text, TextToSpeech.QUEUE_FLUSH, params, "LIVE_CALL");
-                        } catch (Exception ignored) {}
+                        } catch (Exception ignored) {
+                            if (webView != null) webView.evaluateJavascript("window.onNativeSpeechUtteranceDone && window.onNativeSpeechUtteranceDone();", null);
+                        }
+                    } else {
+                        if (webView != null) webView.evaluateJavascript("window.onNativeSpeechUtteranceDone && window.onNativeSpeechUtteranceDone();", null);
                     }
                 }
             });

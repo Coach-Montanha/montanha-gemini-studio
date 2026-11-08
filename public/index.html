@@ -153,18 +153,6 @@
             </div>
 
             <div class="flex items-center space-x-1.5 sm:space-x-2">
-                <!-- Browser Interno Button -->
-                <button onclick="openBrowserModal()" title="Abrir Browser Interno / Busca Web" class="min-h-[40px] px-2.5 sm:px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs flex items-center space-x-1.5 border border-white/5 spring-transition active:scale-[0.98]">
-                    <i class="fa-solid fa-compass text-apple-blue text-xs"></i>
-                    <span class="hidden sm:inline font-medium">Browser</span>
-                </button>
-
-                <!-- Google Apps Hub -->
-                <button onclick="openGoogleHubModal()" title="Google Workspace & Notas Rápidas" class="min-h-[40px] px-2.5 sm:px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs flex items-center space-x-1.5 border border-white/5 spring-transition active:scale-[0.98]">
-                    <i class="fa-brands fa-google text-zinc-300 text-xs"></i>
-                    <span class="hidden sm:inline font-medium">Google Apps</span>
-                </button>
-
                 <!-- Live Voice Call Button -->
                 <button id="liveAudioCallBtn" onclick="toggleLiveAudioMode()" title="Modo Conversa por Voz Contínua (Gemini Live)" class="min-h-[40px] px-3 py-1.5 rounded-xl bg-apple-blue hover:bg-apple-blueHover text-white text-xs font-semibold flex items-center space-x-1.5 shadow-sm spring-transition active:scale-[0.98]">
                     <i id="liveAudioIcon" class="fa-solid fa-phone text-xs"></i>
@@ -323,15 +311,10 @@
                         <span class="text-zinc-500 text-[11px] mr-1 hidden xs:inline">Skill:</span>
                         <select id="selectSkill" class="bg-transparent text-zinc-200 text-[11px] font-medium focus:outline-none cursor-pointer pr-1 truncate">
                             <option value="auto" class="bg-[#12141a] text-white" selected>🌟 Auto (Orquestrador Inteligente)</option>
-                            <option value="coach" class="bg-[#12141a] text-white">🏋️ @coach (Fisiologia & Treino)</option>
-                            <option value="criador" class="bg-[#12141a] text-white">🎬 @criador (Conteúdo & Vídeo)</option>
-                            <option value="dev" class="bg-[#12141a] text-white">💻 @dev (Engenharia de Software)</option>
-                            <option value="negocios" class="bg-[#12141a] text-white">💼 @negocios (Gestão & Vendas)</option>
-                            <option value="minha-voz" class="bg-[#12141a] text-white">🔥 Minha Voz (Coach Montanha)</option>
-                            <option value="lpo-crosstraining" class="bg-[#12141a] text-white">🏋️ LPO Everett</option>
-                            <option value="lyle-mcdonald" class="bg-[#12141a] text-white">🥩 Nutrição Lyle McDonald</option>
-                            <option value="stories-10x-copy" class="bg-[#12141a] text-white">📱 Copy Stories 10x</option>
-                            <option value="matriz-anti-saas" class="bg-[#12141a] text-white">🛡️ Matriz Anti-SaaS</option>
+                            <option value="coach" class="bg-[#12141a] text-white">🏋️ @coach (Fisiologia, Treino & Nutrição)</option>
+                            <option value="criador" class="bg-[#12141a] text-white">🎬 @criador (Conteúdo, Vídeo & Copy)</option>
+                            <option value="dev" class="bg-[#12141a] text-white">💻 @dev (Engenharia de Software & Bugs)</option>
+                            <option value="negocios" class="bg-[#12141a] text-white">💼 @negocios (Gestão, Comercial & Anti-SaaS)</option>
                         </select>
                     </div>
                 </div>
@@ -1059,15 +1042,33 @@
         function speakTextAndListenNext(text) {
             isBotSpeaking = true;
             isWaitingForResponse = false;
-            const cleanText = text.replace(/```[\s\S]*?```/g, 'Bloco de código omitido.').replace(/[#*`_~\[\]()]/g, '');
+            // Limpa markdown, links e códigos para narração limpa e humana
+            const cleanText = text
+                .replace(/```[\s\S]*?```/g, '')
+                .replace(/`([^`]+)`/g, '$1')
+                .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+                .replace(/[*#_~>\-]/g, '')
+                .trim();
 
+            if (!cleanText) {
+                isBotSpeaking = false;
+                if (isLiveAudioActive) {
+                    setTimeout(startLiveVoiceListening, 300);
+                }
+                return;
+            }
+
+            // 1. Android Nativo Bridge
             if (hasNativeAndroidBridge()) {
                 try {
                     window.AndroidVoiceBridge.speak(cleanText);
                     return;
-                } catch (e) {}
+                } catch (e) {
+                    console.warn("Fallback para síntese Web Speech:", e);
+                }
             }
 
+            // 2. Web SpeechSynthesis
             if ('speechSynthesis' in window) {
                 try {
                     window.speechSynthesis.cancel();
@@ -1079,24 +1080,26 @@
                     utterance.onend = function() {
                         isBotSpeaking = false;
                         if (isLiveAudioActive) {
-                            setTimeout(() => { startLiveVoiceListening(); }, 400);
+                            setTimeout(startLiveVoiceListening, 300);
                         }
                     };
                     utterance.onerror = function() {
                         isBotSpeaking = false;
                         if (isLiveAudioActive) {
-                            setTimeout(() => { startLiveVoiceListening(); }, 400);
+                            setTimeout(startLiveVoiceListening, 300);
                         }
                     };
 
                     window.speechSynthesis.speak(utterance);
                     return;
-                } catch (e) {}
+                } catch (e) {
+                    console.warn("Erro no Web SpeechSynthesis:", e);
+                }
             }
 
             isBotSpeaking = false;
             if (isLiveAudioActive) {
-                setTimeout(() => { startLiveVoiceListening(); }, 400);
+                setTimeout(startLiveVoiceListening, 400);
             }
         }
 
@@ -1594,10 +1597,32 @@
                     btn.innerHTML = '<span>Extrair & Injetar Texto</span>';
                     closePdfModal();
 
-                    if (data.status === 'success' && data.extracted_text) {
-                        setPrompt(`[LIVRO/DOCUMENTO PDF: ${data.filename}]\n${data.extracted_text.substring(0, 8000)}\n\nFaça um resumo executivo com os principais pontos práticos deste documento:`);
+                    if (data.status === 'success') {
+                        if (data.extracted_text && data.extracted_text.trim().length > 40) {
+                            setPrompt(`[LIVRO/DOCUMENTO PDF: ${data.filename}]\n${data.extracted_text.substring(0, 8000)}\n\nFaça um resumo executivo com os principais pontos práticos deste documento:`);
+                        } else {
+                            // PDF visual/gráfico (ex: portfólio de design, apresentações, digitalizados)
+                            // Envia diretamente para leitura multimodal do Gemini
+                            attachedImageBase64 = b64;
+                            attachedImageMime = "application/pdf";
+                            const preview = document.getElementById('imagePreviewContainer');
+                            preview.classList.remove('hidden');
+                            preview.innerHTML = `
+                                <div class="relative inline-flex items-center space-x-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-zinc-300">
+                                    <i class="fa-solid fa-file-pdf text-red-400 text-lg"></i>
+                                    <div class="truncate max-w-[200px]">
+                                        <p class="font-medium text-white truncate">${file.name}</p>
+                                        <p class="text-[10px] text-zinc-400">PDF Anexado (Análise Visual & Texto)</p>
+                                    </div>
+                                    <button type="button" onclick="removeAttachedImage()" class="ml-2 w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center">
+                                        <i class="fa-solid fa-xmark text-[10px]"></i>
+                                    </button>
+                                </div>
+                            `;
+                            setPrompt(`Faça uma análise executiva profunda deste documento PDF (${file.name}): interprete o conteúdo visual, gráficos, apresentações e textos de todas as páginas e entregue os principais destaques:`);
+                        }
                     } else {
-                        alert("Não foi possível extrair o texto deste PDF.");
+                        alert("Não foi possível processar este PDF.");
                     }
                 } catch (err) {
                     btn.disabled = false;

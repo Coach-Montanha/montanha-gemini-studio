@@ -34,6 +34,44 @@ def build_system_prompt(skill_key, plugins_config, permanent_skills):
 
     return "\n\n".join(parts)
 
+def fetch_duckduckgo_results(query):
+    import re
+    try:
+        import ssl
+        ssl_ctx = ssl._create_unverified_context()
+        url = 'https://html.duckduckgo.com/html/?q=' + urllib.parse.quote(query)
+        req = urllib.request.Request(
+            url,
+            headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+        )
+        with urllib.request.urlopen(req, timeout=5, context=ssl_ctx) as resp:
+            html = resp.read().decode('utf-8', errors='ignore')
+            raw_snippets = re.findall(r'<a[^>]+class="result__snippet[^"]*"[^>]*>(.*?)</a>', html, re.DOTALL)
+            raw_titles = re.findall(r'<h2[^>]+class="result__title"[^>]*>(.*?)</h2>', html, re.DOTALL)
+            raw_urls = re.findall(r'<a[^>]+class="result__url"[^>]*href="([^"]*)"', html)
+
+            snippets = []
+            sources = []
+            for i, s in enumerate(raw_snippets[:6]):
+                clean_s = re.sub(r'<[^>]+>', '', s).strip()
+                if clean_s:
+                    snippets.append(clean_s)
+                    u = raw_urls[i].strip() if i < len(raw_urls) else ""
+                    if "uddg=" in u:
+                        try:
+                            u = urllib.parse.unquote(u.split("uddg=")[1].split("&")[0])
+                        except Exception:
+                            pass
+                    t = re.sub(r'<[^>]+>', '', raw_titles[i]).strip() if i < len(raw_titles) else "Fonte Web"
+                    if u and not u.startswith("http"):
+                        u = f"https://{u}"
+                    if u:
+                        sources.append({"title": t, "url": u})
+            return snippets, sources
+    except Exception as e:
+        print(f"Erro busca DuckDuckGo: {e}")
+        return [], []
+
 def get_live_web_context(query, plugins_config):
     if not plugins_config.get("web_search", True) and not plugins_config.get("live_weather", True):
         return "", None
@@ -42,6 +80,7 @@ def get_live_web_context(query, plugins_config):
     snippets = []
     sources = []
 
+    # 1. Clima e Meteorologia
     if plugins_config.get("live_weather", True) and any(k in ql for k in ["clima", "tempo", "temperatura", "previsão"]):
         city = "Joao Pessoa"
         for candidate in ["joao pessoa", "joão pessoa", "são paulo", "sao paulo", "rio de janeiro", "recife", "fortaleza", "curitiba", "brasília", "salvador"]:
@@ -62,7 +101,9 @@ def get_live_web_context(query, plugins_config):
                     with urllib.request.urlopen(req_w, timeout=3) as rw:
                         w = json.loads(rw.read().decode())["current"]
                         snippets.append(
-                            f"[METEOROLOGIA AO VIVO]: {city} | Temp: {w['temperature_2m']}°C (Sensação: {w['apparent_temperature']}°C) | Umidade: {w['relative_humidity_2m']}% | Vento: {w['wind_speed_10m']} km/h"
+                            f"[METEOROLOGIA AO VIVO]: Cidade: {city}. "
+                            f"Temperatura atual: {w['temperature_2m']}°C (Sensação: {w['apparent_temperature']}°C). "
+                            f"Umidade: {w['relative_humidity_2m']}%. Vento: {w['wind_speed_10m']} km/h."
                         )
                         sources.append({
                             "title": f"Open-Meteo Previsão ({city})",
@@ -71,26 +112,16 @@ def get_live_web_context(query, plugins_config):
         except Exception:
             pass
 
-    if plugins_config.get("web_search", True) and any(k in ql for k in ["notícia", "noticia", "hoje", "resultado", "preço", "preco", "cotação", "cotacao", "o que aconteceu", "pesquise", "quem é", "quem e"]):
-        try:
-            clean_q = urllib.parse.quote(query)
-            ddg_url = f"https://api.duckduckgo.com/?q={clean_q}&format=json&no_html=1&skip_disambig=1"
-            req_ddg = urllib.request.Request(ddg_url, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req_ddg, timeout=3) as rd:
-                ddg_data = json.loads(rd.read().decode())
-                abs_text = ddg_data.get("AbstractText", "")
-                abs_url = ddg_data.get("AbstractURL", "")
-                source_name = ddg_data.get("AbstractSource", "DuckDuckGo")
-                if abs_text:
-                    snippets.append(f"[BUSCA WEB AO VIVO]: {abs_text}")
-                    sources.append({
-                        "title": f"{source_name}: {query[:35]}",
-                        "url": abs_url or f"https://duckduckgo.com/?q={clean_q}"
-                    })
-        except Exception:
-            pass
-
-    return "\n".join(snippets), (sources if sources else None)
+    # 2. Busca Web Automática em Segundo Plano
+    if plugins_config.get("web_search", True):
+        info_keywords = ["maré", "mares", "bessa", "notícia", "noticia", "hoje", "resultado", "preço", "preco", "cotação", "cotacao", "o que aconteceu", "pesquise", "quem é", "quem e", "como está", "como esta", "qual é", "qual e", "onde", "quando", "quanto", "horário", "horario"]
+        if any(k in ql for k in info_keywords) or "?" in query or len(query.split()) > 3:
+            s_snips, s_srcs = fetch_duckduckgo_results(query)
+            if s_snips:
+                snippets.append("[INFORMAÇÃO EM TEMPO REAL PESQUISADA NA INTERNET]:\n" + "\n".join(f"- {s}" for s in s_snips))
+                sources.extend(s_srcs)
+    full_context = "\n\n".join(snippets)
+    return full_context, sources if sources else None
 
 def extract_text_from_pdf_stream(pdf_bytes):
     # 1. Tentar pypdf se instalado
@@ -385,6 +416,21 @@ class handler(BaseHTTPRequestHandler):
                             return
                 except Exception as ex:
                     last_err = str(ex)
+
+            # AUTO-FALLBACK OMNIROUTE: Se Gemini estourar cota (429) ou falhar, despacha automaticamente para Groq Llama 3.3 70B
+            if user_groq_key and not image_b64:
+                try:
+                    ext_ans = dispatch_external_engine("groq", current_text, system_prompt, user_groq_key)
+                    if ext_ans:
+                        self._send_json({
+                            "status": "success",
+                            "response": "*(⚡ Resposta entregue via Groq Llama 3.3 70B com busca na web ativa)*\n\n" + str(ext_ans),
+                            "model": "Groq Llama 3.3 70B (Auto-Fallback)",
+                            "sources": sources
+                        })
+                        return
+                except Exception as e_groq:
+                    print(f"Erro fallback Groq: {e_groq}")
 
             self._send_json({"status": "error", "message": f"Erro Gemini API: {last_err}"}, 500)
             return
