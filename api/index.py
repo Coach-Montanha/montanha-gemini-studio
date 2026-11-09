@@ -345,6 +345,9 @@ class handler(BaseHTTPRequestHandler):
         # 3. Chat Principal com Visão Multimodal
         elif any(p in all_routes for p in ["/chat", "chat"]):
             prompt = body.get("prompt", "").strip()
+            history = body.get("history", [])
+            if not isinstance(history, list):
+                history = []
             skill_key = body.get("skill", "minha-voz")
             image_b64 = body.get("image_base64", "")
             mime_type = body.get("mime_type", "image/jpeg")
