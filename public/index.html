@@ -1975,7 +1975,67 @@
             }
         });
 
+        // Controle de Escalonamento da Fonte
+        const FONT_SIZES = [13, 15, 17, 19, 21, 24];
+        let currentFontSize = parseInt(localStorage.getItem('montanha_chat_font_size') || '15', 10);
+
+        function applyFontSize(size) {
+            size = Math.max(12, Math.min(26, parseInt(size, 10)));
+            currentFontSize = size;
+            document.documentElement.style.setProperty('--chat-font-size', `${size}px`);
+            const badge = document.getElementById('fontSizeBadge');
+            if (badge) badge.textContent = `${size}px`;
+            const slider = document.getElementById('settingFontSlider');
+            if (slider) slider.value = size;
+            const sliderVal = document.getElementById('settingFontVal');
+            if (sliderVal) sliderVal.textContent = `${size}px`;
+            localStorage.setItem('montanha_chat_font_size', size.toString());
+        }
+
+        function changeFontSize(delta) {
+            let nextIndex = FONT_SIZES.indexOf(currentFontSize);
+            if (nextIndex === -1) {
+                nextIndex = FONT_SIZES.findIndex(s => s >= currentFontSize);
+                if (nextIndex === -1) nextIndex = FONT_SIZES.length - 1;
+            }
+            nextIndex += delta;
+            if (nextIndex >= 0 && nextIndex < FONT_SIZES.length) {
+                applyFontSize(FONT_SIZES[nextIndex]);
+            }
+        }
+
+        // PWA Installation & Service Worker
+        let deferredPwaPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPwaPrompt = e;
+            const btn = document.getElementById('pwaInstallBtn');
+            if (btn) btn.classList.remove('hidden');
+        });
+
+        function triggerPwaInstall() {
+            if (deferredPwaPrompt) {
+                deferredPwaPrompt.prompt();
+                deferredPwaPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        const btn = document.getElementById('pwaInstallBtn');
+                        if (btn) btn.classList.add('hidden');
+                    }
+                    deferredPwaPrompt = null;
+                });
+            } else {
+                alert("Para instalar no notebook (Edge/Chrome), clique no ícone de instalação ao lado da barra de endereço. No celular (Safari/Edge/Chrome), selecione 'Instalar aplicativo' ou 'Adicionar à tela de início'.");
+            }
+        }
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(() => {});
+            });
+        }
+
         window.onload = function() {
+            applyFontSize(currentFontSize);
             loadChatsIndex();
             const savedPlugins = localStorage.getItem('montanha_plugins');
             if (savedPlugins) {
