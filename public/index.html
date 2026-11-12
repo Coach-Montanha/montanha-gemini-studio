@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Montanha AI Studio</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <!-- Progressive Web App (PWA) Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0a0c10">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Montanha AI">
+    <link rel="apple-touch-icon" href="/icon-192.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -36,6 +43,7 @@
     </script>
     <style>
         :root {
+            --chat-font-size: 15px;
             --bg-base: #090a0f;
             --bg-surface: #12141a;
             --bg-elevated: #1a1c24;
@@ -75,6 +83,39 @@
         .spring-transition {
             transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
         }
+        
+        /* Scalable Typography for Chat Reading (Vector Crispness) */
+        .chat-bubble-content,
+        .markdown-body {
+            font-size: var(--chat-font-size, 15px) !important;
+            line-height: 1.68 !important;
+        }
+        .markdown-body p,
+        .markdown-body li,
+        .markdown-body td,
+        .markdown-body th {
+            font-size: var(--chat-font-size, 15px) !important;
+            line-height: 1.68 !important;
+        }
+        .markdown-body h1 {
+            font-size: calc(var(--chat-font-size, 15px) * 1.45) !important;
+            line-height: 1.3 !important;
+        }
+        .markdown-body h2 {
+            font-size: calc(var(--chat-font-size, 15px) * 1.3) !important;
+            line-height: 1.35 !important;
+        }
+        .markdown-body h3 {
+            font-size: calc(var(--chat-font-size, 15px) * 1.15) !important;
+            line-height: 1.4 !important;
+        }
+        .markdown-body code {
+            font-size: calc(var(--chat-font-size, 15px) * 0.9) !important;
+        }
+        .markdown-body pre code {
+            font-size: calc(var(--chat-font-size, 15px) * 0.88) !important;
+        }
+
         .markdown-body pre {
             background-color: #12141a;
             padding: 14px;
@@ -153,7 +194,24 @@
                 </div>
             </div>
 
-            <div class="flex items-center space-x-1.5 sm:space-x-2">
+            <div class="flex items-center space-x-1 sm:space-x-1.5">
+                <!-- Controle de Tamanho da Fonte (A- / A+) -->
+                <div class="flex items-center bg-white/5 border border-white/10 rounded-xl px-1 py-0.5 shadow-sm" title="Ajustar tamanho da fonte para leitura">
+                    <button onclick="changeFontSize(-1)" class="min-h-[32px] min-w-[28px] sm:min-w-[30px] rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white flex items-center justify-center font-bold text-xs spring-transition active:scale-95" title="Diminuir fonte (A-)">
+                        A-
+                    </button>
+                    <span id="fontSizeBadge" class="text-[11px] font-mono text-zinc-300 px-1 min-w-[30px] text-center font-medium">15px</span>
+                    <button onclick="changeFontSize(1)" class="min-h-[32px] min-w-[28px] sm:min-w-[30px] rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white flex items-center justify-center font-bold text-sm spring-transition active:scale-95" title="Aumentar fonte (A+)">
+                        A+
+                    </button>
+                </div>
+
+                <!-- Botão Instalar PWA -->
+                <button id="pwaInstallBtn" onclick="triggerPwaInstall()" title="Instalar como Aplicativo PWA" class="hidden min-h-[36px] px-2.5 py-1 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/30 text-xs font-semibold flex items-center space-x-1.5 spring-transition">
+                    <i class="fa-solid fa-download text-xs"></i>
+                    <span class="hidden md:inline">Instalar App</span>
+                </button>
+
                 <!-- Live Voice Call Button -->
                 <button id="liveAudioCallBtn" onclick="toggleLiveAudioMode()" title="Modo Conversa por Voz Contínua (Gemini Live)" class="min-h-[40px] px-3 py-1.5 rounded-xl bg-apple-blue hover:bg-apple-blueHover text-white text-xs font-semibold flex items-center space-x-1.5 shadow-sm spring-transition active:scale-[0.98]">
                     <i id="liveAudioIcon" class="fa-solid fa-phone text-xs"></i>
@@ -575,6 +633,25 @@
                         </div>
                         <input type="password" id="settingOpenRouterKey" autocomplete="new-password" placeholder="Cole sua chave sk-or-v1-..." class="w-full bg-[#171922] border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-white/30 font-mono">
                     </div>
+                </div>
+            </div>
+
+            <!-- Tamanho da Fonte da Conversa -->
+            <div class="space-y-2 pt-2 border-t border-white/5">
+                <div class="flex items-center justify-between">
+                    <label class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block">Tamanho da Fonte da Conversa</label>
+                    <span id="settingFontDisplay" class="text-xs font-mono text-apple-blue font-bold">15px</span>
+                </div>
+                <div class="flex items-center space-x-3 bg-[#171922] p-2.5 rounded-xl border border-white/5">
+                    <span class="text-xs text-zinc-400 font-bold">A</span>
+                    <input type="range" id="settingFontSlider" min="13" max="24" step="1" value="15" oninput="applyFontSize(parseInt(this.value, 10))" class="flex-1 accent-apple-blue cursor-pointer">
+                    <span class="text-base text-zinc-200 font-bold">A</span>
+                </div>
+                <div class="flex justify-between text-[10px] text-zinc-500 font-mono px-1">
+                    <span>13px (Compacto)</span>
+                    <span>15px (Normal)</span>
+                    <span>18px (Grande)</span>
+                    <span>24px (Máximo)</span>
                 </div>
             </div>
 
@@ -1263,7 +1340,7 @@
             const div = document.createElement('div');
             div.className = "flex justify-end w-full";
             div.innerHTML = `
-                <div class="max-w-[85%] sm:max-w-[75%] rounded-2xl rounded-tr-sm bg-white/10 border border-white/10 px-4 py-3 text-white text-xs sm:text-sm shadow-sm leading-relaxed">
+                <div class="max-w-[85%] sm:max-w-[75%] rounded-2xl rounded-tr-sm bg-white/10 border border-white/10 px-4 py-3 text-white shadow-sm chat-bubble-content">
                     ${hasImage ? '<div class="text-[10px] font-mono text-zinc-400 mb-1"><i class="fa-solid fa-image mr-1"></i>[Foto anexada]</div>' : ''}
                     <div>${escapeHtml(text)}</div>
                 </div>
@@ -1308,7 +1385,7 @@
             }
 
             div.innerHTML = `
-                <div class="max-w-[95%] sm:max-w-[85%] rounded-2xl rounded-tl-sm bg-[#12141a] border border-white/5 px-4 py-3.5 text-zinc-200 text-xs sm:text-sm shadow-md leading-relaxed">
+                <div class="max-w-[95%] sm:max-w-[85%] rounded-2xl rounded-tl-sm bg-[#12141a] border border-white/5 px-4 py-3.5 text-zinc-200 shadow-md chat-bubble-content">
                     <div class="markdown-body select-text">${marked.parse(markdownText)}</div>
                     ${sourcesHtml}
                     ${googleActionHtml}
