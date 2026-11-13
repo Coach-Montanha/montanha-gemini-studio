@@ -115,43 +115,56 @@ def handle_user_login(login_input, password_input):
     if not login_clean or not pwd_clean:
         return {"status": "error", "message": "Login e senha são obrigatórios"}
 
-    email = auth_format_email(login_clean)
-    try:
-        url = f"{SUPABASE_URL}/auth/v1/token?grant_type=password"
-        payload = json.dumps({"email": email, "password": pwd_clean}).encode("utf-8")
-        req = urllib.request.Request(url, data=payload, headers={
-            "apikey": SUPABASE_ANON_KEY,
-            "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
-            "Content-Type": "application/json"
-        })
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            user = data.get("user", {})
-            meta = user.get("user_metadata", {})
-            vault = meta.get("montanha_vault", {})
-            user_info = {
-                "id": user.get("id"),
-                "email": user.get("email"),
-                "login": meta.get("username") or meta.get("login") or login_clean,
-                "name": meta.get("name") or login_clean,
-                "token": data.get("access_token")
-            }
-            users = load_local_users()
-            users[login_clean.lower()] = {
-                "user": user_info,
-                "vault": vault,
-                "password_hash": hashlib.sha256(pwd_clean.encode()).hexdigest(),
-                "updated_at": time.time()
-            }
-            save_local_users(users)
-            return {"status": "success", "user": user_info, "vault": vault}
-    except Exception:
+    candidates = []
+    if "@" in login_clean:
+        candidates.append(login_clean.lower())
+    else:
         local_users = load_local_users()
-        h = hashlib.sha256(pwd_clean.encode()).hexdigest()
-        u_entry = local_users.get(login_clean.lower())
-        if u_entry and u_entry.get("password_hash") == h:
-            return {"status": "success", "user": u_entry.get("user"), "vault": u_entry.get("vault", {})}
-        return {"status": "error", "message": "Login ou senha incorretos"}
+        if login_clean.lower() in local_users:
+            st = local_users[login_clean.lower()].get("user", {}).get("email")
+            if st and st not in candidates: candidates.append(st)
+        candidates.append(f"{login_clean.lower()}@gmail.com")
+        candidates.append(f"{login_clean.lower()}@montanha.com")
+
+    for email in candidates:
+        try:
+            url = f"{SUPABASE_URL}/auth/v1/token?grant_type=password"
+            payload = json.dumps({"email": email, "password": pwd_clean}).encode("utf-8")
+            req = urllib.request.Request(url, data=payload, headers={
+                "apikey": SUPABASE_ANON_KEY,
+                "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
+                "Content-Type": "application/json"
+            })
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                user = data.get("user", {})
+                meta = user.get("user_metadata", {})
+                vault = meta.get("montanha_vault", {})
+                user_info = {
+                    "id": user.get("id"),
+                    "email": user.get("email"),
+                    "login": meta.get("username") or meta.get("login") or login_clean,
+                    "name": meta.get("name") or login_clean,
+                    "token": data.get("access_token")
+                }
+                users = load_local_users()
+                users[login_clean.lower()] = {
+                    "user": user_info,
+                    "vault": vault,
+                    "password_hash": hashlib.sha256(pwd_clean.encode()).hexdigest(),
+                    "updated_at": time.time()
+                }
+                save_local_users(users)
+                return {"status": "success", "user": user_info, "vault": vault}
+        except Exception:
+            continue
+
+    local_users = load_local_users()
+    h = hashlib.sha256(pwd_clean.encode()).hexdigest()
+    u_entry = local_users.get(login_clean.lower())
+    if u_entry and u_entry.get("password_hash") == h:
+        return {"status": "success", "user": u_entry.get("user"), "vault": u_entry.get("vault", {})}
+    return {"status": "error", "message": "Login ou senha incorretos"}
 
 def handle_user_register(login_input, password_input, name_input=None):
     login_clean = (login_input or "").strip()
