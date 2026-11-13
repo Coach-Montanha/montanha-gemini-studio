@@ -484,10 +484,10 @@ def get_live_web_context(query, plugins_config):
     return full_context, sources if sources else None
 
 def dispatch_external_engine(engine, prompt, system_prompt, api_key, history=None):
-    engine_lower = engine.lower()
+    engine_lower = (engine or "").lower()
     if "groq" in engine_lower or "llama" in engine_lower:
         url = "https://api.groq.com/openai/v1/chat/completions"
-        headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+        headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json", "User-Agent": "Mozilla/5.0"}
         msgs = [{"role": "system", "content": system_prompt}]
         if history:
             for h in history:
@@ -496,16 +496,22 @@ def dispatch_external_engine(engine, prompt, system_prompt, api_key, history=Non
                 if t: msgs.append({"role": r, "content": t})
         msgs.append({"role": "user", "content": prompt})
 
-        payload = {
-            "model": "llama-3.3-70b-versatile",
-            "messages": msgs,
-            "temperature": 0.6
-        }
-        req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers)
-        with urllib.request.urlopen(req, timeout=20) as resp:
-            data = json.loads(resp.read().decode())
-            return data["choices"][0]["message"]["content"]
-    elif "openrouter" in engine_lower:
+        for g_model in ["openai/gpt-oss-120b", "qwen/qwen3.8-27b", "llama-3.3-70b-versatile"]:
+            try:
+                payload = {
+                    "model": g_model,
+                    "messages": msgs,
+                    "temperature": 0.6
+                }
+                req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers)
+                with urllib.request.urlopen(req, timeout=20) as resp:
+                    data = json.loads(resp.read().decode())
+                    ans = data.get("choices", [{}])[0].get("message", {}).get("content")
+                    if ans:
+                        return ans
+            except Exception:
+                continue
+    elif "openrouter" in engine_lower or "or-" in engine_lower:
         url = "https://openrouter.ai/api/v1/chat/completions"
         headers = {
             "Authorization": f"Bearer {api_key}",
@@ -521,15 +527,21 @@ def dispatch_external_engine(engine, prompt, system_prompt, api_key, history=Non
                 if t: msgs_or.append({"role": r, "content": t})
         msgs_or.append({"role": "user", "content": prompt})
 
-        payload = {
-            "model": "meta-llama/llama-3.3-70b-instruct:free",
-            "messages": msgs_or,
-            "temperature": 0.6
-        }
-        req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers)
-        with urllib.request.urlopen(req, timeout=25) as resp:
-            data = json.loads(resp.read().decode())
-            return data["choices"][0]["message"]["content"]
+        for or_model in ["meta-llama/llama-3.3-70b-instruct", "deepseek/deepseek-chat", "openrouter/auto"]:
+            try:
+                payload = {
+                    "model": or_model,
+                    "messages": msgs_or,
+                    "temperature": 0.6
+                }
+                req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers)
+                with urllib.request.urlopen(req, timeout=25) as resp:
+                    data = json.loads(resp.read().decode())
+                    ans = data.get("choices", [{}])[0].get("message", {}).get("content")
+                    if ans:
+                        return ans
+            except Exception:
+                continue
     return None
 
 class GeminiStudioHandler(BaseHTTPRequestHandler):
@@ -818,7 +830,7 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
             }
             user_openrouter_key = self.headers.get("X-OpenRouter-Key") or body.get("openrouter_api_key") or os.environ.get("OPENROUTER_API_KEY", "")
 
-            model_candidates = ["gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash"]
+            model_candidates = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite-preview", "gemini-3-flash-preview", "gemini-flash-latest"]
             if engine in model_candidates:
                 model_candidates.remove(engine)
                 model_candidates.insert(0, engine)
@@ -860,7 +872,7 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
                 except Exception as ex:
                     last_err = str(ex)
 
-            # AUTO-FALLBACK OMNIROUTE: Se Gemini estourar cota (429) ou falhar, despacha automaticamente para Groq Llama 3.3 70B
+            # AUTO-FALLBACK OMNIROUTE: Se Gemini estourar cota (429) ou falhar, despacha automaticamente para Groq ou OpenRouter
             if user_groq_key and not image_b64:
                 try:
                     ext_ans = dispatch_external_engine("groq", current_text, system_prompt, user_groq_key, history=history)
@@ -868,13 +880,28 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
                         self._send_json({
                             "status": "success",
                             "chat_id": chat_id,
-                            "response": "*(⚡ Resposta entregue via Groq Llama 3.3 70B com busca na web ativa)*\n\n" + str(ext_ans),
-                            "engine": "Groq Llama 3.3 70B (Auto-Fallback)",
+                            "response": "*(⚡ Resposta entregue via Groq Auto-Fallback com busca na web ativa)*\n\n" + str(ext_ans),
+                            "engine": "Groq (Auto-Fallback)",
                             "sources": sources
                         })
                         return
                 except Exception as e_groq:
                     print(f"Erro fallback Groq: {e_groq}")
+
+            if user_openrouter_key and not image_b64:
+                try:
+                    ext_ans = dispatch_external_engine("openrouter", current_text, system_prompt, user_openrouter_key, history=history)
+                    if ext_ans:
+                        self._send_json({
+                            "status": "success",
+                            "chat_id": chat_id,
+                            "response": "*(⚡ Resposta entregue via OpenRouter Auto-Fallback com busca na web ativa)*\n\n" + str(ext_ans),
+                            "engine": "OpenRouter (Auto-Fallback)",
+                            "sources": sources
+                        })
+                        return
+                except Exception as e_or:
+                    print(f"Erro fallback OpenRouter: {e_or}")
 
             self._send_json({"status": "error", "message": f"Erro Gemini API: {last_err}"}, 500)
             return

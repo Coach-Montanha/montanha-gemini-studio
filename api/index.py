@@ -245,6 +245,67 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://muryznvaxzszcffrbxpv.supa
 SUPABASE_SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11cnl6bnZheHpzemNmZnJieHB2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NDQ0MTE2OSwiZXhwIjoyMTAwMDE3MTY5fQ.SpYzAP5ej1jUKyIPGSowyZrG_eeox50HmKnP1r81a24")
 SUPABASE_ANON_KEY = os.environ.get("SUPABASE_ANON_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11cnl6bnZheHpzemNmZnJieHB2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0NDExNjksImV4cCI6MjEwMDAxNzE2OX0.RHa_GLUGiRTVBGGCPvOcoLH6rh4IhyNM7YJWeJvI4Uo")
 
+def dispatch_external_engine(engine, prompt, system_prompt, api_key, history=None):
+    engine_lower = (engine or "").lower()
+    if "groq" in engine_lower or "llama" in engine_lower:
+        url = "https://api.groq.com/openai/v1/chat/completions"
+        headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json", "User-Agent": "Mozilla/5.0"}
+        msgs = [{"role": "system", "content": system_prompt}]
+        if history:
+            for h in history:
+                r = "assistant" if h.get("role") in ["model", "assistant"] else "user"
+                t = (h.get("content") or h.get("text") or "").strip()
+                if t: msgs.append({"role": r, "content": t})
+        msgs.append({"role": "user", "content": prompt})
+
+        for g_model in ["openai/gpt-oss-120b", "qwen/qwen3.8-27b", "llama-3.3-70b-versatile"]:
+            try:
+                payload = {
+                    "model": g_model,
+                    "messages": msgs,
+                    "temperature": 0.6
+                }
+                req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers)
+                with urllib.request.urlopen(req, timeout=20) as resp:
+                    data = json.loads(resp.read().decode())
+                    ans = data.get("choices", [{}])[0].get("message", {}).get("content")
+                    if ans:
+                        return ans
+            except Exception:
+                continue
+    elif "openrouter" in engine_lower or "or-" in engine_lower:
+        url = "https://openrouter.ai/api/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://montanha-gemini-studio.vercel.app",
+            "X-Title": "Montanha AI Studio"
+        }
+        msgs_or = [{"role": "system", "content": system_prompt}]
+        if history:
+            for h in history:
+                r = "assistant" if h.get("role") in ["model", "assistant"] else "user"
+                t = (h.get("content") or h.get("text") or "").strip()
+                if t: msgs_or.append({"role": r, "content": t})
+        msgs_or.append({"role": "user", "content": prompt})
+
+        for or_model in ["meta-llama/llama-3.3-70b-instruct", "deepseek/deepseek-chat", "openrouter/auto"]:
+            try:
+                payload = {
+                    "model": or_model,
+                    "messages": msgs_or,
+                    "temperature": 0.6
+                }
+                req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers)
+                with urllib.request.urlopen(req, timeout=25) as resp:
+                    data = json.loads(resp.read().decode())
+                    ans = data.get("choices", [{}])[0].get("message", {}).get("content")
+                    if ans:
+                        return ans
+            except Exception:
+                continue
+    return None
+
 def load_local_users():
     if not USERS_FILE.exists():
         return {}
@@ -589,73 +650,47 @@ class handler(BaseHTTPRequestHandler):
 
             web_context, sources = get_live_web_context(prompt, plugins_config)
 
-            # Se não tem imagem e escolheu Groq Llama 3.3
+            # Se não tem imagem e escolheu Groq
             if ("groq" in engine.lower() or "llama" in engine.lower()) and not image_b64 and user_groq_key:
-                try:
-                    url = "https://api.groq.com/openai/v1/chat/completions"
-                    headers = {"Authorization": f"Bearer {user_groq_key}", "Content-Type": "application/json"}
-                    prompt_full = f"{prompt}\n\n[CONTEXTO WEB]: {web_context}" if web_context else prompt
-                    payload = {
-                        "model": "llama-3.3-70b-versatile",
-                        "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt_full}]
-                    }
-                    req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers)
-                    with urllib.request.urlopen(req, timeout=20) as resp:
-                        res = json.loads(resp.read().decode())
-                        ans = res["choices"][0]["message"]["content"]
-                        self._send_json({
-                            "status": "success",
-                            "response": ans,
-                            "model": "Groq Llama 3.3",
-                            "sources": sources
-                        })
-                        return
-                except Exception:
-                    pass
+                prompt_full = f"{prompt}\n\n[CONTEXTO WEB]: {web_context}" if web_context else prompt
+                ext_ans = dispatch_external_engine("groq", prompt_full, system_prompt, user_groq_key, history=history)
+                if ext_ans:
+                    self._send_json({
+                        "status": "success",
+                        "response": ext_ans,
+                        "model": "Groq Llama / GPT-OSS",
+                        "sources": sources
+                    })
+                    return
 
             # OpenRouter (DeepSeek R1, Llama 3.3, Claude 3.5 Sonnet, etc.)
             if ("openrouter" in engine.lower() or engine.startswith("or-")) and user_openrouter_key:
-                try:
-                    or_model = "deepseek/deepseek-r1"
-                    if "llama" in engine.lower():
-                        or_model = "meta-llama/llama-3.3-70b-instruct"
-                    elif "auto" in engine.lower():
-                        or_model = "openrouter/auto"
-                    elif "deepseek" in engine.lower():
-                        or_model = "deepseek/deepseek-r1"
-
-                    prompt_full = f"{prompt}\n\n[CONTEXTO WEB]: {web_context}" if web_context else prompt
-                    or_url = "https://openrouter.ai/api/v1/chat/completions"
-                    or_headers = {
-                        "Authorization": f"Bearer {user_openrouter_key}",
-                        "Content-Type": "application/json",
-                        "HTTP-Referer": "https://montanha-gemini-studio.vercel.app",
-                        "X-Title": "Montanha AI Studio"
-                    }
-                    or_payload = {
-                        "model": or_model,
-                        "messages": [
-                            {"role": "system", "content": system_prompt},
-                            {"role": "user", "content": prompt_full}
-                        ]
-                    }
-                    or_req = urllib.request.Request(or_url, data=json.dumps(or_payload).encode("utf-8"), headers=or_headers)
-                    with urllib.request.urlopen(or_req, timeout=35) as or_resp:
-                        or_data = json.loads(or_resp.read().decode())
-                        or_ans = or_data["choices"][0]["message"]["content"]
-                        self._send_json({
-                            "status": "success",
-                            "response": or_ans,
-                            "model": f"OpenRouter ({or_model})",
-                            "sources": sources
-                        })
-                        return
-                except Exception as ex_or:
-                    pass
+                prompt_full = f"{prompt}\n\n[CONTEXTO WEB]: {web_context}" if web_context else prompt
+                ext_ans = dispatch_external_engine("openrouter", prompt_full, system_prompt, user_openrouter_key, history=history)
+                if ext_ans:
+                    self._send_json({
+                        "status": "success",
+                        "response": ext_ans,
+                        "model": "OpenRouter",
+                        "sources": sources
+                    })
+                    return
 
             # Multimodal Gemini (Imagens, Documentos e Texto)
             if not user_gemini_key:
-                self._send_json({"status": "error", "message": "🔒 Nenhuma chave Gemini configurada. Abra Configuração e insira sua GEMINI_API_KEY."}, 401)
+                if user_groq_key and not image_b64:
+                    prompt_full = f"{prompt}\n\n[CONTEXTO WEB]: {web_context}" if web_context else prompt
+                    ext_ans = dispatch_external_engine("groq", prompt_full, system_prompt, user_groq_key, history=history)
+                    if ext_ans:
+                        self._send_json({"status": "success", "response": ext_ans, "model": "Groq (Auto-Fallback)", "sources": sources})
+                        return
+                if user_openrouter_key and not image_b64:
+                    prompt_full = f"{prompt}\n\n[CONTEXTO WEB]: {web_context}" if web_context else prompt
+                    ext_ans = dispatch_external_engine("openrouter", prompt_full, system_prompt, user_openrouter_key, history=history)
+                    if ext_ans:
+                        self._send_json({"status": "success", "response": ext_ans, "model": "OpenRouter (Auto-Fallback)", "sources": sources})
+                        return
+                self._send_json({"status": "error", "message": "🔒 Nenhuma chave de IA configurada. Abra Ajustes e insira sua chave Gemini, Groq ou OpenRouter."}, 401)
                 return
 
             current_text = prompt
@@ -679,9 +714,8 @@ class handler(BaseHTTPRequestHandler):
                 "system_instruction": {"parts": [{"text": system_prompt}]},
                 "generationConfig": {"temperature": 0.7, "maxOutputTokens": 2048}
             }
-            user_openrouter_key = self.headers.get("X-OpenRouter-Key") or body.get("openrouter_api_key") or os.environ.get("OPENROUTER_API_KEY", "")
 
-            model_candidates = ["gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash"]
+            model_candidates = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite-preview", "gemini-3-flash-preview", "gemini-flash-latest"]
             if engine in model_candidates:
                 model_candidates.remove(engine)
                 model_candidates.insert(0, engine)
@@ -721,20 +755,34 @@ class handler(BaseHTTPRequestHandler):
                 except Exception as ex:
                     last_err = str(ex)
 
-            # AUTO-FALLBACK OMNIROUTE: Se Gemini estourar cota (429) ou falhar, despacha automaticamente para Groq Llama 3.3 70B
+            # AUTO-FALLBACK OMNIROUTE: Se Gemini estourar cota (429), der 503 ou falhar, despacha automaticamente para Groq ou OpenRouter
             if user_groq_key and not image_b64:
                 try:
                     ext_ans = dispatch_external_engine("groq", current_text, system_prompt, user_groq_key, history=history)
                     if ext_ans:
                         self._send_json({
                             "status": "success",
-                            "response": "*(⚡ Resposta entregue via Groq Llama 3.3 70B com busca na web ativa)*\n\n" + str(ext_ans),
-                            "model": "Groq Llama 3.3 70B (Auto-Fallback)",
+                            "response": "*(⚡ Resposta entregue via Groq Auto-Fallback com busca na web ativa)*\n\n" + str(ext_ans),
+                            "model": "Groq (Auto-Fallback)",
                             "sources": sources
                         })
                         return
                 except Exception as e_groq:
                     print(f"Erro fallback Groq: {e_groq}")
+
+            if user_openrouter_key and not image_b64:
+                try:
+                    ext_ans = dispatch_external_engine("openrouter", current_text, system_prompt, user_openrouter_key, history=history)
+                    if ext_ans:
+                        self._send_json({
+                            "status": "success",
+                            "response": "*(⚡ Resposta entregue via OpenRouter Auto-Fallback com busca na web ativa)*\n\n" + str(ext_ans),
+                            "model": "OpenRouter (Auto-Fallback)",
+                            "sources": sources
+                        })
+                        return
+                except Exception as e_or:
+                    print(f"Erro fallback OpenRouter: {e_or}")
 
             self._send_json({"status": "error", "message": f"Erro Gemini API: {last_err}"}, 500)
             return
