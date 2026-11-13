@@ -195,16 +195,11 @@
             </div>
 
             <div class="flex items-center space-x-1 sm:space-x-1.5">
-                <!-- Controle de Tamanho da Fonte (A- / A+) -->
-                <div class="flex items-center bg-white/5 border border-white/10 rounded-xl px-1 py-0.5 shadow-sm" title="Ajustar tamanho da fonte para leitura">
-                    <button onclick="changeFontSize(-1)" class="min-h-[32px] min-w-[28px] sm:min-w-[30px] rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white flex items-center justify-center font-bold text-xs spring-transition active:scale-95" title="Diminuir fonte (A-)">
-                        A-
-                    </button>
-                    <span id="fontSizeBadge" class="text-[11px] font-mono text-zinc-300 px-1 min-w-[30px] text-center font-medium">15px</span>
-                    <button onclick="changeFontSize(1)" class="min-h-[32px] min-w-[28px] sm:min-w-[30px] rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white flex items-center justify-center font-bold text-sm spring-transition active:scale-95" title="Aumentar fonte (A+)">
-                        A+
-                    </button>
-                </div>
+                <!-- Botão de Conta & Sincronização em Nuvem (Notebook & Celular) -->
+                <button id="headerUserAuthBtn" onclick="openSettingsModal('account-section')" title="Conta e Sincronização em Nuvem" class="min-h-[36px] px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-zinc-300 hover:text-white flex items-center space-x-1.5 spring-transition">
+                    <i id="headerUserIcon" class="fa-solid fa-circle-user text-xs text-apple-blue"></i>
+                    <span id="headerUserName" class="hidden sm:inline font-medium">Entrar</span>
+                </button>
 
                 <!-- Botão Instalar PWA -->
                 <button id="pwaInstallBtn" onclick="triggerPwaInstall()" title="Instalar como Aplicativo PWA" class="hidden min-h-[36px] px-2.5 py-1 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/30 text-xs font-semibold flex items-center space-x-1.5 spring-transition">
@@ -582,6 +577,86 @@
                 </button>
             </div>
 
+            <!-- ========================================== -->
+            <!-- CONTA & SINCRONIZAÇÃO EM NUVEM             -->
+            <!-- ========================================== -->
+            <div id="account-section" class="p-3.5 rounded-2xl bg-gradient-to-r from-blue-950/40 via-[#12141a] to-purple-950/30 border border-apple-blue/25 space-y-3 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-6 h-6 rounded-lg bg-apple-blue/20 text-apple-blue flex items-center justify-center text-xs">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                        </div>
+                        <h4 class="text-xs font-bold text-white tracking-wide">Conta Integrada (Notebook & Celular)</h4>
+                    </div>
+                    <span id="authStatusIndicator" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 border border-white/5">Desconectado</span>
+                </div>
+
+                <!-- Formulário de Login / Cadastro (Quando não logado) -->
+                <div id="authGuestBox" class="space-y-2.5">
+                    <p class="text-[11px] text-zinc-300 leading-relaxed">
+                        Crie um login e senha para integrar o uso no notebook e no celular. Suas chaves de API, preferências e conversas ficam sincronizadas em tempo real.
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label class="block text-[10px] text-zinc-400 mb-1 font-mono font-medium">Login ou Email</label>
+                            <input type="text" id="authLoginInput" placeholder="Ex: coachmontanha" class="w-full bg-[#171922] border border-white/10 rounded-xl p-2 text-xs text-white focus:outline-none focus:border-apple-blue font-mono placeholder:text-zinc-600">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-zinc-400 mb-1 font-mono font-medium">Senha</label>
+                            <div class="relative">
+                                <input type="password" id="authPasswordInput" placeholder="Mínimo 6 caracteres" class="w-full bg-[#171922] border border-white/10 rounded-xl p-2 pr-8 text-xs text-white focus:outline-none focus:border-apple-blue font-mono placeholder:text-zinc-600">
+                                <button type="button" onclick="togglePasswordVisibility('authPasswordInput', this)" class="absolute right-2.5 top-2.5 text-zinc-400 hover:text-white text-xs">
+                                    <i class="fa-regular fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="authFeedbackMsg" class="hidden text-[11px] font-mono py-1 px-2 rounded-lg"></div>
+                    <div class="flex items-center gap-2 pt-1">
+                        <button type="button" id="btnAuthLogin" onclick="submitAuthLogin()" class="flex-1 min-h-[36px] bg-apple-blue hover:bg-apple-blueHover text-white text-xs font-semibold rounded-xl flex items-center justify-center space-x-1.5 spring-transition shadow-sm active:scale-95">
+                            <i class="fa-solid fa-right-to-bracket text-xs"></i>
+                            <span>Entrar</span>
+                        </button>
+                        <button type="button" id="btnAuthRegister" onclick="submitAuthRegister()" class="flex-1 min-h-[36px] bg-white/5 hover:bg-white/10 text-zinc-200 border border-white/10 text-xs font-semibold rounded-xl flex items-center justify-center space-x-1.5 spring-transition active:scale-95">
+                            <i class="fa-solid fa-user-plus text-xs"></i>
+                            <span>Criar Novo Usuário</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Painel de Usuário Autenticado (Quando logado) -->
+                <div id="authUserBox" class="hidden space-y-2.5">
+                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-white/5 border border-white/5">
+                        <div class="flex items-center space-x-2.5">
+                            <div class="w-8 h-8 rounded-full bg-apple-blue/20 text-apple-blue flex items-center justify-center font-bold text-xs border border-apple-blue/30" id="userAvatarText">
+                                CM
+                            </div>
+                            <div>
+                                <div class="text-xs font-semibold text-white flex items-center gap-1.5">
+                                    <span id="authLoggedName">Coach Montanha</span>
+                                    <span class="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.2 rounded-full font-mono">Conectado</span>
+                                </div>
+                                <div class="text-[10px] text-zinc-400 font-mono" id="authLoggedEmail">coachmontanha@montanha.com</div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="handleAuthLogout()" class="px-2.5 py-1 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors font-medium">
+                            <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> Sair
+                        </button>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="syncCurrentVaultToCloud(true)" class="flex-1 min-h-[34px] bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-300 text-xs font-semibold rounded-xl flex items-center justify-center space-x-1.5 spring-transition active:scale-95">
+                            <i class="fa-solid fa-cloud-arrow-up text-xs"></i>
+                            <span>Sincronizar com Nuvem</span>
+                        </button>
+                        <button type="button" onclick="restoreCurrentVaultFromCloud(true)" class="flex-1 min-h-[34px] bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 text-xs font-semibold rounded-xl flex items-center justify-center space-x-1.5 spring-transition active:scale-95">
+                            <i class="fa-solid fa-cloud-arrow-down text-xs"></i>
+                            <span>Restaurar da Nuvem</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <div class="p-3 rounded-xl bg-white/5 border border-white/5 text-xs text-zinc-300 leading-relaxed flex items-start space-x-2.5">
                 <i class="fa-solid fa-shield-halved text-sm mt-0.5 text-zinc-400 flex-shrink-0"></i>
                 <div>
@@ -636,22 +711,40 @@
                 </div>
             </div>
 
-            <!-- Tamanho da Fonte da Conversa -->
-            <div class="space-y-2 pt-2 border-t border-white/5">
+            <!-- Tamanho da Fonte da Conversa (Controle Centralizado) -->
+            <div class="space-y-2.5 pt-2 border-t border-white/5">
                 <div class="flex items-center justify-between">
-                    <label class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block">Tamanho da Fonte da Conversa</label>
-                    <span id="settingFontDisplay" class="text-xs font-mono text-apple-blue font-bold">15px</span>
+                    <div>
+                        <label class="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider block">Tamanho da Fonte da Conversa</label>
+                        <p class="text-[11px] text-zinc-400">Ajuste a escala visual do chat para leitura confortável no seu dispositivo.</p>
+                    </div>
+                    <span id="settingFontDisplay" class="text-xs font-mono bg-apple-blue/20 text-apple-blue border border-apple-blue/30 px-2.5 py-0.5 rounded-lg font-bold">15px</span>
                 </div>
-                <div class="flex items-center space-x-3 bg-[#171922] p-2.5 rounded-xl border border-white/5">
-                    <span class="text-xs text-zinc-400 font-bold">A</span>
-                    <input type="range" id="settingFontSlider" min="13" max="24" step="1" value="15" oninput="applyFontSize(parseInt(this.value, 10))" class="flex-1 accent-apple-blue cursor-pointer">
-                    <span class="text-base text-zinc-200 font-bold">A</span>
+
+                <div class="flex items-center space-x-2 bg-[#171922] p-2 rounded-xl border border-white/5">
+                    <button type="button" onclick="changeFontSize(-1)" class="min-h-[36px] px-3 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-200 hover:text-white font-bold text-xs spring-transition flex items-center gap-1 active:scale-95" title="Diminuir fonte">
+                        <i class="fa-solid fa-minus text-[10px]"></i> A-
+                    </button>
+                    <input type="range" id="settingFontSlider" min="12" max="26" step="1" value="15" oninput="applyFontSize(parseInt(this.value, 10))" class="flex-1 accent-apple-blue cursor-pointer">
+                    <button type="button" onclick="changeFontSize(1)" class="min-h-[36px] px-3 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-200 hover:text-white font-bold text-sm spring-transition flex items-center gap-1 active:scale-95" title="Aumentar fonte">
+                        A+ <i class="fa-solid fa-plus text-[10px]"></i>
+                    </button>
                 </div>
-                <div class="flex justify-between text-[10px] text-zinc-500 font-mono px-1">
-                    <span>13px (Compacto)</span>
-                    <span>15px (Normal)</span>
-                    <span>18px (Grande)</span>
-                    <span>24px (Máximo)</span>
+
+                <!-- Presets Rápidos -->
+                <div class="grid grid-cols-4 gap-1.5 text-center font-mono text-[11px]">
+                    <button type="button" onclick="applyFontSize(13)" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/5 spring-transition">13px (P)</button>
+                    <button type="button" onclick="applyFontSize(15)" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/5 spring-transition">15px (M)</button>
+                    <button type="button" onclick="applyFontSize(18)" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/5 spring-transition">18px (G)</button>
+                    <button type="button" onclick="applyFontSize(22)" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/5 spring-transition">22px (GG)</button>
+                </div>
+
+                <!-- Prévia em Tempo Real -->
+                <div class="p-2.5 rounded-xl bg-black/30 border border-white/5 text-zinc-300">
+                    <div class="text-[10px] text-zinc-500 font-mono mb-1">Prévia de leitura:</div>
+                    <div id="fontPreviewSample" class="chat-bubble-content leading-relaxed">
+                        Exemplo de leitura nítida: <em>παρρησία (parrēsia)</em> e tabelas mantêm proporção vetorial perfeita.
+                    </div>
                 </div>
             </div>
 
@@ -1599,7 +1692,7 @@
         // ==========================================
         // AJUSTES & PERSISTÊNCIA ZERO-LEAK
         // ==========================================
-        function openSettingsModal() {
+        function openSettingsModal(targetSection) {
             document.getElementById('settingGeminiKey').value = localKeys.gemini;
             document.getElementById('settingGroqKey').value = localKeys.groq;
             document.getElementById('settingOpenRouterKey').value = localKeys.openrouter;
@@ -1610,7 +1703,15 @@
             document.getElementById('pluginWeather').checked = !!appPreferences.plugins.live_weather;
 
             updateKeyStatuses();
+            refreshAuthUI();
             document.getElementById('settingsModal').classList.remove('hidden');
+
+            if (targetSection) {
+                setTimeout(() => {
+                    const el = document.getElementById(targetSection);
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }, 60);
+            }
         }
 
         function closeSettingsModal() {
@@ -1734,9 +1835,12 @@
             syncVaultToDevice('montanha_engine', appPreferences.engine);
             backupAllToDeviceVault();
 
+            // Sincroniza em nuvem se o usuário estiver conectado
+            syncCurrentVaultToCloud(false);
+
             updateKeyStatuses();
             closeSettingsModal();
-            alert("Ajustes e credenciais salvos no cofre do aparelho com sucesso!");
+            alert("Ajustes e credenciais salvos no cofre do aparelho e na nuvem com sucesso!");
         }
 
         function clearStoredKeys() {
@@ -1975,20 +2079,294 @@
             }
         });
 
+        // ==========================================
+        // AUTENTICAÇÃO & SINCRONIZAÇÃO EM NUVEM
+        // ==========================================
+        function getStoredUser() {
+            try {
+                const u = localStorage.getItem('montanha_current_user');
+                return u ? JSON.parse(u) : null;
+            } catch(e) {
+                return null;
+            }
+        }
+
+        function setStoredUser(user) {
+            if (user) {
+                localStorage.setItem('montanha_current_user', JSON.stringify(user));
+                syncVaultToDevice('montanha_current_user', user);
+            } else {
+                localStorage.removeItem('montanha_current_user');
+                syncVaultToDevice('montanha_current_user', '');
+            }
+            refreshAuthUI();
+        }
+
+        function refreshAuthUI() {
+            const user = getStoredUser();
+            const guestBox = document.getElementById('authGuestBox');
+            const userBox = document.getElementById('authUserBox');
+            const statusInd = document.getElementById('authStatusIndicator');
+            const headerName = document.getElementById('headerUserName');
+            const headerIcon = document.getElementById('headerUserIcon');
+
+            if (user && user.login) {
+                if (guestBox) guestBox.classList.add('hidden');
+                if (userBox) userBox.classList.remove('hidden');
+                if (statusInd) {
+                    statusInd.textContent = 'Conectado';
+                    statusInd.className = 'text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+                }
+                const nameEl = document.getElementById('authLoggedName');
+                const emailEl = document.getElementById('authLoggedEmail');
+                const avatarEl = document.getElementById('userAvatarText');
+                const displayName = user.name || user.login;
+                if (nameEl) nameEl.textContent = displayName;
+                if (emailEl) emailEl.textContent = user.email || `${user.login}@montanha.com`;
+                if (avatarEl) {
+                    const initials = displayName.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+                    avatarEl.textContent = initials || 'CM';
+                }
+                if (headerName) headerName.textContent = user.login;
+                if (headerIcon) {
+                    headerIcon.className = 'fa-solid fa-circle-check text-xs text-emerald-400';
+                }
+            } else {
+                if (guestBox) guestBox.classList.remove('hidden');
+                if (userBox) userBox.classList.add('hidden');
+                if (statusInd) {
+                    statusInd.textContent = 'Desconectado';
+                    statusInd.className = 'text-[10px] font-mono px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 border border-white/5';
+                }
+                if (headerName) headerName.textContent = 'Entrar';
+                if (headerIcon) {
+                    headerIcon.className = 'fa-solid fa-circle-user text-xs text-apple-blue';
+                }
+            }
+        }
+
+        function showAuthMsg(msg, isError) {
+            const fb = document.getElementById('authFeedbackMsg');
+            if (!fb) return;
+            fb.textContent = msg;
+            fb.classList.remove('hidden');
+            fb.className = `text-[11px] font-mono py-1.5 px-2.5 rounded-lg border ${isError ? 'bg-red-500/10 text-red-300 border-red-500/30' : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'}`;
+        }
+
+        function togglePasswordVisibility(inputId, btn) {
+            const inp = document.getElementById(inputId);
+            if (!inp) return;
+            if (inp.type === 'password') {
+                inp.type = 'text';
+                btn.innerHTML = '<i class="fa-regular fa-eye-slash"></i>';
+            } else {
+                inp.type = 'password';
+                btn.innerHTML = '<i class="fa-regular fa-eye"></i>';
+            }
+        }
+
+        async function submitAuthLogin() {
+            const login = (document.getElementById('authLoginInput')?.value || '').trim();
+            const senha = (document.getElementById('authPasswordInput')?.value || '').trim();
+            if (!login || !senha) {
+                showAuthMsg('Preencha login e senha.', true);
+                return;
+            }
+
+            const btn = document.getElementById('btnAuthLogin');
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i> <span>Entrando...</span>';
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ login, senha })
+                });
+                const data = await res.json();
+                if (data.status === 'success' && data.user) {
+                    setStoredUser(data.user);
+                    if (data.vault) {
+                        applyVaultData(data.vault);
+                    }
+                    showAuthMsg('Login realizado e dados sincronizados com sucesso!', false);
+                    setTimeout(() => {
+                        const fb = document.getElementById('authFeedbackMsg');
+                        if (fb) fb.classList.add('hidden');
+                    }, 2500);
+                } else {
+                    showAuthMsg(data.message || 'Falha no login. Verifique seus dados.', true);
+                }
+            } catch(e) {
+                showAuthMsg('Erro ao conectar ao servidor de autenticação.', true);
+            } finally {
+                if (btn) btn.innerHTML = '<i class="fa-solid fa-right-to-bracket text-xs"></i> <span>Entrar</span>';
+            }
+        }
+
+        async function submitAuthRegister() {
+            const login = (document.getElementById('authLoginInput')?.value || '').trim();
+            const senha = (document.getElementById('authPasswordInput')?.value || '').trim();
+            if (!login || senha.length < 6) {
+                showAuthMsg('Login é obrigatório e senha deve ter no mínimo 6 dígitos.', true);
+                return;
+            }
+
+            const btn = document.getElementById('btnAuthRegister');
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i> <span>Criando...</span>';
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ login, senha, nome: login })
+                });
+                const data = await res.json();
+                if (data.status === 'success' && data.user) {
+                    setStoredUser(data.user);
+                    syncCurrentVaultToCloud(false);
+                    showAuthMsg('Usuário criado com sucesso! Integração ativada.', false);
+                    setTimeout(() => {
+                        const fb = document.getElementById('authFeedbackMsg');
+                        if (fb) fb.classList.add('hidden');
+                    }, 2500);
+                } else {
+                    showAuthMsg(data.message || 'Falha ao criar usuário.', true);
+                }
+            } catch(e) {
+                showAuthMsg('Erro ao conectar ao servidor de cadastro.', true);
+            } finally {
+                if (btn) btn.innerHTML = '<i class="fa-solid fa-user-plus text-xs"></i> <span>Criar Novo Usuário</span>';
+            }
+        }
+
+        function handleAuthLogout() {
+            if (confirm('Deseja sair da sua conta neste dispositivo?')) {
+                setStoredUser(null);
+                refreshAuthUI();
+                alert('Você desconectou da conta.');
+            }
+        }
+
+        function applyVaultData(vault) {
+            if (!vault) return;
+            if (vault.gemini) {
+                localKeys.gemini = vault.gemini;
+                localStorage.setItem('montanha_user_gemini_key', vault.gemini);
+                syncVaultToDevice('montanha_user_gemini_key', vault.gemini);
+                const inp = document.getElementById('settingGeminiKey');
+                if (inp) inp.value = vault.gemini;
+            }
+            if (vault.groq) {
+                localKeys.groq = vault.groq;
+                localStorage.setItem('montanha_user_groq_key', vault.groq);
+                syncVaultToDevice('montanha_user_groq_key', vault.groq);
+                const inp = document.getElementById('settingGroqKey');
+                if (inp) inp.value = vault.groq;
+            }
+            if (vault.openrouter) {
+                localKeys.openrouter = vault.openrouter;
+                localStorage.setItem('montanha_user_openrouter_key', vault.openrouter);
+                syncVaultToDevice('montanha_user_openrouter_key', vault.openrouter);
+                const inp = document.getElementById('settingOpenRouterKey');
+                if (inp) inp.value = vault.openrouter;
+            }
+            if (vault.fontSize) {
+                applyFontSize(vault.fontSize);
+            }
+            if (vault.engine) {
+                appPreferences.engine = vault.engine;
+                localStorage.setItem('montanha_engine', vault.engine);
+                const sel = document.getElementById('selectModelEngine');
+                if (sel) sel.value = vault.engine;
+            }
+            if (vault.plugins) {
+                appPreferences.plugins = vault.plugins;
+                localStorage.setItem('montanha_plugins', JSON.stringify(vault.plugins));
+                if (document.getElementById('pluginWebSearch')) document.getElementById('pluginWebSearch').checked = !!vault.plugins.web_search;
+                if (document.getElementById('pluginGCalendar')) document.getElementById('pluginGCalendar').checked = !!vault.plugins.gcalendar;
+                if (document.getElementById('pluginGSheets')) document.getElementById('pluginGSheets').checked = !!vault.plugins.gsheets;
+                if (document.getElementById('pluginWeather')) document.getElementById('pluginWeather').checked = !!vault.plugins.live_weather;
+            }
+            updateKeyStatuses();
+        }
+
+        async function syncCurrentVaultToCloud(notify) {
+            const user = getStoredUser();
+            if (!user) {
+                if (notify) alert('Faça login primeiro para sincronizar com a nuvem.');
+                return;
+            }
+
+            const vaultPayload = {
+                gemini: localKeys.gemini || '',
+                groq: localKeys.groq || '',
+                openrouter: localKeys.openrouter || '',
+                fontSize: currentFontSize || 15,
+                engine: appPreferences.engine || 'auto-omniroute',
+                plugins: appPreferences.plugins || {},
+                syncedAt: new Date().toISOString()
+            };
+
+            try {
+                const res = await fetch('/api/auth/vault', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: user.id,
+                        login: user.login,
+                        vault: vaultPayload
+                    })
+                });
+                const d = await res.json();
+                if (d.status === 'success') {
+                    if (notify) alert('Suas chaves, preferências e fonte foram salvas na nuvem com sucesso! Ao abrir no outro aparelho, tudo sincronizará automaticamente.');
+                } else if (notify) {
+                    alert('Aviso: Não foi possível sincronizar na nuvem no momento.');
+                }
+            } catch(e) {
+                if (notify) alert('Erro de rede ao sincronizar com a nuvem.');
+            }
+        }
+
+        async function restoreCurrentVaultFromCloud(notify) {
+            const user = getStoredUser();
+            if (!user) {
+                if (notify) alert('Faça login primeiro para restaurar da nuvem.');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/auth/vault?login=${encodeURIComponent(user.login)}&user_id=${encodeURIComponent(user.id || '')}`);
+                const d = await res.json();
+                if (d.status === 'success' && d.vault) {
+                    applyVaultData(d.vault);
+                    if (notify) alert('Dados restaurados da nuvem com sucesso!');
+                } else if (notify) {
+                    alert('Nenhum dado encontrado na nuvem para este usuário.');
+                }
+            } catch(e) {
+                if (notify) alert('Erro de conexão ao restaurar da nuvem.');
+            }
+        }
+
         // Controle de Escalonamento da Fonte
-        const FONT_SIZES = [13, 15, 17, 19, 21, 24];
+        const FONT_SIZES = [12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 24, 26];
         let currentFontSize = parseInt(localStorage.getItem('montanha_chat_font_size') || '15', 10);
 
         function applyFontSize(size) {
             size = Math.max(12, Math.min(26, parseInt(size, 10)));
             currentFontSize = size;
             document.documentElement.style.setProperty('--chat-font-size', `${size}px`);
+            
             const badge = document.getElementById('fontSizeBadge');
             if (badge) badge.textContent = `${size}px`;
+            const display = document.getElementById('settingFontDisplay');
+            if (display) display.textContent = `${size}px`;
             const slider = document.getElementById('settingFontSlider');
             if (slider) slider.value = size;
-            const sliderVal = document.getElementById('settingFontVal');
-            if (sliderVal) sliderVal.textContent = `${size}px`;
+            const preview = document.getElementById('fontPreviewSample');
+            if (preview) preview.style.fontSize = `${size}px`;
+            
             localStorage.setItem('montanha_chat_font_size', size.toString());
         }
 
@@ -2037,6 +2415,14 @@
         window.onload = function() {
             applyFontSize(currentFontSize);
             loadChatsIndex();
+            refreshAuthUI();
+
+            // Se o usuário já estiver conectado, sincroniza dados mais recentes da nuvem em segundo plano
+            const currentUser = getStoredUser();
+            if (currentUser && currentUser.login) {
+                restoreCurrentVaultFromCloud(false);
+            }
+
             const savedPlugins = localStorage.getItem('montanha_plugins');
             if (savedPlugins) {
                 try { appPreferences.plugins = JSON.parse(savedPlugins); } catch(e) {}

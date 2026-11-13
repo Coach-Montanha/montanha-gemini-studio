@@ -45,6 +45,8 @@ import sys
 import json
 import uuid
 import time
+import re
+import hashlib
 import urllib.request
 import urllib.parse
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
@@ -79,6 +81,182 @@ DEFAULT_PREFS = {
         "karpathy_ponytail": True
     }
 }
+
+USERS_FILE = STORAGE_DIR / "users.json"
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://muryznvaxzszcffrbxpv.supabase.co")
+SUPABASE_SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11cnl6bnZheHpzemNmZnJieHB2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NDQ0MTE2OSwiZXhwIjoyMTAwMDE3MTY5fQ.SpYzAP5ej1jUKyIPGSowyZrG_eeox50HmKnP1r81a24")
+SUPABASE_ANON_KEY = os.environ.get("SUPABASE_ANON_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11cnl6bnZheHpzemNmZnJieHB2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0NDExNjksImV4cCI6MjEwMDAxNzE2OX0.RHa_GLUGiRTVBGGCPvOcoLH6rh4IhyNM7YJWeJvI4Uo")
+
+def load_local_users():
+    if not USERS_FILE.exists():
+        return {}
+    try:
+        return json.loads(USERS_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+def save_local_users(users_dict):
+    try:
+        USERS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        USERS_FILE.write_text(json.dumps(users_dict, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception:
+        pass
+
+def auth_format_email(login_str):
+    cleaned = (login_str or "").strip().lower()
+    if "@" in cleaned:
+        return cleaned
+    cleaned_sub = re.sub(r"[^a-z0-9._-]", "", cleaned)
+    return f"{cleaned_sub or 'usuario'}@montanha.com"
+
+def handle_user_login(login_input, password_input):
+    login_clean = (login_input or "").strip()
+    pwd_clean = (password_input or "").strip()
+    if not login_clean or not pwd_clean:
+        return {"status": "error", "message": "Login e senha são obrigatórios"}
+
+    email = auth_format_email(login_clean)
+    try:
+        url = f"{SUPABASE_URL}/auth/v1/token?grant_type=password"
+        payload = json.dumps({"email": email, "password": pwd_clean}).encode("utf-8")
+        req = urllib.request.Request(url, data=payload, headers={
+            "apikey": SUPABASE_ANON_KEY,
+            "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
+            "Content-Type": "application/json"
+        })
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            user = data.get("user", {})
+            meta = user.get("user_metadata", {})
+            vault = meta.get("montanha_vault", {})
+            user_info = {
+                "id": user.get("id"),
+                "email": user.get("email"),
+                "login": meta.get("username") or meta.get("login") or login_clean,
+                "name": meta.get("name") or login_clean,
+                "token": data.get("access_token")
+            }
+            users = load_local_users()
+            users[login_clean.lower()] = {
+                "user": user_info,
+                "vault": vault,
+                "password_hash": hashlib.sha256(pwd_clean.encode()).hexdigest(),
+                "updated_at": time.time()
+            }
+            save_local_users(users)
+            return {"status": "success", "user": user_info, "vault": vault}
+    except Exception:
+        local_users = load_local_users()
+        h = hashlib.sha256(pwd_clean.encode()).hexdigest()
+        u_entry = local_users.get(login_clean.lower())
+        if u_entry and u_entry.get("password_hash") == h:
+            return {"status": "success", "user": u_entry.get("user"), "vault": u_entry.get("vault", {})}
+        return {"status": "error", "message": "Login ou senha incorretos"}
+
+def handle_user_register(login_input, password_input, name_input=None):
+    login_clean = (login_input or "").strip()
+    pwd_clean = (password_input or "").strip()
+    name_clean = (name_input or login_clean).strip()
+    if not login_clean or len(pwd_clean) < 6:
+        return {"status": "error", "message": "Login é obrigatório e senha deve ter no mínimo 6 dígitos"}
+
+    email = auth_format_email(login_clean)
+    url = f"{SUPABASE_URL}/auth/v1/admin/users"
+    payload = {
+        "email": email,
+        "password": pwd_clean,
+        "email_confirm": True,
+        "user_metadata": {
+            "name": name_clean,
+            "login": login_clean,
+            "username": login_clean,
+            "montanha_vault": {}
+        }
+    }
+    try:
+        req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers={
+            "apikey": SUPABASE_SERVICE_ROLE_KEY,
+            "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+            "Content-Type": "application/json"
+        })
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            user_info = {
+                "id": data.get("id"),
+                "email": data.get("email"),
+                "login": login_clean,
+                "name": name_clean,
+                "token": None
+            }
+            users = load_local_users()
+            users[login_clean.lower()] = {
+                "user": user_info,
+                "vault": {},
+                "password_hash": hashlib.sha256(pwd_clean.encode()).hexdigest(),
+                "updated_at": time.time()
+            }
+            save_local_users(users)
+            return {"status": "success", "user": user_info, "vault": {}}
+    except urllib.error.HTTPError as he:
+        try:
+            err = json.loads(he.read().decode("utf-8"))
+            msg = err.get("msg") or err.get("message")
+            if "already" in str(msg):
+                return {"status": "error", "message": "Este usuário já está cadastrado. Faça login."}
+            return {"status": "error", "message": msg or f"Erro {he.code}"}
+        except Exception:
+            return {"status": "error", "message": f"Erro HTTP {he.code}"}
+    except Exception:
+        users = load_local_users()
+        user_info = {
+            "id": f"local_{int(time.time())}",
+            "email": email,
+            "login": login_clean,
+            "name": name_clean,
+            "token": "local_token"
+        }
+        users[login_clean.lower()] = {
+            "user": user_info,
+            "vault": {},
+            "password_hash": hashlib.sha256(pwd_clean.encode()).hexdigest(),
+            "updated_at": time.time()
+        }
+        save_local_users(users)
+        return {"status": "success", "user": user_info, "vault": {}}
+
+def handle_user_vault_update(user_id, login_key, vault_data):
+    if user_id and not user_id.startswith("local_"):
+        try:
+            url = f"{SUPABASE_URL}/auth/v1/admin/users/{user_id}"
+            req_get = urllib.request.Request(url, headers={
+                "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}"
+            })
+            with urllib.request.urlopen(req_get, timeout=10) as r_get:
+                u_obj = json.loads(r_get.read().decode("utf-8"))
+                meta = u_obj.get("user_metadata", {})
+                v = meta.get("montanha_vault", {})
+                v.update(vault_data)
+                meta["montanha_vault"] = v
+                req_put = urllib.request.Request(url, data=json.dumps({"user_metadata": meta}).encode("utf-8"), method="PUT", headers={
+                    "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                    "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                    "Content-Type": "application/json"
+                })
+                with urllib.request.urlopen(req_put, timeout=10):
+                    pass
+        except Exception as e:
+            print("Supabase vault update warning:", e)
+    
+    if login_key:
+        users = load_local_users()
+        if login_key.lower() in users:
+            existing_v = users[login_key.lower()].get("vault", {})
+            existing_v.update(vault_data)
+            users[login_key.lower()]["vault"] = existing_v
+            users[login_key.lower()]["updated_at"] = time.time()
+            save_local_users(users)
+    return {"status": "success", "vault": vault_data}
 
 def load_prefs():
     if not PREFS_FILE.exists():
@@ -393,6 +571,16 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
             self._send_json({"status": "success", "chat_id": chat_id, "messages": get_chat_messages(chat_id)})
             return
 
+        elif parsed.path.startswith("/api/auth/vault"):
+            q = urllib.parse.parse_qs(parsed.query)
+            login_key = q.get("login", [None])[0]
+            local_users = load_local_users()
+            vault = {}
+            if login_key and login_key.lower() in local_users:
+                vault = local_users[login_key.lower()].get("vault", {})
+            self._send_json({"status": "success", "vault": vault})
+            return
+
         req_path = parsed.path.lstrip("/") or "index.html"
         file_path = PUBLIC_DIR / req_path
         if file_path.exists() and file_path.is_file():
@@ -422,6 +610,23 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
             body = json.loads(post_data.decode("utf-8")) if post_data else {}
         except Exception:
             body = {}
+
+        if parsed.path == "/api/auth/login":
+            res = handle_user_login(body.get("login"), body.get("senha"))
+            status = 200 if res.get("status") == "success" else 401
+            self._send_json(res, status=status)
+            return
+
+        elif parsed.path == "/api/auth/register":
+            res = handle_user_register(body.get("login"), body.get("senha"), body.get("nome"))
+            status = 200 if res.get("status") == "success" else 400
+            self._send_json(res, status=status)
+            return
+
+        elif parsed.path == "/api/auth/vault":
+            res = handle_user_vault_update(body.get("user_id"), body.get("login"), body.get("vault", {}))
+            self._send_json(res)
+            return
 
         if parsed.path == "/api/validate-keys":
             gem_key = body.get("gemini") or os.environ.get("GEMINI_API_KEY", "")
