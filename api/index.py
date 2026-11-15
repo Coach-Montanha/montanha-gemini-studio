@@ -644,6 +644,9 @@ class handler(BaseHTTPRequestHandler):
             if continuity_block:
                 system_prompt = system_prompt + "\n\n" + continuity_block
 
+            if body.get("live_call"):
+                system_prompt += "\n\n[DIRETRIZ DE CHAMADA DE VOZ EM TEMPO REAL]: Você está em uma ligação telefônica ao vivo com o usuário. Responda em tom conversacional, humano e direto. Use NO MÁXIMO 1 a 2 frases curtas e objetivas, sem formatação markdown, asteriscos, listas ou emojis."
+
             if not prompt and not image_b64:
                 self._send_json({"status": "error", "message": "Mensagem vazia"}, 400)
                 return

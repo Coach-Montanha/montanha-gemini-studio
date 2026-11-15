@@ -50,6 +50,113 @@
             --border-subtle: rgba(255, 255, 255, 0.08);
             --apple-blue: #0071e3;
         }
+
+        /* Apple HIG Light & Dark Theme */
+        html.light {
+            --bg-base: #f5f5f7;
+            --bg-surface: #ffffff;
+            --bg-elevated: #e8e8ed;
+            --border-subtle: rgba(0, 0, 0, 0.08);
+            --apple-blue: #0071e3;
+        }
+
+        html.light body {
+            background-color: #f5f5f7 !important;
+            color: #1d1d1f !important;
+        }
+
+        html.light aside,
+        html.light .bg-\[\#12141a\],
+        html.light .bg-\[\#171922\] {
+            background-color: #ffffff !important;
+            border-color: rgba(0, 0, 0, 0.08) !important;
+            color: #1d1d1f !important;
+        }
+
+        html.light header,
+        html.light .bg-\[\#090a0f\]\/90 {
+            background-color: rgba(245, 245, 247, 0.92) !important;
+            border-color: rgba(0, 0, 0, 0.08) !important;
+        }
+
+        html.light .text-white {
+            color: #111827 !important;
+        }
+
+        html.light .text-zinc-200,
+        html.light .text-zinc-300 {
+            color: #1f2937 !important;
+        }
+
+        html.light .text-zinc-400,
+        html.light .text-zinc-500 {
+            color: #4b5563 !important;
+        }
+
+        html.light .border-white\/5,
+        html.light .border-white\/10,
+        html.light .border-white\/20 {
+            border-color: rgba(0, 0, 0, 0.08) !important;
+        }
+
+        html.light .bg-white\/5 {
+            background-color: rgba(0, 0, 0, 0.04) !important;
+        }
+
+        html.light .bg-white\/10 {
+            background-color: rgba(0, 0, 0, 0.07) !important;
+        }
+
+        html.light .bg-black\/30,
+        html.light .bg-black\/40 {
+            background-color: rgba(0, 0, 0, 0.03) !important;
+        }
+
+        html.light .chat-bubble-content {
+            background-color: #ffffff !important;
+            border-color: rgba(0, 0, 0, 0.08) !important;
+            color: #1f2937 !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+        }
+
+        html.light .markdown-body h1,
+        html.light .markdown-body h2,
+        html.light .markdown-body h3 {
+            color: #111827 !important;
+        }
+
+        html.light .markdown-body pre {
+            background-color: #f3f4f6 !important;
+            border-color: rgba(0, 0, 0, 0.08) !important;
+            color: #111827 !important;
+        }
+
+        html.light .markdown-body code {
+            color: #0071e3 !important;
+        }
+
+        html.light input,
+        html.light textarea,
+        html.light select {
+            background-color: #ffffff !important;
+            color: #111827 !important;
+            border-color: rgba(0, 0, 0, 0.12) !important;
+        }
+
+        html.light select option {
+            background-color: #ffffff !important;
+            color: #111827 !important;
+        }
+
+        /* Voice Call Orb Animation */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 0.3; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .orb-pulse {
+            animation: pulse-ring 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
         body {
             background-color: var(--bg-base);
             color: #f5f5f7;
@@ -177,44 +284,49 @@
     <div class="flex-1 flex flex-col h-full w-full overflow-hidden relative min-w-0">
 
         <!-- Top Header (Apple HIG Frosted Glass) -->
-        <header class="h-14 border-b border-white/5 flex items-center justify-between px-3 sm:px-4 bg-[#090a0f]/90 backdrop-blur-xl z-20">
-            <div class="flex items-center space-x-2.5">
-                <button onclick="toggleSidebar()" class="min-h-[44px] min-w-[44px] rounded-xl hover:bg-white/10 text-white/70 hover:text-white flex items-center justify-center spring-transition" title="Menu lateral">
+        <header class="h-14 border-b border-white/5 flex items-center justify-between px-2.5 sm:px-4 bg-[#090a0f]/90 backdrop-blur-xl z-20 w-full overflow-hidden">
+            <div class="flex items-center space-x-2 min-w-0 flex-1 mr-2">
+                <button onclick="toggleSidebar()" class="min-h-[40px] min-w-[40px] rounded-xl hover:bg-white/10 text-white/70 hover:text-white flex items-center justify-center spring-transition flex-shrink-0" title="Menu lateral">
                     <i class="fa-solid fa-bars text-sm"></i>
                 </button>
-                <div class="w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white shadow-sm">
+                <div class="w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white shadow-sm flex-shrink-0 hidden xs:flex">
                     <i class="fa-solid fa-sparkles text-xs text-apple-blue"></i>
                 </div>
-                <div class="min-w-0">
-                    <h1 class="text-xs sm:text-sm font-semibold tracking-tight flex items-center space-x-2">
-                        <span id="currentChatTitle" class="truncate max-w-[130px] sm:max-w-[220px]">Montanha AI Studio</span>
-                        <span id="keyStatusBadge" class="hidden sm:inline-flex text-[10px] font-mono tracking-wider bg-white/5 px-2 py-0.5 rounded-full text-zinc-400 border border-white/5">Zero-Leak</span>
-                        <span id="memoryStatusBadge" class="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono bg-purple-500/15 text-purple-300 border border-purple-500/25 px-2 py-0.5 rounded-full shadow-sm" title="Memória Contínua Graphify Ativa"><i class="fa-solid fa-brain text-[9px] text-purple-400"></i> <span id="memoryTurnsCount">0 msgs</span></span>
+                <div class="min-w-0 flex-1">
+                    <h1 class="text-xs sm:text-sm font-semibold tracking-tight flex items-center space-x-1.5 truncate">
+                        <span id="currentChatTitle" class="truncate max-w-[110px] xs:max-w-[150px] sm:max-w-[200px] md:max-w-[300px]">Montanha AI Studio</span>
+                        <span id="keyStatusBadge" class="hidden md:inline-flex text-[10px] font-mono tracking-wider bg-white/5 px-2 py-0.5 rounded-full text-zinc-400 border border-white/5 flex-shrink-0">Zero-Leak</span>
+                        <span id="memoryStatusBadge" class="hidden lg:inline-flex items-center gap-1 text-[10px] font-mono bg-purple-500/15 text-purple-300 border border-purple-500/25 px-2 py-0.5 rounded-full shadow-sm flex-shrink-0" title="Memória Contínua Graphify Ativa"><i class="fa-solid fa-brain text-[9px] text-purple-400"></i> <span id="memoryTurnsCount">0 msgs</span></span>
                     </h1>
                 </div>
             </div>
 
-            <div class="flex items-center space-x-1 sm:space-x-1.5">
+            <div class="flex items-center space-x-1 sm:space-x-1.5 flex-shrink-0">
+                <!-- Theme Quick Toggle -->
+                <button onclick="toggleTheme()" id="headerThemeBtn" title="Alternar Modo Claro / Escuro" class="min-h-[36px] min-w-[36px] rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-zinc-300 hover:text-white flex items-center justify-center spring-transition flex-shrink-0">
+                    <i id="headerThemeIcon" class="fa-solid fa-moon text-xs"></i>
+                </button>
+
                 <!-- Botão de Conta & Sincronização em Nuvem (Notebook & Celular) -->
-                <button id="headerUserAuthBtn" onclick="openSettingsModal('account-section')" title="Conta e Sincronização em Nuvem" class="min-h-[36px] px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-zinc-300 hover:text-white flex items-center space-x-1.5 spring-transition">
+                <button id="headerUserAuthBtn" onclick="openSettingsModal('account-section')" title="Conta e Sincronização em Nuvem" class="min-h-[36px] px-2 sm:px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-zinc-300 hover:text-white flex items-center space-x-1 sm:space-x-1.5 spring-transition flex-shrink-0">
                     <i id="headerUserIcon" class="fa-solid fa-circle-user text-xs text-apple-blue"></i>
                     <span id="headerUserName" class="hidden sm:inline font-medium">Entrar</span>
                 </button>
 
                 <!-- Botão Instalar PWA -->
-                <button id="pwaInstallBtn" onclick="triggerPwaInstall()" title="Instalar como Aplicativo PWA" class="hidden min-h-[36px] px-2.5 py-1 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/30 text-xs font-semibold flex items-center space-x-1.5 spring-transition">
+                <button id="pwaInstallBtn" onclick="triggerPwaInstall()" title="Instalar como Aplicativo PWA" class="hidden min-h-[36px] px-2 sm:px-2.5 py-1 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/30 text-xs font-semibold flex items-center space-x-1.5 spring-transition flex-shrink-0">
                     <i class="fa-solid fa-download text-xs"></i>
                     <span class="hidden md:inline">Instalar App</span>
                 </button>
 
                 <!-- Live Voice Call Button -->
-                <button id="liveAudioCallBtn" onclick="toggleLiveAudioMode()" title="Modo Conversa por Voz Contínua (Gemini Live)" class="min-h-[40px] px-3 py-1.5 rounded-xl bg-apple-blue hover:bg-apple-blueHover text-white text-xs font-semibold flex items-center space-x-1.5 shadow-sm spring-transition active:scale-[0.98]">
+                <button id="liveAudioCallBtn" onclick="openLiveCallOverlay()" title="Modo Conversa por Voz em Tempo Real (Gemini Live)" class="min-h-[36px] px-2.5 sm:px-3 py-1 rounded-xl bg-apple-blue hover:bg-apple-blueHover text-white text-xs font-semibold flex items-center space-x-1.5 shadow-sm spring-transition active:scale-[0.98] flex-shrink-0">
                     <i id="liveAudioIcon" class="fa-solid fa-phone text-xs"></i>
                     <span id="liveAudioText" class="hidden sm:inline">Conversa Live</span>
                 </button>
 
-                <!-- Delete Chat -->
-                <button onclick="deleteCurrentChat()" title="Excluir este chat" class="min-h-[40px] min-w-[40px] rounded-xl hover:bg-white/10 text-white/50 hover:text-red-400 flex items-center justify-center spring-transition">
+                <!-- Delete Chat (FLEX-SHRINK-0: NUNCA DESAPARECE DO TOPO) -->
+                <button onclick="deleteCurrentChat()" title="Excluir este chat" class="min-h-[36px] min-w-[36px] rounded-xl hover:bg-white/10 text-white/50 hover:text-red-400 flex items-center justify-center spring-transition flex-shrink-0">
                     <i class="fa-regular fa-trash-can text-sm"></i>
                 </button>
             </div>
@@ -748,6 +860,28 @@
                 </div>
             </div>
 
+            <!-- Tema Visual: Modo Claro / Modo Escuro -->
+            <div class="space-y-2.5 pt-2 border-t border-white/5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <label class="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider block">Tema Visual & Fundo</label>
+                        <p class="text-[11px] text-zinc-400">Escolha o modo de cores da tela (Claro ou Escuro).</p>
+                    </div>
+                    <span id="settingThemeDisplay" class="text-xs font-mono bg-white/10 text-zinc-300 border border-white/10 px-2 py-0.5 rounded-lg font-bold">Modo Escuro</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 bg-[#171922] p-1.5 rounded-xl border border-white/5">
+                    <button type="button" onclick="setThemeMode('dark')" id="btnThemeDark" class="min-h-[38px] rounded-lg bg-apple-blue text-white font-semibold text-xs flex items-center justify-center gap-2 spring-transition shadow-sm">
+                        <i class="fa-solid fa-moon text-xs"></i>
+                        <span>Modo Escuro</span>
+                    </button>
+                    <button type="button" onclick="setThemeMode('light')" id="btnThemeLight" class="min-h-[38px] rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white font-semibold text-xs flex items-center justify-center gap-2 spring-transition">
+                        <i class="fa-solid fa-sun text-xs"></i>
+                        <span>Modo Claro</span>
+                    </button>
+                </div>
+            </div>
+
             <!-- Gerenciador de Plugins -->
             <div class="space-y-3 pt-2 border-t border-white/5">
                 <label class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block">Plugins & Conectividade</label>
@@ -822,6 +956,74 @@
             <button id="btnProcessPdf" onclick="processPdfUpload()" class="w-full min-h-[44px] rounded-xl bg-apple-blue hover:bg-apple-blueHover text-white font-semibold text-xs flex items-center justify-center space-x-2 shadow-sm spring-transition active:scale-[0.98]">
                 <i class="fa-solid fa-bolt text-xs"></i>
                 <span>Extrair & Injetar Texto</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- MODAL 6: GEMINI LIVE / REAL-TIME VOICE CALL OVERLAY     -->
+    <!-- ======================================================= -->
+    <div id="liveCallOverlay" class="hidden fixed inset-0 z-50 bg-[#090a0f]/95 backdrop-blur-2xl flex flex-col items-center justify-between p-6 sm:p-10 select-none">
+        <!-- Top Bar -->
+        <div class="w-full max-w-lg flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                <span class="text-xs font-semibold uppercase tracking-wider text-zinc-300">Chamada de Voz em Tempo Real</span>
+            </div>
+            <div class="flex items-center space-x-3">
+                <span id="liveCallTimer" class="font-mono text-xs px-2.5 py-1 rounded-full bg-white/10 text-white border border-white/10 font-bold">00:00</span>
+                <button onclick="closeLiveCallOverlay()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-zinc-300 hover:text-white flex items-center justify-center spring-transition" title="Minimizar">
+                    <i class="fa-solid fa-chevron-down text-xs"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Center 3D Pulsing Orb (ChatGPT/Gemini Live Style) -->
+        <div class="flex flex-col items-center justify-center my-auto space-y-6 max-w-md w-full text-center">
+            <div class="relative flex items-center justify-center cursor-pointer" onclick="handleOrbTap()" title="Toque para falar ou interromper">
+                <!-- Glowing Outer Rings -->
+                <div id="liveOrbRingOuter" class="absolute w-52 h-52 sm:w-64 sm:h-64 rounded-full bg-apple-blue/20 blur-xl orb-pulse"></div>
+                <div id="liveOrbRingInner" class="absolute w-40 h-40 sm:w-48 sm:h-48 rounded-full bg-gradient-to-tr from-cyan-500/30 via-apple-blue/40 to-purple-500/30 blur-md animate-pulse"></div>
+                
+                <!-- Main Core Sphere -->
+                <div id="liveOrbCore" class="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full bg-gradient-to-tr from-[#0051a8] via-[#0071e3] to-[#5ac8fa] shadow-[0_0_50px_rgba(0,113,227,0.6)] flex items-center justify-center spring-transition border border-white/30 transform hover:scale-105 active:scale-95">
+                    <i id="liveOrbIcon" class="fa-solid fa-microphone text-3xl sm:text-4xl text-white drop-shadow-md"></i>
+                </div>
+            </div>
+
+            <!-- Status Indicator -->
+            <div class="space-y-1.5">
+                <div id="liveCallStatusText" class="text-base sm:text-lg font-semibold text-white tracking-tight flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-waveform-lines text-apple-blue"></i>
+                    <span>Ouvindo você...</span>
+                </div>
+                <p id="liveCallSubtitle" class="text-xs text-zinc-400 font-medium">Fale normalmente, como numa chamada ao telefone.</p>
+            </div>
+
+            <!-- Live Speech Bubble Box (Live Transcription) -->
+            <div id="liveTranscriptBox" class="w-full p-4 rounded-2xl bg-white/5 border border-white/10 text-xs text-zinc-300 min-h-[70px] max-h-[140px] overflow-y-auto leading-relaxed shadow-inner">
+                <span id="liveTranscriptText" class="text-zinc-400 italic">Aguardando sua voz...</span>
+            </div>
+        </div>
+
+        <!-- Bottom Call Controls -->
+        <div class="w-full max-w-sm flex items-center justify-around pt-4 border-t border-white/10">
+            <!-- Mute/Unmute Mic -->
+            <button id="btnCallMute" onclick="toggleCallMute()" class="w-14 h-14 rounded-full bg-white/10 hover:bg-white/20 text-white flex flex-col items-center justify-center gap-1 spring-transition active:scale-95 shadow-md" title="Mutar Microfone">
+                <i id="callMuteIcon" class="fa-solid fa-microphone text-base"></i>
+                <span class="text-[9px] font-medium text-zinc-300">Mic</span>
+            </button>
+
+            <!-- Interrupt / Tap to Speak -->
+            <button onclick="handleOrbTap()" class="w-14 h-14 rounded-full bg-white/10 hover:bg-white/20 text-white flex flex-col items-center justify-center gap-1 spring-transition active:scale-95 shadow-md" title="Interromper">
+                <i class="fa-solid fa-hand text-base text-yellow-400"></i>
+                <span class="text-[9px] font-medium text-zinc-300">Interromper</span>
+            </button>
+
+            <!-- End Call Button (Big Red Button) -->
+            <button id="btnCallEnd" onclick="closeLiveCallOverlay()" class="w-14 h-14 rounded-full bg-red-600 hover:bg-red-500 text-white flex flex-col items-center justify-center gap-1 spring-transition active:scale-95 shadow-[0_0_20px_rgba(220,38,38,0.5)]" title="Encerrar Chamada">
+                <i class="fa-solid fa-phone-slash text-base"></i>
+                <span class="text-[9px] font-medium text-white">Desligar</span>
             </button>
         </div>
     </div>
@@ -997,11 +1199,11 @@
             if (chat && chat.messages && chat.messages.length > 0) {
                 document.getElementById('welcomeScreen').classList.add('hidden');
                 msgContainer.classList.remove('hidden');
-                chat.messages.forEach(m => {
+                chat.messages.forEach((m, idx) => {
                     if (m.role === 'user') {
-                        appendUserMessage(m.prompt, m.image);
+                        appendUserMessage(m.prompt, m.image, idx);
                     } else if (m.role === 'model') {
-                        appendBotMessage(m.response, m.sources);
+                        appendBotMessage(m.response, m.sources, idx);
                     }
                 });
             } else {
@@ -1011,6 +1213,7 @@
 
             closeSidebarMobile();
             loadChatsIndex();
+            updateMemoryBadge();
             scrollToBottom();
         }
 
@@ -1053,17 +1256,22 @@
             const input = document.getElementById('promptInput');
             input.value = transcript;
             autoGrow(input);
-            if (isLiveAudioActive) {
+            if (isLiveCallActive) {
+                const trBox = document.getElementById('liveTranscriptText');
+                if (trBox) trBox.innerHTML = `<span class="text-white font-semibold">Você:</span> "${escapeHtml(transcript)}"`;
+                setLiveOrbState('thinking');
+            }
+            if (isLiveAudioActive || isLiveCallActive) {
                 sendMessage();
             }
         };
 
         window.onNativeSpeechError = function(errorCode) {
             console.log("Native speech error:", errorCode);
-            if (isLiveAudioActive && !isBotSpeaking && !isWaitingForResponse) {
+            if ((isLiveAudioActive || isLiveCallActive) && !isBotSpeaking && !isWaitingForResponse) {
                 clearTimeout(speechRestartTimeout);
                 speechRestartTimeout = setTimeout(() => {
-                    if (isLiveAudioActive && !isBotSpeaking) {
+                    if ((isLiveAudioActive || isLiveCallActive) && !isBotSpeaking) {
                         startLiveVoiceListening();
                     }
                 }, 400);
@@ -1074,7 +1282,10 @@
 
         window.onNativeSpeechUtteranceDone = function() {
             isBotSpeaking = false;
-            if (isLiveAudioActive) {
+            if (isLiveCallActive) {
+                setLiveOrbState('listening');
+                setTimeout(() => { startLiveVoiceListening(); }, 300);
+            } else if (isLiveAudioActive) {
                 setTimeout(() => { startLiveVoiceListening(); }, 300);
             }
         };
@@ -1126,6 +1337,7 @@
                 try {
                     window.AndroidVoiceBridge.startSpeechRecognition();
                     document.getElementById('micBtn').classList.add('bg-white/20', 'text-white', 'animate-pulse');
+                    if (isLiveCallActive) setLiveOrbState('listening');
                     return;
                 } catch (e) {
                     console.log("Erro no bridge nativo:", e);
@@ -1145,6 +1357,7 @@
                         recognition.onstart = function() {
                             isRecognizing = true;
                             document.getElementById('micBtn').classList.add('bg-white/20', 'text-white', 'animate-pulse');
+                            if (isLiveCallActive) setLiveOrbState('listening');
                         };
 
                         recognition.onresult = function(event) {
@@ -1153,7 +1366,12 @@
                             const input = document.getElementById('promptInput');
                             input.value = transcript;
                             autoGrow(input);
-                            if (isLiveAudioActive) {
+                            if (isLiveCallActive) {
+                                const trBox = document.getElementById('liveTranscriptText');
+                                if (trBox) trBox.innerHTML = `<span class="text-white font-semibold">Você:</span> "${escapeHtml(transcript)}"`;
+                                setLiveOrbState('thinking');
+                            }
+                            if (isLiveAudioActive || isLiveCallActive) {
                                 sendMessage();
                             }
                         };
@@ -1164,13 +1382,14 @@
                             if (e.error === 'not-allowed') {
                                 alert("Permissão de microfone negada. Permita o microfone no navegador ou app.");
                                 isLiveAudioActive = false;
+                                if (isLiveCallActive) closeLiveCallOverlay();
                                 updateLiveAudioButtonUI();
                                 return;
                             }
-                            if (isLiveAudioActive && !isBotSpeaking && !isWaitingForResponse) {
+                            if ((isLiveAudioActive || isLiveCallActive) && !isBotSpeaking && !isWaitingForResponse) {
                                 clearTimeout(speechRestartTimeout);
                                 speechRestartTimeout = setTimeout(() => {
-                                    if (isLiveAudioActive && !isBotSpeaking) startLiveVoiceListening();
+                                    if ((isLiveAudioActive || isLiveCallActive) && !isBotSpeaking) startLiveVoiceListening();
                                 }, 500);
                             }
                         };
@@ -1178,10 +1397,10 @@
                         recognition.onend = function() {
                             isRecognizing = false;
                             document.getElementById('micBtn').classList.remove('bg-white/20', 'text-white', 'animate-pulse');
-                            if (isLiveAudioActive && !isBotSpeaking && !isWaitingForResponse) {
+                            if ((isLiveAudioActive || isLiveCallActive) && !isBotSpeaking && !isWaitingForResponse) {
                                 clearTimeout(speechRestartTimeout);
                                 speechRestartTimeout = setTimeout(() => {
-                                    if (isLiveAudioActive && !isBotSpeaking) startLiveVoiceListening();
+                                    if ((isLiveAudioActive || isLiveCallActive) && !isBotSpeaking) startLiveVoiceListening();
                                 }, 400);
                             }
                         };
@@ -1198,6 +1417,7 @@
 
             alert("Reconhecimento de voz não suportado neste navegador. Use o Microsoft Edge ou o aplicativo APK instalado.");
             isLiveAudioActive = false;
+            if (isLiveCallActive) closeLiveCallOverlay();
             updateLiveAudioButtonUI();
         }
 
@@ -1231,9 +1451,18 @@
                 .replace(/[*#_~>\-]/g, '')
                 .trim();
 
+            if (isLiveCallActive) {
+                setLiveOrbState('speaking');
+                const trBox = document.getElementById('liveTranscriptText');
+                if (trBox) trBox.innerHTML = `<span class="text-cyan-400 font-semibold">Montanha AI:</span> "${escapeHtml(cleanText)}"`;
+            }
+
             if (!cleanText) {
                 isBotSpeaking = false;
-                if (isLiveAudioActive) {
+                if (isLiveCallActive) {
+                    setLiveOrbState('listening');
+                    setTimeout(startLiveVoiceListening, 300);
+                } else if (isLiveAudioActive) {
                     setTimeout(startLiveVoiceListening, 300);
                 }
                 return;
@@ -1260,13 +1489,19 @@
 
                     utterance.onend = function() {
                         isBotSpeaking = false;
-                        if (isLiveAudioActive) {
+                        if (isLiveCallActive) {
+                            setLiveOrbState('listening');
+                            setTimeout(startLiveVoiceListening, 300);
+                        } else if (isLiveAudioActive) {
                             setTimeout(startLiveVoiceListening, 300);
                         }
                     };
                     utterance.onerror = function() {
                         isBotSpeaking = false;
-                        if (isLiveAudioActive) {
+                        if (isLiveCallActive) {
+                            setLiveOrbState('listening');
+                            setTimeout(startLiveVoiceListening, 300);
+                        } else if (isLiveAudioActive) {
                             setTimeout(startLiveVoiceListening, 300);
                         }
                     };
@@ -1279,7 +1514,10 @@
             }
 
             isBotSpeaking = false;
-            if (isLiveAudioActive) {
+            if (isLiveCallActive) {
+                setLiveOrbState('listening');
+                setTimeout(startLiveVoiceListening, 400);
+            } else if (isLiveAudioActive) {
                 setTimeout(startLiveVoiceListening, 400);
             }
         }
@@ -1330,9 +1568,6 @@
             document.getElementById('welcomeScreen').classList.add('hidden');
             document.getElementById('messagesList').classList.remove('hidden');
 
-            appendUserMessage(prompt, !!attachedImageBase64);
-            appendLoadingSkeleton();
-
             const localChats = getLocalChats();
             const currentChatObj = localChats[currentChatId] || { id: currentChatId, title: prompt.substring(0, 30), messages: [] };
             
@@ -1343,8 +1578,12 @@
             }));
 
             currentChatObj.messages.push({ role: 'user', prompt: prompt, image: !!attachedImageBase64 });
+            const userMsgIdx = currentChatObj.messages.length - 1;
             saveLocalChat(currentChatId, currentChatObj.title, currentChatObj.messages);
             updateMemoryBadge();
+
+            appendUserMessage(prompt, !!attachedImageBase64, userMsgIdx);
+            appendLoadingSkeleton();
 
             const skill = document.getElementById('selectSkill').value;
             const engine = document.getElementById('selectModelEngine').value;
@@ -1355,6 +1594,7 @@
                 history: historyToSend,
                 skill: skill,
                 engine: engine,
+                live_call: isLiveCallActive,
                 plugins: appPreferences.plugins,
                 permanent_skills: appPreferences.permanent_skills,
                 image_base64: attachedImageBase64 || "",
@@ -1390,14 +1630,15 @@
                 removeLoadingSkeleton();
 
                 if (data.status === 'success') {
-                    appendBotMessage(data.response, data.sources);
                     currentChatObj.messages.push({ role: 'model', response: data.response, sources: data.sources });
+                    const botMsgIdx = currentChatObj.messages.length - 1;
+                    appendBotMessage(data.response, data.sources, botMsgIdx);
                     updateMemoryBadge();
                     saveLocalChat(currentChatId, currentChatObj.title, currentChatObj.messages);
                     loadChatsIndex();
                     updateMemoryBadge();
 
-                    if (isLiveAudioActive) {
+                    if (isLiveAudioActive || isLiveCallActive) {
                         speakTextAndListenNext(data.response);
                     }
                 } else {
@@ -1408,6 +1649,9 @@
                     if (isLiveAudioActive) {
                         isLiveAudioActive = false;
                         updateLiveAudioButtonUI();
+                    }
+                    if (isLiveCallActive) {
+                        setLiveOrbState('listening');
                     }
                 }
             } catch (err) {
@@ -1421,31 +1665,43 @@
                     isLiveAudioActive = false;
                     updateLiveAudioButtonUI();
                 }
+                if (isLiveCallActive) {
+                    setLiveOrbState('listening');
+                }
             } finally {
                 sendBtn.disabled = false;
                 isWaitingForResponse = false;
-                scrollToBottom();
             }
         }
 
-        function appendUserMessage(text, hasImage) {
+        function appendUserMessage(text, hasImage, msgIndex) {
             const list = document.getElementById('messagesList');
             const div = document.createElement('div');
-            div.className = "flex justify-end w-full";
+            div.className = "flex items-center justify-end w-full group relative mb-2";
+            const deleteBtn = (typeof msgIndex === 'number' && msgIndex >= 0) ? `
+                <button onclick="deleteSingleMessage(${msgIndex})" class="opacity-0 group-hover:opacity-100 hover:text-red-400 p-1.5 text-zinc-500 spring-transition self-center mr-1.5" title="Excluir mensagem da memória">
+                    <i class="fa-regular fa-trash-can text-xs"></i>
+                </button>
+            ` : '';
             div.innerHTML = `
+                ${deleteBtn}
                 <div class="max-w-[85%] sm:max-w-[75%] rounded-2xl rounded-tr-sm bg-white/10 border border-white/10 px-4 py-3 text-white shadow-sm chat-bubble-content">
                     ${hasImage ? '<div class="text-[10px] font-mono text-zinc-400 mb-1"><i class="fa-solid fa-image mr-1"></i>[Foto anexada]</div>' : ''}
                     <div>${escapeHtml(text)}</div>
                 </div>
             `;
             list.appendChild(div);
-            scrollToBottom();
+            // Ao enviar, rola suavemente para que o usuário veja sua pergunta
+            setTimeout(() => {
+                div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 50);
         }
 
-        function appendBotMessage(markdownText, sources) {
+        function appendBotMessage(markdownText, sources, msgIndex) {
             const list = document.getElementById('messagesList');
             const div = document.createElement('div');
-            div.className = "flex justify-start w-full";
+            div.className = "flex justify-start w-full group mb-3";
+            div.id = 'bot-msg-' + Date.now();
 
             let sourcesHtml = '';
             if (sources && sources.length > 0) {
@@ -1463,7 +1719,7 @@
 
             // Detecta e renderiza cards estruturados para Google Calendar
             let googleActionHtml = '';
-            if (markdownText.includes('workspace_action') || markdownText.includes('calendar_create_event')) {
+            if (markdownText && (markdownText.includes('workspace_action') || markdownText.includes('calendar_create_event'))) {
                 googleActionHtml = `
                     <div class="mt-3 p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between gap-2">
                         <div class="flex items-center space-x-2">
@@ -1477,32 +1733,44 @@
                 `;
             }
 
+            const deleteAction = (typeof msgIndex === 'number' && msgIndex >= 0) ? `
+                <button onclick="deleteSingleMessage(${msgIndex})" class="hover:text-red-400 spring-transition flex items-center gap-1 py-1 px-1.5 rounded-md hover:bg-red-500/10 text-zinc-500" title="Excluir mensagem da memória">
+                    <i class="fa-regular fa-trash-can text-xs"></i>
+                    <span class="text-[11px]">Excluir</span>
+                </button>
+            ` : '';
+
             div.innerHTML = `
                 <div class="max-w-[95%] sm:max-w-[85%] rounded-2xl rounded-tl-sm bg-[#12141a] border border-white/5 px-4 py-3.5 text-zinc-200 shadow-md chat-bubble-content">
-                    <div class="markdown-body select-text">${marked.parse(markdownText)}</div>
+                    <div class="markdown-body select-text">${marked.parse(markdownText || '')}</div>
                     ${sourcesHtml}
                     ${googleActionHtml}
                     <div class="mt-3 pt-2 border-t border-white/5 flex items-center justify-between text-zinc-500 text-xs">
-                        <div class="flex items-center space-x-2">
-                            <button onclick="speakText(this.closest('.flex').parentElement.querySelector('.markdown-body').innerText)" class="hover:text-white spring-transition flex items-center gap-1 py-1 px-1.5 rounded-md hover:bg-white/5" title="Ouvir em Voz Alta">
+                        <div class="flex items-center space-x-1 sm:space-x-2 flex-wrap gap-y-1">
+                            <button onclick="speakMessageFromBubble(this)" class="hover:text-white spring-transition flex items-center gap-1 py-1 px-1.5 rounded-md hover:bg-white/5" title="Ouvir em Voz Alta">
                                 <i class="fa-solid fa-volume-high text-xs"></i>
                                 <span class="text-[11px]">Ouvir</span>
                             </button>
-                            <button onclick="copyToClipboard(this.closest('.flex').parentElement.querySelector('.markdown-body').innerText)" class="hover:text-white spring-transition flex items-center gap-1 py-1 px-1.5 rounded-md hover:bg-white/5" title="Copiar Texto">
+                            <button onclick="copyMessageFromBubble(this)" class="hover:text-white spring-transition flex items-center gap-1 py-1 px-1.5 rounded-md hover:bg-white/5" title="Copiar Texto">
                                 <i class="fa-regular fa-copy text-xs"></i>
                                 <span class="text-[11px]">Copiar</span>
                             </button>
-                            <button onclick="downloadAsPdf(this.closest('.flex').parentElement.querySelector('.markdown-body').innerText)" class="hover:text-white spring-transition flex items-center gap-1 py-1 px-1.5 rounded-md hover:bg-white/5" title="Exportar PDF">
+                            <button onclick="downloadPdfFromBubble(this)" class="hover:text-white spring-transition flex items-center gap-1 py-1 px-1.5 rounded-md hover:bg-white/5" title="Exportar PDF">
                                 <i class="fa-solid fa-file-pdf text-xs"></i>
                                 <span class="text-[11px]">PDF</span>
                             </button>
+                            ${deleteAction}
                         </div>
                         <span class="text-[10px] font-mono text-zinc-600">Montanha AI</span>
                     </div>
                 </div>
             `;
             list.appendChild(div);
-            scrollToBottom();
+
+            // Rolar suavemente para o INÍCIO da resposta, alinhado logo abaixo da pergunta do usuário!
+            setTimeout(() => {
+                div.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 60);
         }
 
         function appendImageMessage(imageUrl, prompt, provider) {
@@ -2027,9 +2295,100 @@
             return div.innerHTML;
         }
 
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text);
-            alert("Texto copiado para a área de transferência!");
+        // ==========================================
+        // NOTIFICAÇÕES TOAST (APPLE HIG)
+        // ==========================================
+        function showToast(message, type = 'info') {
+            let toast = document.getElementById('appToast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'appToast';
+                document.body.appendChild(toast);
+            }
+            const isError = (type === 'error');
+            toast.className = `fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl text-xs font-semibold shadow-2xl transition-all duration-300 pointer-events-none flex items-center gap-2 ${
+                isError ? 'bg-red-600 text-white border border-red-400' : 'bg-[#1a1c24] text-white border border-white/20'
+            } opacity-100 translate-y-0`;
+            toast.innerHTML = message;
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => {
+                toast.className = toast.className.replace('opacity-100 translate-y-0', 'opacity-0 translate-y-2');
+            }, 2600);
+        }
+
+        // ==========================================
+        // EXCLUSÃO INDIVIDUAL DE MENSAGENS (MEMÓRIA)
+        // ==========================================
+        function deleteSingleMessage(msgIndex) {
+            if (!currentChatId) return;
+            const chats = getLocalChats();
+            const chat = chats[currentChatId];
+            if (!chat || !chat.messages || msgIndex < 0 || msgIndex >= chat.messages.length) return;
+
+            chat.messages.splice(msgIndex, 1);
+            saveLocalChat(currentChatId, chat.title, chat.messages);
+            selectChat(currentChatId, chat.title);
+            updateMemoryBadge();
+            showToast("🗑️ Mensagem removida da conversa e da memória operacional.");
+        }
+
+        // ==========================================
+        // COPIAR, PDF & VOZ CIRÚRGICOS
+        // ==========================================
+        function getBubbleMarkdownText(btn) {
+            const bubble = btn.closest('.chat-bubble-content') || btn.closest('.w-full');
+            if (!bubble) return "";
+            const md = bubble.querySelector('.markdown-body');
+            return md ? (md.innerText || md.textContent || "") : "";
+        }
+
+        function copyMessageFromBubble(btn) {
+            const text = getBubbleMarkdownText(btn);
+            if (!text) {
+                showToast("⚠️ Nada para copiar.", "error");
+                return;
+            }
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast("✅ Texto copiado para a área de transferência!");
+                }).catch(() => {
+                    fallbackCopy(text);
+                });
+            } else {
+                fallbackCopy(text);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            try {
+                document.execCommand('copy');
+                showToast("✅ Texto copiado!");
+            } catch(e) {
+                showToast("⚠️ Erro ao copiar texto.", "error");
+            }
+            document.body.removeChild(ta);
+        }
+
+        async function downloadPdfFromBubble(btn) {
+            const text = getBubbleMarkdownText(btn);
+            if (!text) {
+                showToast("⚠️ Texto vazio para exportar.", "error");
+                return;
+            }
+            showToast("📄 Gerando PDF de alta qualidade...");
+            await downloadAsPdf(text);
+        }
+
+        function speakMessageFromBubble(btn) {
+            const text = getBubbleMarkdownText(btn);
+            if (text) speakText(text);
         }
 
         async function downloadAsPdf(text) {
@@ -2045,6 +2404,7 @@
                     link.href = 'data:application/pdf;base64,' + d.pdf_base64;
                     link.download = d.filename || 'documento.pdf';
                     link.click();
+                    showToast("✅ PDF baixado com sucesso!");
                 } else {
                     fallbackClientPdf(text);
                 }
@@ -2063,6 +2423,156 @@
                 `);
                 printWindow.document.close();
                 printWindow.print();
+            }
+        }
+
+        // ==========================================
+        // TEMA VISUAL (MODO CLARO / MODO ESCURO)
+        // ==========================================
+        function getStoredTheme() {
+            return localStorage.getItem('montanha_theme') || 'dark';
+        }
+
+        function setThemeMode(mode) {
+            const isLight = (mode === 'light');
+            document.documentElement.classList.toggle('light', isLight);
+            document.documentElement.classList.toggle('dark', !isLight);
+            
+            const btnDark = document.getElementById('btnThemeDark');
+            const btnLight = document.getElementById('btnThemeLight');
+            const display = document.getElementById('settingThemeDisplay');
+            const headerIcon = document.getElementById('headerThemeIcon');
+
+            if (isLight) {
+                if (btnLight) btnLight.className = "min-h-[38px] rounded-lg bg-apple-blue text-white font-semibold text-xs flex items-center justify-center gap-2 spring-transition shadow-sm";
+                if (btnDark) btnDark.className = "min-h-[38px] rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white font-semibold text-xs flex items-center justify-center gap-2 spring-transition";
+                if (display) display.textContent = "Modo Claro";
+                if (headerIcon) headerIcon.className = "fa-solid fa-sun text-xs text-amber-400";
+            } else {
+                if (btnDark) btnDark.className = "min-h-[38px] rounded-lg bg-apple-blue text-white font-semibold text-xs flex items-center justify-center gap-2 spring-transition shadow-sm";
+                if (btnLight) btnLight.className = "min-h-[38px] rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white font-semibold text-xs flex items-center justify-center gap-2 spring-transition";
+                if (display) display.textContent = "Modo Escuro";
+                if (headerIcon) headerIcon.className = "fa-solid fa-moon text-xs";
+            }
+
+            localStorage.setItem('montanha_theme', mode);
+            syncVaultToDevice('montanha_theme', mode);
+        }
+
+        function toggleTheme() {
+            const current = getStoredTheme();
+            const next = (current === 'dark') ? 'light' : 'dark';
+            setThemeMode(next);
+            showToast(next === 'light' ? "☀️ Modo Claro Ativado" : "🌙 Modo Escuro Ativado");
+        }
+
+        // ==========================================
+        // CHAMADA DE VOZ EM TEMPO REAL (GEMINI LIVE)
+        // ==========================================
+        let liveCallTimerInterval = null;
+        let liveCallSeconds = 0;
+        let isCallMuted = false;
+        let isLiveCallActive = false;
+
+        function openLiveCallOverlay() {
+            isLiveCallActive = true;
+            document.getElementById('liveCallOverlay').classList.remove('hidden');
+            liveCallSeconds = 0;
+            updateLiveCallTimerDisplay();
+            clearInterval(liveCallTimerInterval);
+            liveCallTimerInterval = setInterval(() => {
+                liveCallSeconds++;
+                updateLiveCallTimerDisplay();
+            }, 1000);
+
+            setLiveOrbState('listening');
+            startLiveVoiceListening();
+        }
+
+        function closeLiveCallOverlay() {
+            isLiveCallActive = false;
+            clearInterval(liveCallTimerInterval);
+            document.getElementById('liveCallOverlay').classList.add('hidden');
+            stopLiveVoiceListening();
+            if (isBotSpeaking) {
+                if (window.speechSynthesis) window.speechSynthesis.cancel();
+                if (hasNativeAndroidBridge()) {
+                    try { window.AndroidVoiceBridge.stopSpeaking(); } catch(e) {}
+                }
+                isBotSpeaking = false;
+            }
+        }
+
+        function updateLiveCallTimerDisplay() {
+            const m = String(Math.floor(liveCallSeconds / 60)).padStart(2, '0');
+            const s = String(liveCallSeconds % 60).padStart(2, '0');
+            const el = document.getElementById('liveCallTimer');
+            if (el) el.textContent = `${m}:${s}`;
+        }
+
+        function setLiveOrbState(state) {
+            const core = document.getElementById('liveOrbCore');
+            const ringOuter = document.getElementById('liveOrbRingOuter');
+            const ringInner = document.getElementById('liveOrbRingInner');
+            const icon = document.getElementById('liveOrbIcon');
+            const statusText = document.getElementById('liveCallStatusText');
+            const subtitle = document.getElementById('liveCallSubtitle');
+
+            if (!core || !statusText) return;
+
+            if (state === 'listening') {
+                core.className = "relative w-32 h-32 sm:w-36 sm:h-36 rounded-full bg-gradient-to-tr from-[#0051a8] via-[#0071e3] to-[#5ac8fa] shadow-[0_0_50px_rgba(0,113,227,0.6)] flex items-center justify-center spring-transition border border-white/30 transform hover:scale-105 active:scale-95 animate-pulse";
+                ringOuter.className = "absolute w-52 h-52 sm:w-64 sm:h-64 rounded-full bg-apple-blue/25 blur-xl orb-pulse";
+                ringInner.className = "absolute w-40 h-40 sm:w-48 sm:h-48 rounded-full bg-cyan-400/25 blur-md animate-pulse";
+                icon.className = "fa-solid fa-microphone text-3xl sm:text-4xl text-white drop-shadow-md";
+                statusText.innerHTML = '<i class="fa-solid fa-waveform-lines text-apple-blue animate-pulse"></i><span>Ouvindo você...</span>';
+                subtitle.textContent = "Fale naturalmente ao telefone.";
+            } else if (state === 'thinking') {
+                core.className = "relative w-32 h-32 sm:w-36 sm:h-36 rounded-full bg-gradient-to-tr from-purple-700 via-indigo-600 to-purple-400 shadow-[0_0_50px_rgba(147,51,234,0.6)] flex items-center justify-center spring-transition border border-white/30 animate-spin";
+                ringOuter.className = "absolute w-52 h-52 sm:w-64 sm:h-64 rounded-full bg-purple-500/25 blur-xl animate-ping";
+                ringInner.className = "absolute w-40 h-40 sm:w-48 sm:h-48 rounded-full bg-indigo-500/30 blur-md";
+                icon.className = "fa-solid fa-sparkles text-3xl sm:text-4xl text-white";
+                statusText.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-purple-400"></i><span>Pensando...</span>';
+                subtitle.textContent = "Processando resposta...";
+            } else if (state === 'speaking') {
+                core.className = "relative w-32 h-32 sm:w-36 sm:h-36 rounded-full bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-400 shadow-[0_0_60px_rgba(16,185,129,0.7)] flex items-center justify-center spring-transition border border-white/40 transform scale-105";
+                ringOuter.className = "absolute w-52 h-52 sm:w-64 sm:h-64 rounded-full bg-emerald-500/30 blur-2xl orb-pulse";
+                ringInner.className = "absolute w-40 h-40 sm:w-48 sm:h-48 rounded-full bg-teal-400/35 blur-lg animate-pulse";
+                icon.className = "fa-solid fa-volume-high text-3xl sm:text-4xl text-white drop-shadow-md";
+                statusText.innerHTML = '<i class="fa-solid fa-volume-high text-emerald-400 animate-bounce"></i><span>Montanha AI falando...</span>';
+                subtitle.textContent = "Toque na tela a qualquer momento para interromper.";
+            }
+        }
+
+        function handleOrbTap() {
+            if (isBotSpeaking) {
+                if (window.speechSynthesis) window.speechSynthesis.cancel();
+                if (hasNativeAndroidBridge()) {
+                    try { window.AndroidVoiceBridge.stopSpeaking(); } catch(e) {}
+                }
+                isBotSpeaking = false;
+                setLiveOrbState('listening');
+                startLiveVoiceListening();
+                showToast("Fale, estou ouvindo...");
+                return;
+            }
+            startLiveVoiceListening();
+        }
+
+        function toggleCallMute() {
+            isCallMuted = !isCallMuted;
+            const btn = document.getElementById('btnCallMute');
+            const icon = document.getElementById('callMuteIcon');
+            if (isCallMuted) {
+                stopLiveVoiceListening();
+                btn.className = "w-14 h-14 rounded-full bg-red-600/30 border border-red-500/50 text-red-400 flex flex-col items-center justify-center gap-1 spring-transition";
+                icon.className = "fa-solid fa-microphone-slash text-base";
+                showToast("Microfone mutado");
+            } else {
+                startLiveVoiceListening();
+                btn.className = "w-14 h-14 rounded-full bg-white/10 hover:bg-white/20 text-white flex flex-col items-center justify-center gap-1 spring-transition active:scale-95 shadow-md";
+                icon.className = "fa-solid fa-microphone text-base";
+                showToast("Microfone ativado");
             }
         }
 
@@ -2413,6 +2923,7 @@
         }
 
         window.onload = function() {
+            setThemeMode(getStoredTheme());
             applyFontSize(currentFontSize);
             loadChatsIndex();
             refreshAuthUI();
