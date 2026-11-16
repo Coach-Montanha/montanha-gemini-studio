@@ -112,6 +112,14 @@ def build_system_prompt(skill_key, plugins_config, permanent_skills):
     if enabled_plugins:
         parts.append("[PLUGINS WORKSPACE ATIVOS]:\n" + "\n".join(enabled_plugins))
 
+    multimodal_instruction = (
+        "[CAPACIDADE MULTIMODAL & TRANSCRIÇÃO WHISPER / JSON]:\n"
+        "- Você possui capacidade nativa de processamento e compreensão de Áudios, Vídeos, Imagens e Documentos.\n"
+        "- Para Áudios e Vídeos: Transcreva as falas com fidelidade (padrão Whisper) e pontuação perfeita. Diarize falas caso haja múltiplos interlocutores.\n"
+        "- Para Captura e Extração de JSON: Sempre que o usuário solicitar dados estruturados, tabelas, métricas, fichas de treino ou JSON, forneça a resposta acompanhada de um bloco de código markdown ```json ... ``` limpo e bem formatado."
+    )
+    parts.append(multimodal_instruction)
+
     return "\n\n".join(parts)
 
 def fetch_duckduckgo_results(query):
@@ -762,8 +770,10 @@ class handler(BaseHTTPRequestHandler):
             if not isinstance(history, list):
                 history = []
             skill_key = body.get("skill", "minha-voz")
-            image_b64 = body.get("image_base64", "")
+            image_b64 = body.get("media_base64") or body.get("image_base64", "")
             mime_type = body.get("mime_type", "image/jpeg")
+            if not mime_type or mime_type == "application/octet-stream":
+                mime_type = "image/jpeg"
             plugins_config = body.get("plugins", {"web_search": True, "live_weather": True, "gcalendar": True, "gsheets": True})
             permanent_skills = body.get("permanent_skills", {"minha_voz": True, "conferir_rule": True, "karpathy_ponytail": True})
             engine = body.get("engine", "gemini-flash-lite-latest")
@@ -786,7 +796,7 @@ class handler(BaseHTTPRequestHandler):
 
             web_context, sources = get_live_web_context(prompt, plugins_config)
 
-            # Se não tem imagem e escolheu Groq
+            # Se não tem imagem/mídia e escolheu Groq
             if ("groq" in engine.lower() or "llama" in engine.lower()) and not image_b64 and user_groq_key:
                 prompt_full = f"{prompt}\n\n[CONTEXTO WEB]: {web_context}" if web_context else prompt
                 ext_ans = dispatch_external_engine("groq", prompt_full, system_prompt, user_groq_key, history=history)
@@ -800,7 +810,7 @@ class handler(BaseHTTPRequestHandler):
                     return
 
             # OpenRouter (DeepSeek R1, Llama 3.3, Claude 3.5 Sonnet, etc.)
-            if ("openrouter" in engine.lower() or engine.startswith("or-")) and user_openrouter_key:
+            if ("openrouter" in engine.lower() or engine.startswith("or-")) and not image_b64 and user_openrouter_key:
                 prompt_full = f"{prompt}\n\n[CONTEXTO WEB]: {web_context}" if web_context else prompt
                 ext_ans = dispatch_external_engine("openrouter", prompt_full, system_prompt, user_openrouter_key, history=history)
                 if ext_ans:
@@ -812,7 +822,7 @@ class handler(BaseHTTPRequestHandler):
                     })
                     return
 
-            # Multimodal Gemini (Imagens, Documentos e Texto)
+            # Multimodal Gemini (Imagens, Vídeos, Áudios Whisper, Documentos e JSON)
             if not user_gemini_key:
                 if user_groq_key and not image_b64:
                     prompt_full = f"{prompt}\n\n[CONTEXTO WEB]: {web_context}" if web_context else prompt
@@ -830,16 +840,26 @@ class handler(BaseHTTPRequestHandler):
                 return
 
             current_text = prompt
+            if not current_text and image_b64:
+                if mime_type.startswith("audio/"):
+                    current_text = "Por favor, transcreva este áudio com fidelidade rigorosa (Whisper-grade), identifique os tópicos principais e extraia informações ou dados estruturados em formato JSON caso aplicável."
+                elif mime_type.startswith("video/"):
+                    current_text = "Analise este vídeo com atenção: transcreva as falas e descreva os acontecimentos visuais, extraindo dados ou JSON caso aplicável."
+                elif mime_type.startswith("image/"):
+                    current_text = "Analise e descreva detalhadamente esta imagem, lendo todos os textos, tabelas ou dados visuais presentes."
+                else:
+                    current_text = "Analise o conteúdo deste arquivo e extraia as informações estruturadas relevantes."
+
             if web_context:
-                current_text = f"{prompt}\n\n[INFORMAÇÃO EM TEMPO REAL]:\n{web_context}"
+                current_text = f"{current_text}\n\n[INFORMAÇÃO EM TEMPO REAL]:\n{web_context}"
 
             current_parts = []
             if current_text:
                 current_parts.append({"text": current_text})
             if image_b64:
                 current_parts.append({
-                    "inline_data": {
-                        "mime_type": mime_type,
+                    "inlineData": {
+                        "mimeType": mime_type,
                         "data": image_b64
                     }
                 })
@@ -851,7 +871,7 @@ class handler(BaseHTTPRequestHandler):
                 "generationConfig": {"temperature": 0.7, "maxOutputTokens": 2048}
             }
 
-            model_candidates = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite-preview", "gemini-3-flash-preview", "gemini-flash-latest"]
+            model_candidates = ["gemini-flash-lite-latest", "gemini-2.5-flash", "gemini-flash-latest", "gemini-3.1-flash-lite-preview", "gemini-3-flash-preview"]
             if engine in model_candidates:
                 model_candidates.remove(engine)
                 model_candidates.insert(0, engine)

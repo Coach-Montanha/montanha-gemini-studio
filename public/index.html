@@ -399,20 +399,30 @@
 
         <!-- Bottom Input Dock (Ergonomic Thumb Zone) -->
         <div class="w-full max-w-3xl mx-auto px-3 sm:px-4 pb-2 sm:pb-3" style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0.5rem))">
-            <!-- Image Attachment Preview -->
-            <div id="imagePreviewBar" class="hidden mb-2 p-2 rounded-2xl bg-[#12141a] border border-white/10 flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <img id="imgPreviewThumb" class="w-10 h-10 object-cover rounded-xl border border-white/10" src="">
-                    <span id="imgPreviewName" class="text-xs text-zinc-300 truncate max-w-xs font-mono">imagem.jpg</span>
+            <!-- Multimodal Media Attachment Preview (Imagens, Vídeos, Áudios Whisper, Documentos) -->
+            <div id="imagePreviewBar" class="hidden mb-2 p-2.5 rounded-2xl bg-[#12141a] border border-white/10 flex items-center justify-between shadow-xl">
+                <div class="flex items-center space-x-2.5 min-w-0 flex-1 mr-2">
+                    <div id="mediaPreviewIconBox" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                        <img id="imgPreviewThumb" class="w-full h-full object-cover hidden" src="">
+                        <i id="mediaPreviewIcon" class="fa-solid fa-file text-sm text-zinc-300"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div id="imgPreviewName" class="text-xs text-zinc-200 font-medium truncate font-mono">arquivo</div>
+                        <div class="text-[10px] text-zinc-400 font-mono flex items-center gap-1.5 truncate">
+                            <span id="mediaTypeLabel" class="text-apple-blue font-semibold">Multimídia</span>
+                            <span class="text-zinc-600">•</span>
+                            <span id="mediaActionHint" class="text-zinc-400 truncate">Pronto para Whisper & Processamento</span>
+                        </div>
+                    </div>
                 </div>
-                <button onclick="removeAttachedImage()" class="min-h-[36px] min-w-[36px] rounded-xl hover:bg-white/10 text-zinc-400 hover:text-red-400 flex items-center justify-center">
+                <button onclick="removeAttachedImage()" class="min-h-[36px] min-w-[36px] rounded-xl hover:bg-white/10 text-zinc-400 hover:text-red-400 flex items-center justify-center flex-shrink-0" title="Remover anexo">
                     <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
 
             <!-- Main Input Bar -->
             <div class="relative bg-[#12141a] rounded-2xl border border-white/10 focus-within:border-white/20 transition-all shadow-xl p-2 flex items-end space-x-1.5 sm:space-x-2">
-                <input type="file" id="fileInput" accept="image/*,audio/*,video/*" class="hidden" onchange="handleFileSelect(event)">
+                <input type="file" id="fileInput" accept="image/*,audio/*,video/*,application/pdf,text/*,.json,.csv" class="hidden" onchange="handleFileSelect(event)">
 
                 <!-- Botão '+' Menu Rápido -->
                 <div class="relative">
@@ -420,21 +430,25 @@
                         <i class="fa-solid fa-plus"></i>
                     </button>
                     <!-- Context Menu Dropdown (Apple Popover) -->
-                    <div id="contextDropdown" class="hidden absolute bottom-12 left-0 w-52 bg-[#12141a] border border-white/10 rounded-2xl shadow-2xl py-2 z-30 text-xs">
+                    <div id="contextDropdown" class="hidden absolute bottom-12 left-0 w-56 bg-[#12141a] border border-white/10 rounded-2xl shadow-2xl py-2 z-30 text-xs">
                         <button onclick="document.getElementById('fileInput').click(); toggleContextDropdown();" class="w-full min-h-[44px] px-3.5 py-2 text-left hover:bg-white/10 text-zinc-200 hover:text-white flex items-center space-x-3 spring-transition">
-                            <i class="fa-solid fa-paperclip text-zinc-400 w-4"></i>
-                            <span>Anexar Foto ou Arquivo</span>
+                            <i class="fa-solid fa-photo-film text-apple-blue w-4"></i>
+                            <span>Anexar Foto, Áudio ou Vídeo</span>
+                        </button>
+                        <button onclick="triggerAudioRecordMemo(); toggleContextDropdown();" class="w-full min-h-[44px] px-3.5 py-2 text-left hover:bg-white/10 text-zinc-200 hover:text-white flex items-center space-x-3 spring-transition">
+                            <i class="fa-solid fa-microphone-lines text-purple-400 w-4"></i>
+                            <span>Gravar Áudio (Whisper / JSON)</span>
                         </button>
                         <button onclick="openImageGeneratorModal(); toggleContextDropdown();" class="w-full min-h-[44px] px-3.5 py-2 text-left hover:bg-white/10 text-zinc-200 hover:text-white flex items-center space-x-3 spring-transition">
-                            <i class="fa-solid fa-image text-zinc-400 w-4"></i>
+                            <i class="fa-solid fa-wand-magic-sparkles text-amber-400 w-4"></i>
                             <span>Gerar Imagem com IA</span>
                         </button>
                         <button onclick="openPdfModal(); toggleContextDropdown();" class="w-full min-h-[44px] px-3.5 py-2 text-left hover:bg-white/10 text-zinc-200 hover:text-white flex items-center space-x-3 spring-transition">
-                            <i class="fa-solid fa-file-pdf text-zinc-400 w-4"></i>
+                            <i class="fa-solid fa-file-pdf text-red-400 w-4"></i>
                             <span>Ler Livro / Artigo PDF</span>
                         </button>
                         <button onclick="openBrowserModal(); toggleContextDropdown();" class="w-full min-h-[44px] px-3.5 py-2 text-left hover:bg-white/10 text-zinc-200 hover:text-white flex items-center space-x-3 spring-transition">
-                            <i class="fa-solid fa-compass text-zinc-400 w-4"></i>
+                            <i class="fa-solid fa-compass text-teal-400 w-4"></i>
                             <span>Abrir Navegador Interno</span>
                         </button>
                         <button onclick="openGoogleHubModal(); toggleContextDropdown();" class="w-full min-h-[44px] px-3.5 py-2 text-left hover:bg-white/10 text-zinc-200 hover:text-white flex items-center space-x-3 spring-transition">
@@ -1037,6 +1051,7 @@
         let currentChatId = null;
         let attachedImageBase64 = null;
         let attachedImageMime = null;
+        let attachedImageName = null;
         let recognition = null;
         let isRecognizing = false;
         let isLiveAudioActive = false;
@@ -1309,7 +1324,7 @@
                 msgContainer.classList.remove('hidden');
                 chat.messages.forEach((m, idx) => {
                     if (m.role === 'user') {
-                        appendUserMessage(m.prompt, m.image, idx);
+                        appendUserMessage(m.prompt, m.media || m.image, idx);
                     } else if (m.role === 'model') {
                         appendBotMessage(m.response, m.sources, idx);
                     }
@@ -1685,12 +1700,33 @@
                 content: m.role === 'model' ? (m.response || '') : (m.prompt || '')
             }));
 
-            currentChatObj.messages.push({ role: 'user', prompt: prompt, image: !!attachedImageBase64 });
+            let finalPrompt = prompt;
+            if (!finalPrompt && attachedImageBase64) {
+                if (attachedImageMime && attachedImageMime.startsWith('audio/')) {
+                    finalPrompt = "Por favor, transcreva este áudio com fidelidade rigorosa (Whisper-grade), identifique os tópicos principais e extraia os pontos-chave ou dados estruturados em JSON caso aplicável.";
+                } else if (attachedImageMime && attachedImageMime.startsWith('video/')) {
+                    finalPrompt = "Analise este vídeo com atenção: transcreva as falas e descreva os acontecimentos visuais, gerando dados ou JSON caso aplicável.";
+                } else if (attachedImageMime && attachedImageMime.startsWith('image/')) {
+                    finalPrompt = "Analise e descreva detalhadamente esta imagem, lendo todos os textos, tabelas ou dados visuais presentes.";
+                } else {
+                    finalPrompt = "Analise o conteúdo deste arquivo e extraia as informações estruturadas principais.";
+                }
+            }
+
+            const mediaData = attachedImageBase64 ? {
+                mime: attachedImageMime,
+                name: attachedImageName || 'arquivo',
+                isAudio: attachedImageMime.startsWith('audio/'),
+                isVideo: attachedImageMime.startsWith('video/'),
+                isImage: attachedImageMime.startsWith('image/')
+            } : null;
+
+            currentChatObj.messages.push({ role: 'user', prompt: finalPrompt, media: mediaData, image: !!attachedImageBase64 });
             const userMsgIdx = currentChatObj.messages.length - 1;
             saveLocalChat(currentChatId, currentChatObj.title, currentChatObj.messages);
             updateMemoryBadge();
 
-            appendUserMessage(prompt, !!attachedImageBase64, userMsgIdx);
+            appendUserMessage(finalPrompt, mediaData, userMsgIdx);
             appendLoadingSkeleton();
 
             const skill = document.getElementById('selectSkill').value;
@@ -1698,7 +1734,7 @@
 
             const payload = {
                 chat_id: currentChatId,
-                prompt: prompt,
+                prompt: finalPrompt,
                 history: historyToSend,
                 skill: skill,
                 engine: engine,
@@ -1706,6 +1742,7 @@
                 plugins: appPreferences.plugins,
                 permanent_skills: appPreferences.permanent_skills,
                 image_base64: attachedImageBase64 || "",
+                media_base64: attachedImageBase64 || "",
                 mime_type: attachedImageMime || "image/jpeg"
             };
 
@@ -1782,7 +1819,7 @@
             }
         }
 
-        function appendUserMessage(text, hasImage, msgIndex) {
+        function appendUserMessage(text, mediaInfo, msgIndex) {
             const list = document.getElementById('messagesList');
             const div = document.createElement('div');
             div.className = "flex items-center justify-end w-full group relative mb-2";
@@ -1791,10 +1828,28 @@
                     <i class="fa-regular fa-trash-can text-xs"></i>
                 </button>
             ` : '';
+
+            let mediaBadgeHtml = '';
+            if (mediaInfo) {
+                if (typeof mediaInfo === 'object') {
+                    if (mediaInfo.isAudio || (mediaInfo.mime && mediaInfo.mime.startsWith('audio/'))) {
+                        mediaBadgeHtml = `<div class="inline-flex items-center gap-1.5 text-[10px] font-mono bg-purple-500/20 text-purple-300 border border-purple-500/30 px-2 py-0.5 rounded-lg mb-1.5"><i class="fa-solid fa-microphone-lines text-xs text-purple-400"></i><span>Áudio (${escapeHtml(mediaInfo.name || 'áudio')})</span></div>`;
+                    } else if (mediaInfo.isVideo || (mediaInfo.mime && mediaInfo.mime.startsWith('video/'))) {
+                        mediaBadgeHtml = `<div class="inline-flex items-center gap-1.5 text-[10px] font-mono bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded-lg mb-1.5"><i class="fa-solid fa-video text-xs text-blue-400"></i><span>Vídeo (${escapeHtml(mediaInfo.name || 'vídeo')})</span></div>`;
+                    } else if (mediaInfo.isImage || (mediaInfo.mime && mediaInfo.mime.startsWith('image/'))) {
+                        mediaBadgeHtml = `<div class="inline-flex items-center gap-1.5 text-[10px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-lg mb-1.5"><i class="fa-solid fa-image text-xs text-emerald-400"></i><span>Imagem (${escapeHtml(mediaInfo.name || 'foto')})</span></div>`;
+                    } else {
+                        mediaBadgeHtml = `<div class="inline-flex items-center gap-1.5 text-[10px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-lg mb-1.5"><i class="fa-solid fa-file-lines text-xs text-amber-400"></i><span>Documento (${escapeHtml(mediaInfo.name || 'arquivo')})</span></div>`;
+                    }
+                } else {
+                    mediaBadgeHtml = '<div class="text-[10px] font-mono text-zinc-400 mb-1"><i class="fa-solid fa-paperclip mr-1"></i>[Arquivo anexado]</div>';
+                }
+            }
+
             div.innerHTML = `
                 ${deleteBtn}
                 <div class="max-w-[85%] sm:max-w-[75%] rounded-2xl rounded-tr-sm bg-white/10 border border-white/10 px-4 py-3 text-white shadow-sm chat-bubble-content">
-                    ${hasImage ? '<div class="text-[10px] font-mono text-zinc-400 mb-1"><i class="fa-solid fa-image mr-1"></i>[Foto anexada]</div>' : ''}
+                    ${mediaBadgeHtml}
                     <div>${escapeHtml(text)}</div>
                 </div>
             `;
@@ -2332,9 +2387,59 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 attachedImageBase64 = e.target.result.split(',')[1];
-                attachedImageMime = file.type || "image/jpeg";
-                document.getElementById('imgPreviewThumb').src = e.target.result;
-                document.getElementById('imgPreviewName').innerText = file.name;
+                attachedImageMime = file.type || "application/octet-stream";
+                attachedImageName = file.name || "arquivo";
+
+                const thumb = document.getElementById('imgPreviewThumb');
+                const icon = document.getElementById('mediaPreviewIcon');
+                const nameLabel = document.getElementById('imgPreviewName');
+                const typeLabel = document.getElementById('mediaTypeLabel');
+                const hintLabel = document.getElementById('mediaActionHint');
+
+                if (nameLabel) nameLabel.innerText = file.name;
+
+                if (attachedImageMime.startsWith('image/')) {
+                    if (thumb) {
+                        thumb.src = e.target.result;
+                        thumb.classList.remove('hidden');
+                    }
+                    if (icon) icon.classList.add('hidden');
+                    if (typeLabel) typeLabel.innerText = 'Imagem';
+                    if (hintLabel) hintLabel.innerText = 'Visão Computacional & OCR';
+                } else if (attachedImageMime.startsWith('audio/')) {
+                    if (thumb) thumb.classList.add('hidden');
+                    if (icon) {
+                        icon.className = 'fa-solid fa-microphone-lines text-sm text-purple-400';
+                        icon.classList.remove('hidden');
+                    }
+                    if (typeLabel) typeLabel.innerText = 'Áudio';
+                    if (hintLabel) hintLabel.innerText = 'Transcrição Whisper & JSON';
+                } else if (attachedImageMime.startsWith('video/')) {
+                    if (thumb) thumb.classList.add('hidden');
+                    if (icon) {
+                        icon.className = 'fa-solid fa-video text-sm text-blue-400';
+                        icon.classList.remove('hidden');
+                    }
+                    if (typeLabel) typeLabel.innerText = 'Vídeo';
+                    if (hintLabel) hintLabel.innerText = 'Áudio & Visão Dinâmica';
+                } else if (attachedImageMime.includes('pdf')) {
+                    if (thumb) thumb.classList.add('hidden');
+                    if (icon) {
+                        icon.className = 'fa-solid fa-file-pdf text-sm text-red-400';
+                        icon.classList.remove('hidden');
+                    }
+                    if (typeLabel) typeLabel.innerText = 'PDF';
+                    if (hintLabel) hintLabel.innerText = 'Leitura & Extração';
+                } else {
+                    if (thumb) thumb.classList.add('hidden');
+                    if (icon) {
+                        icon.className = 'fa-solid fa-file-code text-sm text-emerald-400';
+                        icon.classList.remove('hidden');
+                    }
+                    if (typeLabel) typeLabel.innerText = 'Documento';
+                    if (hintLabel) hintLabel.innerText = 'Extração de Dados / JSON';
+                }
+
                 document.getElementById('imagePreviewBar').classList.remove('hidden');
             };
             reader.readAsDataURL(file);
@@ -2343,9 +2448,78 @@
         function removeAttachedImage() {
             attachedImageBase64 = null;
             attachedImageMime = null;
+            attachedImageName = null;
             document.getElementById('imagePreviewBar').classList.add('hidden');
-            document.getElementById('imgPreviewThumb').src = '';
-            document.getElementById('fileInput').value = '';
+            const thumb = document.getElementById('imgPreviewThumb');
+            if (thumb) thumb.src = '';
+            const fi = document.getElementById('fileInput');
+            if (fi) fi.value = '';
+        }
+
+        // ==========================================
+        // GRAVAÇÃO DE ÁUDIO DIRETO (VOICE MEMO)
+        // ==========================================
+        let mediaMemoRecorder = null;
+        let memoAudioChunks = [];
+        let isRecordingMemo = false;
+
+        async function triggerAudioRecordMemo() {
+            if (isRecordingMemo) {
+                stopAudioRecordMemo();
+                return;
+            }
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                memoAudioChunks = [];
+                mediaMemoRecorder = new MediaRecorder(stream);
+                mediaMemoRecorder.ondataavailable = (e) => {
+                    if (e.data && e.data.size > 0) memoAudioChunks.push(e.data);
+                };
+                mediaMemoRecorder.onstop = () => {
+                    const audioBlob = new Blob(memoAudioChunks, { type: 'audio/webm' });
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        attachedImageBase64 = e.target.result.split(',')[1];
+                        attachedImageMime = 'audio/webm';
+                        attachedImageName = `gravacao_voz_${Math.floor(Date.now() / 1000)}.webm`;
+
+                        const thumb = document.getElementById('imgPreviewThumb');
+                        const icon = document.getElementById('mediaPreviewIcon');
+                        const nameLabel = document.getElementById('imgPreviewName');
+                        const typeLabel = document.getElementById('mediaTypeLabel');
+                        const hintLabel = document.getElementById('mediaActionHint');
+
+                        if (thumb) thumb.classList.add('hidden');
+                        if (icon) {
+                            icon.className = 'fa-solid fa-microphone-lines text-sm text-purple-400';
+                            icon.classList.remove('hidden');
+                        }
+                        if (nameLabel) nameLabel.innerText = attachedImageName;
+                        if (typeLabel) typeLabel.innerText = 'Áudio Gravado';
+                        if (hintLabel) hintLabel.innerText = 'Pronto para Whisper & JSON';
+
+                        document.getElementById('imagePreviewBar').classList.remove('hidden');
+                        showToast("🎙️ Áudio gravado com sucesso! Envie para transcrever.", "success");
+                    };
+                    reader.readAsDataURL(audioBlob);
+                    stream.getTracks().forEach(track => track.stop());
+                };
+
+                mediaMemoRecorder.start();
+                isRecordingMemo = true;
+                showToast("🔴 Gravando áudio... Clique novamente no menu ou envie para parar.", "warning");
+            } catch (err) {
+                console.warn('Erro ao acessar microfone:', err);
+                showToast("⚠️ Não foi possível acessar o microfone para gravação.", "error");
+            }
+        }
+
+        function stopAudioRecordMemo() {
+            if (mediaMemoRecorder && mediaMemoRecorder.state !== 'inactive') {
+                mediaMemoRecorder.stop();
+            }
+            isRecordingMemo = false;
         }
 
         function setPrompt(text) {
