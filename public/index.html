@@ -297,6 +297,7 @@
                         <span id="currentChatTitle" class="truncate max-w-[110px] xs:max-w-[150px] sm:max-w-[200px] md:max-w-[300px]">Montanha AI Studio</span>
                         <span id="keyStatusBadge" class="hidden md:inline-flex text-[10px] font-mono tracking-wider bg-white/5 px-2 py-0.5 rounded-full text-zinc-400 border border-white/5 flex-shrink-0">Zero-Leak</span>
                         <span id="memoryStatusBadge" class="hidden lg:inline-flex items-center gap-1 text-[10px] font-mono bg-purple-500/15 text-purple-300 border border-purple-500/25 px-2 py-0.5 rounded-full shadow-sm flex-shrink-0" title="Memória Contínua Graphify Ativa"><i class="fa-solid fa-brain text-[9px] text-purple-400"></i> <span id="memoryTurnsCount">0 msgs</span></span>
+                        <span id="cloudSyncStatusBadge" onclick="syncChatsWithCloud(false)" class="hidden xs:inline-flex items-center gap-1 text-[10px] font-mono bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded-full text-zinc-400 border border-white/5 cursor-pointer spring-transition flex-shrink-0" title="Sincronização em Nuvem (Toque para sincronizar agora)"><i id="cloudSyncStatusIcon" class="fa-solid fa-cloud text-[10px] text-zinc-400"></i> <span id="cloudSyncStatusText" class="hidden md:inline">Nuvem</span></span>
                     </h1>
                 </div>
             </div>
@@ -1146,9 +1147,11 @@
 
         function saveLocalChat(chatId, title, messages) {
             const chats = getLocalChats();
+            const now = Date.now();
             chats[chatId] = {
                 id: chatId,
                 title: title,
+                timestamp: now,
                 updated_at: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'}),
                 messages: messages
             };
@@ -1156,12 +1159,15 @@
             localStorage.setItem('montanha_last_active_chat', chatId);
             syncVaultToDevice('montanha_local_chats', JSON.stringify(chats));
             syncVaultToDevice('montanha_last_active_chat', chatId);
+            scheduleCloudChatSync();
         }
 
         function deleteLocalChat(chatId) {
             const chats = getLocalChats();
             delete chats[chatId];
             localStorage.setItem('montanha_local_chats', JSON.stringify(chats));
+            syncVaultToDevice('montanha_local_chats', JSON.stringify(chats));
+            scheduleCloudChatSync();
             if (currentChatId === chatId) {
                 createNewChat();
             } else {
@@ -1173,6 +1179,108 @@
             if (!currentChatId) return;
             if (confirm("Deseja realmente apagar esta conversa?")) {
                 deleteLocalChat(currentChatId);
+            }
+        }
+
+        // ========================================================
+        // SINCRONIZAÇÃO EM NUVEM RESILIENTE (NOTEBOOK & CELULAR)
+        // ========================================================
+        let isSyncingChats = false;
+        let chatSyncDebounceTimer = null;
+
+        function updateSyncBadge(state) {
+            const badge = document.getElementById('cloudSyncStatusBadge');
+            const icon = document.getElementById('cloudSyncStatusIcon');
+            const txt = document.getElementById('cloudSyncStatusText');
+            if (!badge || !icon || !txt) return;
+
+            badge.classList.remove('hidden');
+            if (state === 'syncing') {
+                icon.className = 'fa-solid fa-arrows-rotate fa-spin text-apple-blue text-[10px]';
+                txt.innerText = 'Sincronizando...';
+                badge.title = 'Sincronizando conversas com a nuvem...';
+            } else if (state === 'synced') {
+                icon.className = 'fa-solid fa-cloud-check text-emerald-400 text-[10px]';
+                txt.innerText = 'Nuvem ativa';
+                badge.title = 'Conversas sincronizadas na nuvem entre notebook e celular!';
+            } else if (state === 'offline') {
+                icon.className = 'fa-solid fa-cloud-slash text-amber-400 text-[10px]';
+                txt.innerText = 'Offline (Salvo local)';
+                badge.title = 'Sem conexão: conversas salvas no aparelho. Sincronizará assim que a internet voltar.';
+            } else {
+                icon.className = 'fa-solid fa-cloud text-zinc-400 text-[10px]';
+                txt.innerText = 'Nuvem';
+            }
+        }
+
+        function scheduleCloudChatSync() {
+            localStorage.setItem('montanha_chats_need_sync', 'true');
+            if (chatSyncDebounceTimer) clearTimeout(chatSyncDebounceTimer);
+            chatSyncDebounceTimer = setTimeout(() => {
+                syncChatsWithCloud(true);
+            }, 1200);
+        }
+
+        async function syncChatsWithCloud(silent = true) {
+            const user = getStoredUser();
+            if (!user || (!user.id && !user.login)) {
+                return;
+            }
+
+            if (!navigator.onLine) {
+                updateSyncBadge('offline');
+                return;
+            }
+
+            if (isSyncingChats) return;
+            isSyncingChats = true;
+            updateSyncBadge('syncing');
+
+            try {
+                const localChats = getLocalChats();
+                const res = await fetch('/api/chats/sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: user.id || user.login,
+                        login: user.login || user.email,
+                        chats: localChats
+                    })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.status === 'success' && data.chats) {
+                        localStorage.setItem('montanha_local_chats', JSON.stringify(data.chats));
+                        syncVaultToDevice('montanha_local_chats', JSON.stringify(data.chats));
+                        localStorage.removeItem('montanha_chats_need_sync');
+
+                        loadChatsIndex();
+
+                        // Se a conversa atualmente aberta tiver recebido novas mensagens de outro aparelho:
+                        if (currentChatId && data.chats[currentChatId]) {
+                            const activeChat = data.chats[currentChatId];
+                            const currentMsgElements = document.querySelectorAll('#messagesList > div');
+                            if (activeChat.messages && activeChat.messages.length > currentMsgElements.length) {
+                                selectChat(currentChatId, activeChat.title);
+                            }
+                        }
+
+                        updateSyncBadge('synced');
+                        if (!silent) {
+                            showToast("☁️ Conversas sincronizadas com sucesso!", "success");
+                        }
+                    } else {
+                        updateSyncBadge('synced');
+                    }
+                } else {
+                    updateSyncBadge('offline');
+                }
+            } catch (err) {
+                console.warn('Sync chats error:', err);
+                updateSyncBadge('offline');
+            } finally {
+                isSyncingChats = false;
             }
         }
 
@@ -2743,6 +2851,7 @@
                     if (data.vault) {
                         applyVaultData(data.vault);
                     }
+                    syncChatsWithCloud(false);
                     showAuthMsg('Login realizado e dados sincronizados com sucesso!', false);
                     setTimeout(() => {
                         const fb = document.getElementById('authFeedbackMsg');
@@ -2977,7 +3086,29 @@
             const currentUser = getStoredUser();
             if (currentUser && currentUser.login) {
                 restoreCurrentVaultFromCloud(false);
+                setTimeout(() => {
+                    syncChatsWithCloud(true);
+                }, 1000);
             }
+
+            // Sincronização em nuvem resiliente (Offline-First)
+            window.addEventListener('online', () => {
+                updateSyncBadge('syncing');
+                showToast("🌐 Conexão restabelecida! Sincronizando conversas...", "success");
+                syncChatsWithCloud(true);
+            });
+
+            window.addEventListener('offline', () => {
+                updateSyncBadge('offline');
+                showToast("📡 Modo Offline: Suas conversas continuam salvas no aparelho.", "warning");
+            });
+
+            // Sincronização periódica a cada 40 segundos se conectado e online
+            setInterval(() => {
+                if (!document.hidden && navigator.onLine) {
+                    syncChatsWithCloud(true);
+                }
+            }, 40000);
 
             const savedPlugins = localStorage.getItem('montanha_plugins');
             if (savedPlugins) {

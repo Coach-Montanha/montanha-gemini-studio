@@ -271,6 +271,91 @@ def handle_user_vault_update(user_id, login_key, vault_data):
             save_local_users(users)
     return {"status": "success", "vault": vault_data}
 
+def fetch_cloud_chats(user_id):
+    if not user_id:
+        return {}
+    safe_uid = re.sub(r'[^a-zA-Z0-9_\-]', '_', str(user_id))
+    # 1. Supabase Storage
+    try:
+        url = f"{SUPABASE_URL}/storage/v1/object/public/studio-forms-backup/chats/{safe_uid}.json"
+        req = urllib.request.Request(url, headers={
+            "apikey": SUPABASE_SERVICE_ROLE_KEY,
+            "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}"
+        })
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            if isinstance(data, dict):
+                return data.get("chats", {})
+    except Exception:
+        pass
+
+    # 2. Local fallback
+    try:
+        local_f = STORAGE_DIR / f"chats_{safe_uid}.json"
+        if local_f.exists():
+            with open(local_f, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    return data.get("chats", {})
+    except Exception:
+        pass
+    return {}
+
+def sync_cloud_chats(user_id, local_chats):
+    if not user_id:
+        return local_chats or {}
+    if not isinstance(local_chats, dict):
+        local_chats = {}
+
+    cloud_chats = fetch_cloud_chats(user_id)
+    all_keys = set(local_chats.keys()).union(set(cloud_chats.keys()))
+    merged = {}
+    for k in all_keys:
+        loc = local_chats.get(k)
+        cld = cloud_chats.get(k)
+        if loc and not cld:
+            merged[k] = loc
+        elif cld and not loc:
+            merged[k] = cld
+        else:
+            loc_ts = loc.get("timestamp") or 0
+            cld_ts = cld.get("timestamp") or 0
+            loc_msgs = len(loc.get("messages", []))
+            cld_msgs = len(cld.get("messages", []))
+            if loc_msgs > cld_msgs or (loc_msgs == cld_msgs and loc_ts >= cld_ts):
+                merged[k] = loc
+            else:
+                merged[k] = cld
+
+    safe_uid = re.sub(r'[^a-zA-Z0-9_\-]', '_', str(user_id))
+    now_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    payload = json.dumps({"updated_at": now_iso, "chats": merged}).encode("utf-8")
+
+    # 1. Supabase Storage
+    try:
+        url = f"{SUPABASE_URL}/storage/v1/object/studio-forms-backup/chats/{safe_uid}.json"
+        req = urllib.request.Request(url, data=payload, headers={
+            "apikey": SUPABASE_SERVICE_ROLE_KEY,
+            "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+            "Content-Type": "application/json",
+            "x-upsert": "true"
+        }, method="POST")
+        with urllib.request.urlopen(req, timeout=6):
+            pass
+    except Exception as e:
+        print(f"[CHATS SYNC] Warning Supabase storage: {e}")
+
+    # 2. Local fallback
+    try:
+        STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+        local_f = STORAGE_DIR / f"chats_{safe_uid}.json"
+        with open(local_f, "w", encoding="utf-8") as f:
+            f.write(json.dumps({"updated_at": now_iso, "chats": merged}, ensure_ascii=False, indent=2))
+    except Exception:
+        pass
+
+    return merged
+
 def load_prefs():
     if not PREFS_FILE.exists():
         PREFS_FILE.write_text(json.dumps(DEFAULT_PREFS, indent=2, ensure_ascii=False), encoding="utf-8")
@@ -591,6 +676,16 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
             self._send_json({"status": "success", "chats": get_chats_index()})
             return
 
+        elif parsed.path == "/api/chats/sync":
+            q = urllib.parse.parse_qs(parsed.query)
+            user_id = q.get("user_id", [None])[0] or q.get("login", [None])[0]
+            if not user_id:
+                self._send_json({"status": "error", "message": "user_id obrigatorio"}, 400)
+                return
+            chats = fetch_cloud_chats(user_id)
+            self._send_json({"status": "success", "chats": chats})
+            return
+
         elif parsed.path.startswith("/api/chats/"):
             chat_id = parsed.path.split("/")[-1]
             self._send_json({"status": "success", "chat_id": chat_id, "messages": get_chat_messages(chat_id)})
@@ -651,6 +746,16 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
         elif parsed.path == "/api/auth/vault":
             res = handle_user_vault_update(body.get("user_id"), body.get("login"), body.get("vault", {}))
             self._send_json(res)
+            return
+
+        elif parsed.path == "/api/chats/sync":
+            user_id = body.get("user_id") or body.get("login")
+            local_chats = body.get("chats", {})
+            if not user_id:
+                self._send_json({"status": "error", "message": "user_id obrigatorio"}, 400)
+                return
+            merged = sync_cloud_chats(user_id, local_chats)
+            self._send_json({"status": "success", "chats": merged})
             return
 
         if parsed.path == "/api/validate-keys":
