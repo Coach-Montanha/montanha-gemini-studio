@@ -92,6 +92,24 @@ public class MainActivity extends Activity {
             @Override
             public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
                 try {
+                    if (url != null && url.startsWith("data:")) {
+                        int commaIdx = url.indexOf(",");
+                        if (commaIdx != -1) {
+                            byte[] data = android.util.Base64.decode(url.substring(commaIdx + 1), android.util.Base64.DEFAULT);
+                            java.io.File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                            if (!dir.exists()) dir.mkdirs();
+                            String fname = "Montanha_Documento_" + (System.currentTimeMillis() / 1000) + ".pdf";
+                            java.io.File out = new java.io.File(dir, fname);
+                            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(out)) {
+                                fos.write(data);
+                                fos.flush();
+                            }
+                            sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(out)));
+                            Toast.makeText(MainActivity.this, "✅ PDF salvo em Downloads!", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                    }
+
                     DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
                     request.setMimeType(mimeType);
                     request.setDescription("Baixando arquivo do Montanha Gemini Studio...");

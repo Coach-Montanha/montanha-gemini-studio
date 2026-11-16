@@ -1006,7 +1006,35 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
                 pdf_data = pdf_buffer.getvalue()
                 pdf_buffer.close()
                 b64_pdf = base64.b64encode(pdf_data).decode("utf-8")
-                self._send_json({"status": "success", "pdf_base64": b64_pdf, "filename": f"{title.lower().replace(' ', '_')}.pdf"})
+                filename = f"{title.lower().replace(' ', '_')}.pdf"
+                pdf_url = ""
+                try:
+                    import uuid
+                    file_id = f"montanha_{uuid.uuid4().hex[:10]}.pdf"
+                    storage_url = f"{SUPABASE_URL}/storage/v1/object/treinos-anexos/exports/{file_id}"
+                    req = urllib.request.Request(
+                        storage_url,
+                        data=pdf_data,
+                        headers={
+                            "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                            "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                            "Content-Type": "application/pdf",
+                            "x-upsert": "true"
+                        },
+                        method="POST"
+                    )
+                    with urllib.request.urlopen(req, timeout=5) as resp:
+                        if resp.status in (200, 201):
+                            pdf_url = f"{SUPABASE_URL}/storage/v1/object/public/treinos-anexos/exports/{file_id}"
+                except Exception as upload_err:
+                    print(f"[PDF] Upload storage error: {upload_err}")
+
+                self._send_json({
+                    "status": "success",
+                    "pdf_base64": b64_pdf,
+                    "pdf_url": pdf_url,
+                    "filename": filename
+                })
             except Exception as e:
                 self._send_json({"status": "error", "message": f"Erro PDF: {str(e)}"}, 500)
             return

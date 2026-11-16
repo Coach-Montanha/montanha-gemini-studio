@@ -109,12 +109,29 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
             @Override
             public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
                 try {
+                    if (url != null && url.startsWith("data:")) {
+                        handleDataUriDownload(url, mimeType);
+                        return;
+                    }
+                    if (url != null && url.startsWith("blob:")) {
+                        Toast.makeText(MainActivity.this, "Arquivo processado no dispositivo", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
                     DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-                    request.setMimeType(mimeType);
+                    if (mimeType != null && !mimeType.isEmpty()) {
+                        request.setMimeType(mimeType);
+                    }
                     request.setDescription("Baixando arquivo do Montanha AI Studio...");
-                    request.setTitle(url.substring(url.lastIndexOf("/") + 1));
+                    String fileName = "documento_" + (System.currentTimeMillis() / 1000) + ".pdf";
+                    try {
+                        String lastPart = url.substring(url.lastIndexOf("/") + 1);
+                        if (lastPart.contains("?")) lastPart = lastPart.substring(0, lastPart.indexOf("?"));
+                        if (!lastPart.isEmpty() && lastPart.contains(".")) fileName = lastPart;
+                    } catch (Exception ignored) {}
+                    request.setTitle(fileName);
                     request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                    request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, url.substring(url.lastIndexOf("/") + 1));
+                    request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
 
                     DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
                     if (dm != null) {
@@ -328,9 +345,77 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
         }
 
         @JavascriptInterface
+        public boolean savePdfBase64(String fileName, String base64Data) {
+            try {
+                byte[] data = android.util.Base64.decode(base64Data, android.util.Base64.DEFAULT);
+                File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                if (!downloadsDir.exists()) downloadsDir.mkdirs();
+                String name = (fileName != null && !fileName.isEmpty()) ? fileName : ("Montanha_Documento_" + (System.currentTimeMillis() / 1000) + ".pdf");
+                File outFile = new File(downloadsDir, name);
+                try (FileOutputStream fos = new FileOutputStream(outFile)) {
+                    fos.write(data);
+                    fos.flush();
+                }
+                sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(outFile)));
+                mainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainActivity.this, "✅ PDF salvo em Downloads!", Toast.LENGTH_SHORT).show();
+                    }
+                });
+                return true;
+            } catch (Exception e) {
+                return false;
+            }
+        }
+
+        @JavascriptInterface
         public boolean isStorageAvailable() {
             return true;
         }
+    }
+
+    private void handleDataUriDownload(final String url, final String mimeType) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    int commaIdx = url.indexOf(",");
+                    if (commaIdx == -1) return;
+                    String header = url.substring(0, commaIdx);
+                    String base64Data = url.substring(commaIdx + 1);
+                    byte[] data = android.util.Base64.decode(base64Data, android.util.Base64.DEFAULT);
+
+                    String ext = ".pdf";
+                    if (header.contains("image/png")) ext = ".png";
+                    else if (header.contains("image/jpeg")) ext = ".jpg";
+                    else if (header.contains("text/plain")) ext = ".txt";
+
+                    final String fileName = "Montanha_Documento_" + (System.currentTimeMillis() / 1000) + ext;
+                    File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                    if (!downloadsDir.exists()) downloadsDir.mkdirs();
+                    File outFile = new File(downloadsDir, fileName);
+                    try (FileOutputStream fos = new FileOutputStream(outFile)) {
+                        fos.write(data);
+                        fos.flush();
+                    }
+                    sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(outFile)));
+                    mainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, "✅ PDF salvo em Downloads: " + fileName, Toast.LENGTH_LONG).show();
+                        }
+                    });
+                } catch (final Exception e) {
+                    mainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, "Erro ao salvar arquivo: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        }).start();
     }
 
     // =========================================================================

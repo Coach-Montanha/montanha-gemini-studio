@@ -2399,15 +2399,60 @@
                     body: JSON.stringify({ text: text, title: "Montanha AI Studio - Documento" })
                 });
                 const d = await res.json();
-                if (d.status === 'success' && d.pdf_base64) {
-                    const link = document.createElement('a');
-                    link.href = 'data:application/pdf;base64,' + d.pdf_base64;
-                    link.download = d.filename || 'documento.pdf';
-                    link.click();
-                    showToast("✅ PDF baixado com sucesso!");
-                } else {
-                    fallbackClientPdf(text);
+                if (d.status === 'success') {
+                    const filename = d.filename || 'montanha_documento.pdf';
+
+                    // 1. Prioridade Nativa Android (APK com bridge dedicada)
+                    if (window.AndroidStorageBridge && window.AndroidStorageBridge.savePdfBase64 && d.pdf_base64) {
+                        try {
+                            const ok = window.AndroidStorageBridge.savePdfBase64(filename, d.pdf_base64);
+                            if (ok) {
+                                showToast("✅ PDF salvo na pasta Downloads!");
+                                return;
+                            }
+                        } catch (bridgeErr) {
+                            console.warn("Bridge save error:", bridgeErr);
+                        }
+                    }
+
+                    // 2. Prioridade Nuvem HTTPS (Compatível com DownloadManager do Android e navegadores)
+                    if (d.pdf_url) {
+                        const link = document.createElement('a');
+                        link.href = d.pdf_url;
+                        link.target = '_blank';
+                        link.download = filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        showToast("✅ Baixando PDF...");
+                        return;
+                    }
+
+                    // 3. Fallback Blob para Web Desktop / Safari / Chrome
+                    if (d.pdf_base64) {
+                        try {
+                            const byteChars = atob(d.pdf_base64);
+                            const byteNums = new Array(byteChars.length);
+                            for (let i = 0; i < byteChars.length; i++) {
+                                byteNums[i] = byteChars.charCodeAt(i);
+                            }
+                            const blob = new Blob([new Uint8Array(byteNums)], { type: 'application/pdf' });
+                            const blobUrl = URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            link.href = blobUrl;
+                            link.download = filename;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            setTimeout(() => URL.revokeObjectURL(blobUrl), 20000);
+                            showToast("✅ PDF baixado com sucesso!");
+                            return;
+                        } catch (blobErr) {
+                            console.warn("Blob error:", blobErr);
+                        }
+                    }
                 }
+                fallbackClientPdf(text);
             } catch (e) {
                 fallbackClientPdf(text);
             }
