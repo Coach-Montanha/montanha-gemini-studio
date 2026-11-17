@@ -253,7 +253,7 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://muryznvaxzszcffrbxpv.supa
 SUPABASE_SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11cnl6bnZheHpzemNmZnJieHB2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NDQ0MTE2OSwiZXhwIjoyMTAwMDE3MTY5fQ.SpYzAP5ej1jUKyIPGSowyZrG_eeox50HmKnP1r81a24")
 SUPABASE_ANON_KEY = os.environ.get("SUPABASE_ANON_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11cnl6bnZheHpzemNmZnJieHB2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0NDExNjksImV4cCI6MjEwMDAxNzE2OX0.RHa_GLUGiRTVBGGCPvOcoLH6rh4IhyNM7YJWeJvI4Uo")
 
-def dispatch_external_engine(engine, prompt, system_prompt, api_key, history=None):
+def dispatch_external_engine(engine, prompt, system_prompt, api_key, history=None, target_model=None):
     engine_lower = (engine or "").lower()
     if "groq" in engine_lower or "llama" in engine_lower:
         url = "https://api.groq.com/openai/v1/chat/completions"
@@ -281,7 +281,7 @@ def dispatch_external_engine(engine, prompt, system_prompt, api_key, history=Non
                         return ans
             except Exception:
                 continue
-    elif "openrouter" in engine_lower or "or-" in engine_lower:
+    elif "openrouter" in engine_lower or "or-" in engine_lower or "nex" in engine_lower:
         url = "https://openrouter.ai/api/v1/chat/completions"
         headers = {
             "Authorization": f"Bearer {api_key}",
@@ -297,7 +297,16 @@ def dispatch_external_engine(engine, prompt, system_prompt, api_key, history=Non
                 if t: msgs_or.append({"role": r, "content": t})
         msgs_or.append({"role": "user", "content": prompt})
 
-        for or_model in ["meta-llama/llama-3.3-70b-instruct", "deepseek/deepseek-chat", "openrouter/auto"]:
+        if target_model:
+            model_candidates = [target_model, "openrouter/auto"]
+        elif "mini" in engine_lower:
+            model_candidates = ["nex-agi/nex-n2.5-mini", "nex-agi/nex-n2.5-pro", "openrouter/auto"]
+        elif "nex" in engine_lower:
+            model_candidates = ["nex-agi/nex-n2.5-pro", "nex-agi/nex-n2.5-mini", "openrouter/auto"]
+        else:
+            model_candidates = ["meta-llama/llama-3.3-70b-instruct", "deepseek/deepseek-chat", "openrouter/auto"]
+
+        for or_model in model_candidates:
             try:
                 payload = {
                     "model": or_model,
@@ -305,7 +314,7 @@ def dispatch_external_engine(engine, prompt, system_prompt, api_key, history=Non
                     "temperature": 0.6
                 }
                 req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers)
-                with urllib.request.urlopen(req, timeout=25) as resp:
+                with urllib.request.urlopen(req, timeout=35) as resp:
                     data = json.loads(resp.read().decode())
                     ans = data.get("choices", [{}])[0].get("message", {}).get("content")
                     if ans:
@@ -782,6 +791,17 @@ class handler(BaseHTTPRequestHandler):
             user_groq_key = self.headers.get("X-Groq-Key") or body.get("groq_api_key") or os.environ.get("GROQ_API_KEY", "")
             user_openrouter_key = self.headers.get("X-OpenRouter-Key") or body.get("openrouter_key") or os.environ.get("OPENROUTER_API_KEY", "")
 
+            if not user_openrouter_key:
+                try:
+                    users_map = load_local_users()
+                    for u_data in users_map.values():
+                        k_v = u_data.get("vault", {}).get("openrouter")
+                        if k_v:
+                            user_openrouter_key = k_v
+                            break
+                except Exception:
+                    pass
+
             system_prompt = build_system_prompt(skill_key, plugins_config, permanent_skills)
             continuity_block = build_continuity_instruction(history, prompt)
             if continuity_block:
@@ -796,6 +816,21 @@ class handler(BaseHTTPRequestHandler):
 
             web_context, sources = get_live_web_context(prompt, plugins_config)
 
+            # Nex N2.5 (Nex-AGI via OpenRouter) & OpenRouter Direct
+            if ("nex" in engine.lower() or "openrouter" in engine.lower() or engine.startswith("or-")) and not image_b64 and user_openrouter_key:
+                target_mod = "nex-agi/nex-n2.5-mini" if "mini" in engine.lower() else ("nex-agi/nex-n2.5-pro" if "nex" in engine.lower() else None)
+                model_label = "Nex N2.5 Mini (Nex-AGI)" if "mini" in engine.lower() else ("Nex N2.5 Pro (Nex-AGI)" if "nex" in engine.lower() else "OpenRouter")
+                prompt_full = f"{prompt}\n\n[CONTEXTO WEB]: {web_context}" if web_context else prompt
+                ext_ans = dispatch_external_engine("openrouter", prompt_full, system_prompt, user_openrouter_key, history=history, target_model=target_mod)
+                if ext_ans:
+                    self._send_json({
+                        "status": "success",
+                        "response": ext_ans,
+                        "model": model_label,
+                        "sources": sources
+                    })
+                    return
+
             # Se não tem imagem/mídia e escolheu Groq
             if ("groq" in engine.lower() or "llama" in engine.lower()) and not image_b64 and user_groq_key:
                 prompt_full = f"{prompt}\n\n[CONTEXTO WEB]: {web_context}" if web_context else prompt
@@ -805,19 +840,6 @@ class handler(BaseHTTPRequestHandler):
                         "status": "success",
                         "response": ext_ans,
                         "model": "Groq Llama / GPT-OSS",
-                        "sources": sources
-                    })
-                    return
-
-            # OpenRouter (DeepSeek R1, Llama 3.3, Claude 3.5 Sonnet, etc.)
-            if ("openrouter" in engine.lower() or engine.startswith("or-")) and not image_b64 and user_openrouter_key:
-                prompt_full = f"{prompt}\n\n[CONTEXTO WEB]: {web_context}" if web_context else prompt
-                ext_ans = dispatch_external_engine("openrouter", prompt_full, system_prompt, user_openrouter_key, history=history)
-                if ext_ans:
-                    self._send_json({
-                        "status": "success",
-                        "response": ext_ans,
-                        "model": "OpenRouter",
                         "sources": sources
                     })
                     return
