@@ -323,6 +323,58 @@ def dispatch_external_engine(engine, prompt, system_prompt, api_key, history=Non
                 continue
     return None
 
+def synthesize_speech_bytes(text, voice="pt-BR-FranciscaNeural", rate="+0%"):
+    import re, asyncio, urllib.request
+    clean_text = re.sub(r'```[\s\S]*?```', '', text)
+    clean_text = re.sub(r'[#*`_~\[\]()>]', '', clean_text).strip()
+    if not clean_text:
+        clean_text = "Nenhum texto informado para leitura."
+    
+    # 1. Edge-TTS Neural (Qualidade de estúdio pt-BR)
+    try:
+        import edge_tts
+        communicate = edge_tts.Communicate(clean_text[:4000], voice, rate=rate)
+        async def _run():
+            chunks = []
+            async for chunk in communicate.stream():
+                if chunk["type"] == "audio":
+                    chunks.append(chunk["data"])
+            return b"".join(chunks)
+
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as pool:
+                    audio_bytes = pool.submit(asyncio.run, _run()).result(timeout=15)
+            else:
+                audio_bytes = asyncio.run(_run())
+        except Exception:
+            audio_bytes = asyncio.run(_run())
+
+        if audio_bytes and len(audio_bytes) > 500:
+            return audio_bytes
+    except Exception as e:
+        print(f"[TTS] Edge-TTS warning: {e}")
+
+    # 2. Google Translate TTS Fallback (Zero dependencies)
+    try:
+        sentences = [s.strip() for s in re.split(r'[\n\.\!\?]+', clean_text) if s.strip()]
+        if not sentences:
+            sentences = [clean_text[:200]]
+        chunks = []
+        for sent in sentences[:8]:
+            url = 'https://translate.google.com/translate_tts?ie=UTF-8&tl=pt-BR&client=tw-ob&q=' + urllib.parse.quote(sent[:200])
+            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'})
+            with urllib.request.urlopen(req, timeout=6) as r:
+                chunks.append(r.read())
+        if chunks:
+            return b"".join(chunks)
+    except Exception as eg:
+        print(f"[TTS] Google Fallback warning: {eg}")
+
+    return None
+
 def load_local_users():
     if not USERS_FILE.exists():
         return {}
@@ -1013,6 +1065,54 @@ class handler(BaseHTTPRequestHandler):
 
             image_url = f"https://image.pollinations.ai/prompt/{enc_prompt}?model={m_param}&width=1024&height=1024&nologo=true&seed={seed}"
             self._send_json({"status": "success", "image_url": image_url, "provider": p_label})
+            return
+
+        elif any(p in all_routes for p in ["/api/tts", "/tts", "api/tts", "tts"]):
+            text = body.get("text", "").strip()
+            voice = body.get("voice", "pt-BR-FranciscaNeural")
+            rate = body.get("rate", "+0%")
+            if not text:
+                self._send_json({"status": "error", "message": "Texto obrigatório"}, 400)
+                return
+
+            audio_data = synthesize_speech_bytes(text, voice=voice, rate=rate)
+            if not audio_data:
+                self._send_json({"status": "error", "message": "Falha na síntese de voz"}, 500)
+                return
+
+            import base64
+            b64_audio = base64.b64encode(audio_data).decode("utf-8")
+            data_uri = f"data:audio/mp3;base64,{b64_audio}"
+
+            audio_url = ""
+            try:
+                import uuid
+                file_id = f"fala_{uuid.uuid4().hex[:10]}.mp3"
+                storage_url = f"{SUPABASE_URL}/storage/v1/object/treinos-anexos/audio/{file_id}"
+                req = urllib.request.Request(
+                    storage_url,
+                    data=audio_data,
+                    headers={
+                        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                        "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                        "Content-Type": "audio/mpeg",
+                        "x-upsert": "true"
+                    },
+                    method="POST"
+                )
+                with urllib.request.urlopen(req, timeout=5) as resp:
+                    if resp.status in (200, 201):
+                        audio_url = f"{SUPABASE_URL}/storage/v1/object/public/treinos-anexos/audio/{file_id}"
+            except Exception as e_up:
+                print(f"[TTS] Storage upload note: {e_up}")
+
+            self._send_json({
+                "status": "success",
+                "audio_base64": data_uri,
+                "audio_url": audio_url,
+                "voice": voice,
+                "length": len(audio_data)
+            })
             return
 
         self._send_json({"status": "error", "message": "Endpoint não encontrado"}, 404)

@@ -507,10 +507,18 @@
                     </div>
                 </div>
 
-                <!-- Voice Speed Control -->
-                <div class="flex items-center bg-[#12141a] border border-white/5 rounded-xl px-2 py-1 flex-shrink-0">
-                    <span class="text-zinc-500 text-[11px] mr-1">Voz:</span>
-                    <select id="selectAudioSpeed" class="bg-transparent text-zinc-200 text-[11px] font-mono focus:outline-none cursor-pointer">
+                <!-- Voice & Speed Control (/text-voice) -->
+                <div class="flex items-center bg-[#12141a] border border-white/5 rounded-xl px-2 py-1 flex-shrink-0 gap-1.5">
+                    <span class="text-zinc-500 text-[11px] hidden xs:inline" title="Voz para /text-voice e leitura">🎙️ Voz:</span>
+                    <select id="quickVoiceSelect" onchange="changeVoiceSetting(this.value)" class="bg-transparent text-zinc-200 text-[11px] font-medium focus:outline-none cursor-pointer max-w-[130px] sm:max-w-[160px] truncate" title="Escolha a voz da IA (/text-voice)">
+                        <option value="pt-BR-FranciscaNeural" class="bg-[#12141a] text-white" selected>👩 Francisca (Mulher Padrão)</option>
+                        <option value="pt-BR-ThalitaNeural" class="bg-[#12141a] text-white">👩 Thalita (Mulher Jovem)</option>
+                        <option value="pt-BR-YaraNeural" class="bg-[#12141a] text-white">👩 Yara (Mulher Calma)</option>
+                        <option value="pt-BR-AntonioNeural" class="bg-[#12141a] text-white">👨 Antônio (Homem Coach)</option>
+                        <option value="pt-BR-FabioNeural" class="bg-[#12141a] text-white">👨 Fábio (Homem Conversa)</option>
+                    </select>
+                    <span class="text-zinc-600 text-[11px]">|</span>
+                    <select id="selectAudioSpeed" class="bg-transparent text-zinc-400 text-[11px] font-mono focus:outline-none cursor-pointer" title="Velocidade de reprodução">
                         <option value="0.9" class="bg-[#12141a] text-white">0.9x</option>
                         <option value="1.0" class="bg-[#12141a] text-white">1.0x</option>
                         <option value="1.06" class="bg-[#12141a] text-white" selected>1.06x</option>
@@ -873,6 +881,42 @@
                     <div class="text-[10px] text-zinc-500 font-mono mb-1">Prévia de leitura:</div>
                     <div id="fontPreviewSample" class="chat-bubble-content leading-relaxed">
                         Exemplo de leitura nítida: <em>παρρησία (parrēsia)</em> e tabelas mantêm proporção vetorial perfeita.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuração de Voz da IA (/text-voice) -->
+            <div class="space-y-2.5 pt-2 border-t border-white/5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <label class="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider block">Voz da IA & Síntese Neural (/text-voice)</label>
+                        <p class="text-[11px] text-zinc-400">Escolha a voz feminina ou masculina padrão para leitura e comandos de áudio.</p>
+                    </div>
+                    <button type="button" onclick="testCurrentVoice()" class="min-h-[30px] px-2.5 rounded-lg bg-apple-blue/20 hover:bg-apple-blue/30 text-apple-blue border border-apple-blue/30 text-[11px] font-semibold flex items-center gap-1.5 spring-transition shadow-sm">
+                        <i class="fa-solid fa-volume-high"></i> Ouvir Prévia
+                    </button>
+                </div>
+
+                <div class="space-y-2 bg-[#171922] p-2.5 rounded-xl border border-white/5">
+                    <div>
+                        <label class="text-[10px] text-zinc-400 mb-1 block">Voz Neural Selecionada:</label>
+                        <select id="settingVoiceSelect" onchange="changeVoiceSetting(this.value)" class="w-full bg-[#12141a] border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-white/30 cursor-pointer font-medium">
+                            <optgroup label="👩 Vozes Femininas (Recomendadas)">
+                                <option value="pt-BR-FranciscaNeural" selected>👩 Francisca Neural (Feminina Padrão - Suave e Fluida)</option>
+                                <option value="pt-BR-ThalitaNeural">👩 Thalita Neural (Feminina - Jovem e Expressiva)</option>
+                                <option value="pt-BR-YaraNeural">👩 Yara Neural (Feminina - Calma e Serena)</option>
+                                <option value="pt-BR-ElzaNeural">👩 Elza Neural (Feminina - Articulada)</option>
+                                <option value="pt-BR-BrendaNeural">👩 Brenda Neural (Feminina - Dinâmica)</option>
+                            </optgroup>
+                            <optgroup label="👨 Vozes Masculinas">
+                                <option value="pt-BR-AntonioNeural">👨 Antônio Neural (Masculino - Firme / Coach Montanha)</option>
+                                <option value="pt-BR-FabioNeural">👨 Fábio Neural (Masculino - Conversacional)</option>
+                                <option value="pt-BR-NicolauNeural">👨 Nicolau Neural (Masculino - Natural)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="text-[11px] text-zinc-400 flex items-center justify-between pt-1">
+                        <span>💡 Digite <code class="text-apple-blue font-mono bg-white/5 px-1 py-0.5 rounded border border-white/5">/text-voice [texto]</code> no chat a qualquer momento.</span>
                     </div>
                 </div>
             </div>
@@ -1328,7 +1372,11 @@
                     if (m.role === 'user') {
                         appendUserMessage(m.prompt, m.media || m.image, idx);
                     } else if (m.role === 'model') {
-                        appendBotMessage(m.response, m.sources, idx);
+                        if (m.audio_base64) {
+                            appendBotAudioMessage(m.audio_text || m.prompt_text || m.response, m.audio_base64, m.audio_url, m.voice_label, idx);
+                        } else {
+                            appendBotMessage(m.response, m.sources, idx);
+                        }
                     }
                 });
             } else {
@@ -1681,6 +1729,15 @@
             if (prompt.startsWith('/imagem ') || prompt.startsWith('/image ')) {
                 const imgPrompt = prompt.replace(/^\/(imagem|image)\s+/, '');
                 executeImageDirect(imgPrompt);
+                sendBtn.disabled = false;
+                return;
+            }
+
+            // Intercepta comando de voz /text-voice se digitado direto
+            const voiceMatch = prompt.match(/^\/(text-voice|textvoice|voice|voz)(\s+[\s\S]*)?$/i);
+            if (voiceMatch) {
+                const voiceTxt = (voiceMatch[2] || "").trim();
+                executeTextVoiceDirect(voiceTxt);
                 sendBtn.disabled = false;
                 return;
             }
@@ -2670,9 +2727,278 @@
             await downloadAsPdf(text);
         }
 
-        function speakMessageFromBubble(btn) {
+        // ==========================================
+        // TEXT-VOICE & SÍNTESE NEURAL DE VOZ
+        // ==========================================
+        let currentPlayingAudio = null;
+
+        function getVoiceLabel(voiceId) {
+            const map = {
+                'pt-BR-FranciscaNeural': '👩 Francisca (Mulher Padrão)',
+                'pt-BR-ThalitaNeural': '👩 Thalita (Mulher Expressiva)',
+                'pt-BR-YaraNeural': '👩 Yara (Mulher Calma)',
+                'pt-BR-ElzaNeural': '👩 Elza (Mulher Articulada)',
+                'pt-BR-BrendaNeural': '👩 Brenda (Mulher Dinâmica)',
+                'pt-BR-AntonioNeural': '👨 Antônio (Homem Coach)',
+                'pt-BR-FabioNeural': '👨 Fábio (Homem Conversa)',
+                'pt-BR-NicolauNeural': '👨 Nicolau (Homem Natural)'
+            };
+            return map[voiceId] || voiceId || 'Voz Neural pt-BR';
+        }
+
+        function changeVoiceSetting(val) {
+            localStorage.setItem('montanha_selected_voice', val);
+            const s1 = document.getElementById('settingVoiceSelect');
+            const s2 = document.getElementById('quickVoiceSelect');
+            if (s1 && s1.value !== val) s1.value = val;
+            if (s2 && s2.value !== val) s2.value = val;
+            syncVoiceToVault(val);
+        }
+
+        async function syncVoiceToVault(voiceVal) {
+            const user = getStoredUser();
+            if (!user) return;
+            try {
+                await fetch('/api/auth/vault', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: user.id,
+                        login: user.login,
+                        vault: { voice: voiceVal }
+                    })
+                });
+            } catch(e) {}
+        }
+
+        function playAudioDataUri(uri) {
+            if (!uri) return;
+            try {
+                if (currentPlayingAudio) {
+                    currentPlayingAudio.pause();
+                    currentPlayingAudio.currentTime = 0;
+                }
+                currentPlayingAudio = new Audio(uri);
+                const speedEl = document.getElementById('selectAudioSpeed');
+                if (speedEl) {
+                    currentPlayingAudio.playbackRate = parseFloat(speedEl.value) || 1.0;
+                }
+                currentPlayingAudio.play().catch(e => {
+                    console.warn("Autoplay audio:", e);
+                });
+            } catch (err) {
+                console.error("Erro ao reproduzir áudio:", err);
+            }
+        }
+
+        async function testCurrentVoice() {
+            const v = localStorage.getItem('montanha_selected_voice') || 'pt-BR-FranciscaNeural';
+            const sample = (v.includes('Antonio') || v.includes('Fabio') || v.includes('Nicolau'))
+                ? "Olá Alberto! Esta é a voz masculina pré-configurada para o seu estúdio."
+                : "Olá Alberto! Esta é a voz feminina pré-configurada para o seu estúdio. Estou pronta para ler seus comandos de voz.";
+            
+            showToast("🎙️ Gerando prévia da voz...");
+            try {
+                const res = await fetch('/api/tts', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ text: sample, voice: v })
+                });
+                const d = await res.json();
+                if (d.status === 'success' && d.audio_base64) {
+                    playAudioDataUri(d.audio_base64);
+                    showToast("▶️ Reproduzindo prévia da voz!");
+                } else {
+                    speakText(sample);
+                }
+            } catch(e) {
+                speakText(sample);
+            }
+        }
+
+        async function executeTextVoiceDirect(text) {
+            const input = document.getElementById('promptInput');
+            input.value = '';
+            autoGrow(input);
+
+            if (!currentChatId) {
+                currentChatId = 'chat_' + Date.now();
+                document.getElementById('currentChatTitle').innerText = text ? text.substring(0, 30) : "Síntese de Voz";
+            }
+
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            document.getElementById('messagesList').classList.remove('hidden');
+
+            const localChats = getLocalChats();
+            const currentChatObj = localChats[currentChatId] || { id: currentChatId, title: "Áudio Text-Voice", messages: [] };
+
+            // Se o usuário digitou apenas /text-voice sem texto, orienta com ajuda
+            if (!text) {
+                currentChatObj.messages.push({ role: 'user', prompt: "/text-voice" });
+                const uIdx = currentChatObj.messages.length - 1;
+                appendUserMessage("/text-voice", null, uIdx);
+
+                const helpMsg = `🎙️ **Comando /text-voice Ativo!**\n\nEscreva qualquer texto ou roteiro após o comando para que a IA gere o áudio neural e leia para você.\n\n**Exemplos rápidos:**\n- \`/text-voice Olá Alberto! Aqui é a Francisca, sua voz feminina no Montanha Studio.\`\n- \`/text-voice Aquecimento: 3 rounds de 10 agachamentos com pausa e 15 flexões.\`\n\n*Você pode trocar para outra voz feminina ou masculina a qualquer momento no seletor do topo ou nos Ajustes.*`;
+                currentChatObj.messages.push({ role: 'model', response: helpMsg });
+                const bIdx = currentChatObj.messages.length - 1;
+                appendBotMessage(helpMsg, null, bIdx);
+                saveLocalChat(currentChatId, currentChatObj.title, currentChatObj.messages);
+                loadChatsIndex();
+                return;
+            }
+
+            currentChatObj.messages.push({ role: 'user', prompt: `/text-voice ${text}` });
+            const userMsgIdx = currentChatObj.messages.length - 1;
+            appendUserMessage(`/text-voice ${text}`, null, userMsgIdx);
+            appendLoadingSkeleton();
+
+            const selectedVoice = localStorage.getItem('montanha_selected_voice') || 'pt-BR-FranciscaNeural';
+            const speedEl = document.getElementById('selectAudioSpeed');
+            const speedVal = speedEl ? speedEl.value : "1.06";
+            let rateParam = "+0%";
+            if (speedVal === "0.9") rateParam = "-10%";
+            else if (speedVal === "1.15") rateParam = "+15%";
+            else if (speedVal === "1.25") rateParam = "+25%";
+            else if (speedVal === "1.06") rateParam = "+6%";
+
+            try {
+                const res = await fetch('/api/tts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: text,
+                        voice: selectedVoice,
+                        rate: rateParam
+                    })
+                });
+
+                removeLoadingSkeleton();
+                const data = await res.json();
+
+                if (data.status === 'success' && data.audio_base64) {
+                    const voiceLabel = getVoiceLabel(data.voice || selectedVoice);
+                    const botResponse = `🎙️ **Áudio Gerado com Sucesso** (${voiceLabel})\n\n> "${text}"`;
+                    
+                    currentChatObj.messages.push({
+                        role: 'model',
+                        response: botResponse,
+                        audio_base64: data.audio_base64,
+                        audio_url: data.audio_url || "",
+                        audio_text: text,
+                        voice_label: voiceLabel
+                    });
+                    const botMsgIdx = currentChatObj.messages.length - 1;
+
+                    appendBotAudioMessage(text, data.audio_base64, data.audio_url, voiceLabel, botMsgIdx);
+                    saveLocalChat(currentChatId, currentChatObj.title, currentChatObj.messages);
+                    loadChatsIndex();
+
+                    // Auto-play imediato!
+                    playAudioDataUri(data.audio_base64);
+                } else {
+                    speakText(text);
+                    const botResponse = `🔊 **Áudio Reproduzido via Síntese Local**\n\n> "${text}"`;
+                    currentChatObj.messages.push({ role: 'model', response: botResponse });
+                    appendBotMessage(botResponse, null, currentChatObj.messages.length - 1);
+                    saveLocalChat(currentChatId, currentChatObj.title, currentChatObj.messages);
+                }
+            } catch (e) {
+                removeLoadingSkeleton();
+                speakText(text);
+                const botResponse = `🔊 **Áudio Reproduzido via Síntese Local (Offline)**\n\n> "${text}"`;
+                currentChatObj.messages.push({ role: 'model', response: botResponse });
+                appendBotMessage(botResponse, null, currentChatObj.messages.length - 1);
+                saveLocalChat(currentChatId, currentChatObj.title, currentChatObj.messages);
+            }
+        }
+
+        function appendBotAudioMessage(text, audioBase64, audioUrl, voiceLabel, msgIndex) {
+            const list = document.getElementById('messagesList');
+            const div = document.createElement('div');
+            div.className = "flex justify-start w-full group mb-3";
+            div.id = 'bot-audio-' + Date.now();
+
+            const deleteAction = (typeof msgIndex === 'number' && msgIndex >= 0) ? `
+                <button onclick="deleteSingleMessage(${msgIndex})" class="hover:text-red-400 spring-transition flex items-center gap-1 py-1 px-1.5 rounded-md hover:bg-red-500/10 text-zinc-500" title="Excluir mensagem">
+                    <i class="fa-regular fa-trash-can text-xs"></i>
+                    <span class="text-[11px]">Excluir</span>
+                </button>
+            ` : '';
+
+            const directDownload = audioUrl || audioBase64;
+
+            div.innerHTML = `
+                <div class="max-w-[95%] sm:max-w-[85%] rounded-2xl rounded-tl-sm bg-[#12141a] border border-white/5 p-4 text-zinc-200 shadow-md chat-bubble-content">
+                    <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/5">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-7 h-7 rounded-lg bg-apple-blue/20 text-apple-blue flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-waveform-lines animate-pulse"></i>
+                            </span>
+                            <div>
+                                <div class="text-xs font-semibold text-white">Áudio Gerado (/text-voice)</div>
+                                <div class="text-[10px] text-zinc-400">${voiceLabel || 'Voz Feminina Neural'}</div>
+                            </div>
+                        </div>
+                        <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-white/5 text-zinc-400 border border-white/5">MP3 HD</span>
+                    </div>
+
+                    <div class="p-3 bg-black/40 rounded-xl border border-white/5 space-y-2.5">
+                        <div class="text-xs text-zinc-300 italic border-l-2 border-apple-blue pl-2.5 py-0.5 select-text leading-relaxed">
+                            "${text.replace(/"/g, '&quot;')}"
+                        </div>
+                        <audio controls src="${audioBase64}" class="w-full h-9 rounded-lg outline-none"></audio>
+                    </div>
+
+                    <div class="mt-3 pt-2 border-t border-white/5 flex items-center justify-between text-zinc-500 text-xs">
+                        <div class="flex items-center space-x-1 sm:space-x-2 flex-wrap gap-y-1">
+                            <button onclick="playAudioDataUri('${audioBase64}')" class="hover:text-white spring-transition flex items-center gap-1 py-1 px-2 rounded-md hover:bg-white/5 text-apple-blue" title="Ouvir Novamente">
+                                <i class="fa-solid fa-play text-xs"></i>
+                                <span class="text-[11px] font-medium">Tocar</span>
+                            </button>
+                            <a href="${directDownload}" download="audio_montanha_${Date.now()}.mp3" class="hover:text-white spring-transition flex items-center gap-1 py-1 px-2 rounded-md hover:bg-white/5 text-zinc-400" title="Baixar Arquivo MP3">
+                                <i class="fa-solid fa-download text-xs"></i>
+                                <span class="text-[11px]">Baixar MP3</span>
+                            </a>
+                            ${deleteAction}
+                        </div>
+                        <span class="text-[10px] font-mono text-zinc-600">Montanha Voice</span>
+                    </div>
+                </div>
+            `;
+
+            list.appendChild(div);
+            setTimeout(() => {
+                div.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 60);
+        }
+
+        async function speakMessageFromBubble(btn) {
             const text = getBubbleMarkdownText(btn);
-            if (text) speakText(text);
+            if (!text) return;
+
+            const icon = btn.querySelector('i');
+            const originalClass = icon ? icon.className : 'fa-solid fa-volume-high text-xs';
+            if (icon) icon.className = 'fa-solid fa-spinner fa-spin text-xs text-apple-blue';
+
+            const selectedVoice = localStorage.getItem('montanha_selected_voice') || 'pt-BR-FranciscaNeural';
+            try {
+                const res = await fetch('/api/tts', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ text: text.substring(0, 2500), voice: selectedVoice })
+                });
+                const d = await res.json();
+                if (d.status === 'success' && d.audio_base64) {
+                    playAudioDataUri(d.audio_base64);
+                    if (icon) icon.className = 'fa-solid fa-volume-high text-xs text-emerald-400';
+                    setTimeout(() => { if (icon) icon.className = originalClass; }, 3000);
+                    return;
+                }
+            } catch (e) {}
+
+            // Fallback nativo
+            if (icon) icon.className = originalClass;
+            speakText(text);
         }
 
         async function downloadAsPdf(text) {
@@ -3127,6 +3453,9 @@
                 if (document.getElementById('pluginGSheets')) document.getElementById('pluginGSheets').checked = !!vault.plugins.gsheets;
                 if (document.getElementById('pluginWeather')) document.getElementById('pluginWeather').checked = !!vault.plugins.live_weather;
             }
+            if (vault.voice) {
+                changeVoiceSetting(vault.voice);
+            }
             updateKeyStatuses();
         }
 
@@ -3143,6 +3472,7 @@
                 openrouter: localKeys.openrouter || '',
                 fontSize: currentFontSize || 15,
                 engine: appPreferences.engine || 'auto-omniroute',
+                voice: localStorage.getItem('montanha_selected_voice') || 'pt-BR-FranciscaNeural',
                 plugins: appPreferences.plugins || {},
                 syncedAt: new Date().toISOString()
             };
@@ -3295,6 +3625,9 @@
             if (savedEngine && document.getElementById('selectModelEngine')) {
                 document.getElementById('selectModelEngine').value = savedEngine;
             }
+
+            const savedVoice = localStorage.getItem('montanha_selected_voice') || 'pt-BR-FranciscaNeural';
+            changeVoiceSetting(savedVoice);
 
             const lastChat = localStorage.getItem('montanha_last_active_chat');
             if (lastChat) {
