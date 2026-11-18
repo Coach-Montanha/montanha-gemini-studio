@@ -1195,6 +1195,23 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
             img_engine = body.get("engine", "flux").lower()
             user_gemini_key = self.headers.get("X-Gemini-Key") or body.get("api_key") or os.environ.get("GEMINI_API_KEY", "")
 
+            # 0. Meta AI Oficial via Orca/Stealth Bridge
+            if "meta" in img_engine or "emu" in img_engine:
+                try:
+                    scripts_dir = str(Path(__file__).parent.parent / "scripts")
+                    if scripts_dir not in sys.path:
+                        sys.path.insert(0, scripts_dir)
+                    import meta_ai_bridge
+                    m_res = meta_ai_bridge.generate_image(prompt, headless=True)
+                    if m_res.get("status") == "success":
+                        self._send_json(m_res)
+                        return
+                    elif m_res.get("status") == "error":
+                        self._send_json(m_res, 400)
+                        return
+                except Exception as e:
+                    pass
+
             # 1. Google Imagen 3 (Oficial Gemini)
             if ("gemini" in img_engine or "imagen" in img_engine) and user_gemini_key:
                 try:
