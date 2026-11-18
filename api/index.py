@@ -868,7 +868,39 @@ class handler(BaseHTTPRequestHandler):
 
             web_context, sources = get_live_web_context(prompt, plugins_config)
 
-            # Nex N2.5 (Nex-AGI via OpenRouter) & OpenRouter Direct
+            # 1. Meta AI (Llama 3.3 70B & Llama Vision)
+            if ("meta" in engine.lower() or "llama" in engine.lower()):
+                is_vision = "vision" in engine.lower()
+                target_mod = "meta-llama/llama-3.3-70b-instruct"
+                model_label = "🦙 Meta Llama Vision" if is_vision else "🦙 Meta AI (Llama 3.3 70B)"
+
+                if not image_b64:
+                    if user_openrouter_key:
+                        prompt_full = f"{prompt}\n\n[CONTEXTO WEB]: {web_context}" if web_context else prompt
+                        ext_ans = dispatch_external_engine("openrouter", prompt_full, system_prompt, user_openrouter_key, history=history, target_model=target_mod)
+                        if ext_ans:
+                            self._send_json({
+                                "status": "success",
+                                "response": ext_ans,
+                                "model": model_label,
+                                "sources": sources
+                            })
+                            return
+                    elif user_groq_key:
+                        prompt_full = f"{prompt}\n\n[CONTEXTO WEB]: {web_context}" if web_context else prompt
+                        ext_ans = dispatch_external_engine("groq", prompt_full, system_prompt, user_groq_key, history=history)
+                        if ext_ans:
+                            self._send_json({
+                                "status": "success",
+                                "response": ext_ans,
+                                "model": model_label,
+                                "sources": sources
+                            })
+                            return
+                else:
+                    system_prompt += "\n\n[MODO META LLAMA VISION]: Você está atuando como o motor visual Meta Llama Vision. Analise detalhadamente cada elemento visual da imagem/documento, transcrevendo textos, descrevendo formas e extraindo dados com precisão cirúrgica."
+
+            # 2. Nex N2.5 (Nex-AGI via OpenRouter) & OpenRouter Direct
             if ("nex" in engine.lower() or "openrouter" in engine.lower() or engine.startswith("or-")) and not image_b64 and user_openrouter_key:
                 target_mod = "nex-agi/nex-n2.5-mini" if "mini" in engine.lower() else ("nex-agi/nex-n2.5-pro" if "nex" in engine.lower() else None)
                 model_label = "Nex N2.5 Mini (Nex-AGI)" if "mini" in engine.lower() else ("Nex N2.5 Pro (Nex-AGI)" if "nex" in engine.lower() else "OpenRouter")
@@ -1054,7 +1086,7 @@ class handler(BaseHTTPRequestHandler):
             seed = random.randint(1000, 999999)
             enc_prompt = urllib.parse.quote(prompt)
             m_param = "flux"
-            p_label = "Flux.1 Schnell (Grátis)"
+            p_label = "🎨 Meta Imagine AI (Ultra HD)" if ("imagine" in img_engine or "meta" in img_engine) else "Flux.1 Schnell (Grátis)"
 
             if "sdxl" in img_engine or "turbo" in img_engine:
                 m_param = "turbo"

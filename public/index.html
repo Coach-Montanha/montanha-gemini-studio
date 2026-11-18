@@ -484,6 +484,8 @@
                         <span class="text-zinc-500 text-[11px] mr-1 hidden xs:inline">Motor:</span>
                         <select id="selectModelEngine" onchange="updateEngineDisplay(this.value)" class="bg-transparent text-zinc-200 text-[11px] font-medium focus:outline-none cursor-pointer pr-1 truncate">
                             <option value="auto-omniroute" class="bg-[#12141a] text-white">Auto (OmniRoute Inteligente)</option>
+                            <option value="meta-llama-3.3-70b" class="bg-[#12141a] text-white">🦙 Meta AI — Llama 3.3 (Ultra-Rápido)</option>
+                            <option value="meta-llama-vision" class="bg-[#12141a] text-white">🦙 Meta Llama Vision (Fotos & OCR)</option>
                             <option value="nex-n2.5-pro" class="bg-[#12141a] text-white">⚡ Nex N2.5 Pro (Agêntico 262k)</option>
                             <option value="nex-n2.5-mini" class="bg-[#12141a] text-white">⚡ Nex N2.5 Mini (Rápido 262k)</option>
                             <option value="gemini-flash-lite-latest" class="bg-[#12141a] text-white">Gemini Flash Lite (Oficial)</option>
@@ -678,8 +680,9 @@
             <div class="space-y-1.5">
                 <label class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Escolha o Motor Gerador:</label>
                 <select id="selectImageEngine" class="w-full bg-[#171922] border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-white/30 cursor-pointer">
-                    <option value="gemini" selected>Google Imagen 3 (Oficial Gemini API)</option>
+                    <option value="imagine" selected>🎨 Meta Imagine AI (/imagine - Ultra HD)</option>
                     <option value="flux">Flux.1 Schnell (Grátis - Ultra HD)</option>
+                    <option value="gemini">Google Imagen 3 (Oficial Gemini API)</option>
                     <option value="turbo">Stable Diffusion XL (Grátis - Ultra Rápido)</option>
                     <option value="midjourney">Midjourney Style (Grátis - Realista & Artístico)</option>
                 </select>
@@ -1725,10 +1728,17 @@
             input.value = '';
             autoGrow(input);
 
-            // Intercepta comando de imagem se digitado direto
-            if (prompt.startsWith('/imagem ') || prompt.startsWith('/image ')) {
-                const imgPrompt = prompt.replace(/^\/(imagem|image)\s+/, '');
-                executeImageDirect(imgPrompt);
+            // Intercepta comando de imagem (/imagine, /imagem, /image) se digitado direto
+            const imgMatch = prompt.match(/^\/(imagine|imagem|image)(\s+[\s\S]*)?$/i);
+            if (imgMatch) {
+                const imgPrompt = (imgMatch[2] || "").trim();
+                const isImagine = prompt.toLowerCase().startsWith('/imagine');
+                if (!imgPrompt) {
+                    openImageModal();
+                    sendBtn.disabled = false;
+                    return;
+                }
+                executeImageDirect(imgPrompt, isImagine ? "imagine" : "flux");
                 sendBtn.disabled = false;
                 return;
             }
@@ -2052,12 +2062,12 @@
             document.getElementById('imageGeneratorModal').classList.add('hidden');
         }
 
-        async function executeImageGeneration() {
+        async function executeImageGeneration(engineOverride) {
             const input = document.getElementById('imagePromptInput');
             const prompt = input.value.trim();
             if (!prompt) return;
 
-            const engine = document.getElementById('selectImageEngine').value;
+            const engine = engineOverride || document.getElementById('selectImageEngine').value;
             closeImageGeneratorModal();
 
             if (!currentChatId) {
@@ -2068,8 +2078,9 @@
             document.getElementById('welcomeScreen').classList.add('hidden');
             document.getElementById('messagesList').classList.remove('hidden');
 
-            appendUserMessage(`/imagem [${engine}] ${prompt}`, false);
-            appendLoadingSkeleton();
+            const cmdLabel = (engine === 'imagine' || engineOverride === 'imagine') ? `/imagine` : `/imagem [${engine}]`;
+            appendUserMessage(`${cmdLabel} ${prompt}`, false);
+            appendLoadingSkeleton(engine === 'imagine' ? "🎨 Gerando com Meta Imagine AI..." : "Gerando imagem...");
 
             try {
                 const headers = { 'Content-Type': 'application/json' };
@@ -2094,9 +2105,9 @@
             }
         }
 
-        function executeImageDirect(prompt) {
+        function executeImageDirect(prompt, engineOverride) {
             document.getElementById('imagePromptInput').value = prompt;
-            executeImageGeneration();
+            executeImageGeneration(engineOverride);
         }
 
         // ==========================================
