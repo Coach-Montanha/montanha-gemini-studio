@@ -680,11 +680,10 @@
             <div class="space-y-1.5">
                 <label class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Escolha o Motor Gerador:</label>
                 <select id="selectImageEngine" class="w-full bg-[#171922] border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-white/30 cursor-pointer">
-                    <option value="imagine" selected>🎨 Meta Imagine AI (/imagine - Ultra HD)</option>
-                    <option value="flux">Flux.1 Schnell (Grátis - Ultra HD)</option>
-                    <option value="gemini">Google Imagen 3 (Oficial Gemini API)</option>
-                    <option value="turbo">Stable Diffusion XL (Grátis - Ultra Rápido)</option>
-                    <option value="midjourney">Midjourney Style (Grátis - Realista & Artístico)</option>
+                    <option value="gemini" selected>Google Imagen 3 (Oficial Gemini API)</option>
+                    <option value="flux">Flux.1 Schnell (Open-Weights HD)</option>
+                    <option value="turbo">Stable Diffusion XL (Rápido)</option>
+                    <option value="midjourney">Midjourney Style (Artístico)</option>
                 </select>
             </div>
 
@@ -1738,7 +1737,8 @@
                     sendBtn.disabled = false;
                     return;
                 }
-                executeImageDirect(imgPrompt, isImagine ? "imagine" : "flux");
+                const selectedImgEngine = document.getElementById('selectImageEngine') ? document.getElementById('selectImageEngine').value : 'gemini';
+                executeImageDirect(imgPrompt, selectedImgEngine);
                 sendBtn.disabled = false;
                 return;
             }
@@ -2078,9 +2078,9 @@
             document.getElementById('welcomeScreen').classList.add('hidden');
             document.getElementById('messagesList').classList.remove('hidden');
 
-            const cmdLabel = (engine === 'imagine' || engineOverride === 'imagine') ? `/imagine` : `/imagem [${engine}]`;
+            const cmdLabel = `/imagem [${engine}]`;
             appendUserMessage(`${cmdLabel} ${prompt}`, false);
-            appendLoadingSkeleton(engine === 'imagine' ? "🎨 Gerando com Meta Imagine AI..." : "Gerando imagem...");
+            appendLoadingSkeleton(`🎨 Gerando imagem com ${engine === 'gemini' ? 'Google Imagen 3' : (engine === 'flux' ? 'Flux.1 HD' : engine.toUpperCase())}...`);
 
             try {
                 const headers = { 'Content-Type': 'application/json' };

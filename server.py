@@ -1226,7 +1226,7 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
             seed = random.randint(1000, 999999)
             enc_prompt = urllib.parse.quote(prompt)
             m_param = "flux"
-            p_label = "🎨 Meta Imagine AI (Ultra HD)" if ("imagine" in img_engine or "meta" in img_engine) else "Flux.1 Schnell (Grátis)"
+            p_label = "Flux.1 Schnell (HD)"
 
             if "sdxl" in img_engine or "turbo" in img_engine:
                 m_param = "turbo"
