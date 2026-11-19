@@ -876,8 +876,8 @@
             <div class="space-y-1.5">
                 <label class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Escolha o Motor Gerador:</label>
                 <select id="selectImageEngine" class="w-full bg-[#171922] border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-white/30 cursor-pointer">
-                    <option value="meta">🦙 Meta AI (Emu Oficial via Orca Bridge)</option>
-                    <option value="gemini" selected>Google Imagen 3 (Oficial Gemini API)</option>
+                    <option value="meta" selected>🦙 Meta AI (Emu / Imagine Oficial)</option>
+                    <option value="gemini">Google Imagen 3 (Oficial Gemini API)</option>
                     <option value="flux">Flux.1 Schnell (Open-Weights HD)</option>
                     <option value="turbo">Stable Diffusion XL (Rápido)</option>
                     <option value="midjourney">Midjourney Style (Artístico)</option>
@@ -1968,13 +1968,19 @@
             const imgMatch = prompt.match(/^\/(imagine|imagem|image)(\s+[\s\S]*)?$/i);
             if (imgMatch) {
                 const imgPrompt = (imgMatch[2] || "").trim();
-                const isImagine = prompt.toLowerCase().startsWith('/imagine');
+                const cmd = (imgMatch[1] || "").toLowerCase();
                 if (!imgPrompt) {
-                    openImageModal();
+                    openImageGeneratorModal();
                     sendBtn.disabled = false;
                     return;
                 }
-                const selectedImgEngine = document.getElementById('selectImageEngine') ? document.getElementById('selectImageEngine').value : 'gemini';
+                // Se o usuário digitou /imagine, direciona SEMPRE para o motor oficial da Meta AI
+                let selectedImgEngine = 'meta';
+                if (cmd === 'imagine') {
+                    selectedImgEngine = 'meta';
+                } else {
+                    selectedImgEngine = document.getElementById('selectImageEngine') ? document.getElementById('selectImageEngine').value : 'meta';
+                }
                 executeImageDirect(imgPrompt, selectedImgEngine);
                 sendBtn.disabled = false;
                 return;
@@ -2325,9 +2331,8 @@
                 <div class="chat-bubble-user max-w-[85%] sm:max-w-[75%] px-4 py-2.5 shadow-sm chat-bubble-content flex flex-col">
                     ${mediaBadgeHtml}
                     <div class="select-text whitespace-pre-wrap break-words leading-relaxed">${escapeHtml(text)}</div>
-                    <div class="flex items-center justify-end gap-1 mt-1 text-[10px] opacity-75 font-mono select-none self-end">
+                    <div class="flex items-center justify-end mt-1 text-[10px] opacity-75 font-mono select-none self-end">
                         <span>${timeFormatted}</span>
-                        <i class="fa-solid fa-check-double text-[10px] text-emerald-300"></i>
                     </div>
                 </div>
             `;
@@ -2500,7 +2505,7 @@
             const prompt = input.value.trim();
             if (!prompt) return;
 
-            const engine = engineOverride || document.getElementById('selectImageEngine').value;
+            const engine = engineOverride || (document.getElementById('selectImageEngine') ? document.getElementById('selectImageEngine').value : 'meta');
             closeImageGeneratorModal();
 
             if (!currentChatId) {
@@ -2511,7 +2516,8 @@
             document.getElementById('welcomeScreen').classList.add('hidden');
             document.getElementById('messagesList').classList.remove('hidden');
 
-            const cmdLabel = `/imagem [${engine}]`;
+            const isMeta = (engine === 'meta' || engine === 'imagine' || engine === 'emu');
+            const cmdLabel = isMeta ? `/imagine` : `/imagem [${engine}]`;
             const userNowIso = new Date().toISOString();
             const localChats = getLocalChats();
             const currentChatObj = localChats[currentChatId] || { id: currentChatId, title: "Geração de Imagem", messages: [] };
@@ -2523,7 +2529,8 @@
             saveLocalChat(currentChatId, currentChatObj.title, currentChatObj.messages);
 
             appendUserMessage(`${cmdLabel} ${prompt}`, false, currentChatObj.messages.length - 1, userNowIso);
-            appendLoadingSkeleton(`🎨 Gerando imagem com ${engine === 'gemini' ? 'Google Imagen 3' : (engine === 'flux' ? 'Flux.1 HD' : engine.toUpperCase())}...`);
+            const engineLoadingName = isMeta ? 'Meta AI (Imagine / Emu Oficial)' : (engine === 'gemini' ? 'Google Imagen 3' : (engine === 'flux' ? 'Flux.1 HD' : engine.toUpperCase()));
+            appendLoadingSkeleton(`🎨 Gerando imagem com ${engineLoadingName}...`);
 
             try {
                 const headers = { 'Content-Type': 'application/json' };
@@ -2560,7 +2567,7 @@
 
         function executeImageDirect(prompt, engineOverride) {
             document.getElementById('imagePromptInput').value = prompt;
-            executeImageGeneration(engineOverride);
+            executeImageGeneration(engineOverride || 'meta');
         }
 
         // ==========================================

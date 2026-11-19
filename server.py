@@ -1205,11 +1205,16 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
 
         elif parsed.path == "/api/generate-image":
             prompt = body.get("prompt", "").strip()
-            img_engine = body.get("engine", "flux").lower()
+            img_engine = body.get("engine", "meta").lower()
             user_gemini_key = self.headers.get("X-Gemini-Key") or body.get("api_key") or os.environ.get("GEMINI_API_KEY", "")
 
-            # 0. Meta AI Oficial via Orca/Stealth Bridge
-            if "meta" in img_engine or "emu" in img_engine:
+            # Se o prompt começar com /imagine, limpa o prefixo e direciona para o Meta AI
+            if prompt.lower().startswith("/imagine"):
+                prompt = re.sub(r"^/imagine\s*", "", prompt, flags=re.IGNORECASE).strip()
+                img_engine = "meta"
+
+            # 0. Meta AI Oficial via Orca/Stealth Bridge (Imagine / Emu)
+            if "meta" in img_engine or "emu" in img_engine or "imagine" in img_engine:
                 try:
                     scripts_dir = str(Path(__file__).parent.parent / "scripts")
                     if scripts_dir not in sys.path:
@@ -1223,7 +1228,7 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
                         self._send_json(m_res, 400)
                         return
                 except Exception as e:
-                    pass
+                    print(f"Erro ao gerar com Meta AI: {e}")
 
             # 1. Google Imagen 3 (Oficial Gemini)
             if ("gemini" in img_engine or "imagen" in img_engine) and user_gemini_key:

@@ -1064,8 +1064,30 @@ class handler(BaseHTTPRequestHandler):
 
         elif any(p in all_routes for p in ["/generate-image", "generate-image"]):
             prompt = body.get("prompt", "").strip()
-            img_engine = body.get("engine", "flux").lower()
+            img_engine = body.get("engine", "meta").lower()
             user_gemini_key = self.headers.get("X-Gemini-Key") or body.get("api_key") or os.environ.get("GEMINI_API_KEY", "")
+
+            # Se o prompt começar com /imagine, limpa o comando e direciona para o Meta AI
+            if prompt.lower().startswith("/imagine"):
+                prompt = re.sub(r"^/imagine\s*", "", prompt, flags=re.IGNORECASE).strip()
+                img_engine = "meta"
+
+            # 0. Meta AI Oficial via Orca/Stealth Bridge (Imagine / Emu)
+            if "meta" in img_engine or "emu" in img_engine or "imagine" in img_engine:
+                try:
+                    scripts_dir = str(Path(__file__).parent.parent / "scripts")
+                    if scripts_dir not in sys.path:
+                        sys.path.insert(0, scripts_dir)
+                    import meta_ai_bridge
+                    m_res = meta_ai_bridge.generate_image(prompt, headless=True)
+                    if m_res.get("status") == "success":
+                        self._send_json(m_res)
+                        return
+                    elif m_res.get("status") == "error":
+                        self._send_json(m_res, 400)
+                        return
+                except Exception as e:
+                    pass
 
             # 1. Google Imagen 3 (Oficial Gemini)
             if ("gemini" in img_engine or "imagen" in img_engine) and user_gemini_key:
