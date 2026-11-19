@@ -120,6 +120,19 @@ def build_system_prompt(skill_key, plugins_config, permanent_skills):
     )
     parts.append(multimodal_instruction)
 
+    table_mobile_instruction = (
+        "[DIRETRIZ DE FORMATAÇÃO MOBILE & TABELAS ANTI-OVERFLOW]:\n"
+        "- O usuário acessa tanto pelo smartphone quanto pelo computador.\n"
+        "- Em telas de celular, tabelas horizontais com muitas colunas estouram a tela e forçam scroll lateral desconfortável.\n"
+        "- Quando for apresentar dados comparativos, séries de treino, tabelas nutricionais, divisões ou cronogramas:\n"
+        "  1. Priorize estruturar a informação no formato de 'Cartões / Lista de Atributos' vertical e elegante:\n"
+        "     ### 🏷️ [Nome do Item/Dia]\n"
+        "     - **Item/Atributo:** Valor conciso\n"
+        "     - **Métrica/Carga:** Valor conciso\n"
+        "  2. Se uma tabela Markdown for estritamente necessária, mantenha-a compacta (máximo 2 ou 3 colunas curtas). NUNCA gere tabelas largas com 4 ou mais colunas longas para não quebrar a leitura móvel."
+    )
+    parts.append(table_mobile_instruction)
+
     return "\n\n".join(parts)
 
 def fetch_duckduckgo_results(query):

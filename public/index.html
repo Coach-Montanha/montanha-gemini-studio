@@ -247,6 +247,202 @@
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* ======================================================= */
+        /* TEMAS DE CHAT (WhatsApp, Telegram, Montanha, Apple)     */
+        /* ======================================================= */
+        :root, html.theme-whatsapp {
+            --chat-bg: #0b141a;
+            --bubble-user-bg: #005c4b;
+            --bubble-user-text: #e9edef;
+            --bubble-user-border: rgba(0, 92, 75, 0.4);
+            --bubble-bot-bg: #202c33;
+            --bubble-bot-text: #d1d7db;
+            --bubble-bot-border: rgba(255, 255, 255, 0.05);
+            --theme-accent: #00a884;
+            --chat-wallpaper-doodle: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2300a884' fill-opacity='0.025' fill-rule='evenodd'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        html.theme-telegram {
+            --chat-bg: #0e1621;
+            --bubble-user-bg: #2b5278;
+            --bubble-user-text: #ffffff;
+            --bubble-user-border: rgba(43, 82, 120, 0.4);
+            --bubble-bot-bg: #182533;
+            --bubble-bot-text: #e4ecf2;
+            --bubble-bot-border: rgba(255, 255, 255, 0.05);
+            --theme-accent: #5288c1;
+            --chat-wallpaper-doodle: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%235288c1' fill-opacity='0.02' fill-rule='evenodd'%3E%3Ccircle cx='20' cy='20' r='1.5'/%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        html.theme-montanha {
+            --chat-bg: #0a0c10;
+            --bubble-user-bg: #1e1b38;
+            --bubble-user-text: #ffffff;
+            --bubble-user-border: rgba(105, 88, 226, 0.35);
+            --bubble-bot-bg: #12141a;
+            --bubble-bot-text: #e4e4e7;
+            --bubble-bot-border: rgba(255, 255, 255, 0.06);
+            --theme-accent: #6958e2;
+            --chat-wallpaper-doodle: none;
+        }
+
+        html.theme-apple {
+            --chat-bg: #000000;
+            --bubble-user-bg: #0071e3;
+            --bubble-user-text: #ffffff;
+            --bubble-user-border: rgba(0, 113, 227, 0.4);
+            --bubble-bot-bg: #1c1c1e;
+            --bubble-bot-text: #f2f2f7;
+            --bubble-bot-border: rgba(255, 255, 255, 0.08);
+            --theme-accent: #0071e3;
+            --chat-wallpaper-doodle: none;
+        }
+
+        html.light.theme-whatsapp {
+            --chat-bg: #efeae2;
+            --bubble-user-bg: #d9fdd3;
+            --bubble-user-text: #111b21;
+            --bubble-user-border: rgba(0, 0, 0, 0.05);
+            --bubble-bot-bg: #ffffff;
+            --bubble-bot-text: #111b21;
+            --bubble-bot-border: rgba(0, 0, 0, 0.06);
+        }
+
+        html.light.theme-telegram {
+            --chat-bg: #8ca8bf;
+            --bubble-user-bg: #eef3f7;
+            --bubble-user-text: #222222;
+            --bubble-user-border: rgba(0, 0, 0, 0.06);
+            --bubble-bot-bg: #ffffff;
+            --bubble-bot-text: #222222;
+            --bubble-bot-border: rgba(0, 0, 0, 0.06);
+        }
+
+        .chat-bubble-user {
+            background-color: var(--bubble-user-bg, #005c4b) !important;
+            color: var(--bubble-user-text, #e9edef) !important;
+            border: 1px solid var(--bubble-user-border, rgba(0, 92, 75, 0.4)) !important;
+            border-radius: 18px 18px 4px 18px !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .chat-bubble-bot {
+            background-color: var(--bubble-bot-bg, #202c33) !important;
+            color: var(--bubble-bot-text, #d1d7db) !important;
+            border: 1px solid var(--bubble-bot-border, rgba(255, 255, 255, 0.05)) !important;
+            border-radius: 18px 18px 18px 4px !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        #chatMainArea {
+            background-color: var(--chat-bg, #0b141a);
+            background-image: var(--chat-wallpaper-doodle, none);
+            background-repeat: repeat;
+        }
+
+        /* ======================================================= */
+        /* TABELAS ADAPTATIVAS ANTI-OVERFLOW (Impeccable Cards)    */
+        /* ======================================================= */
+        .table-responsive-wrapper {
+            width: 100%;
+            margin: 12px 0;
+            overflow-x: auto;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(0, 0, 0, 0.22);
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .markdown-body table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 0 !important;
+            font-size: calc(var(--chat-font-size, 15px) * 0.92) !important;
+        }
+
+        .markdown-body th {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--bubble-bot-text, #ffffff);
+            font-weight: 600;
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            white-space: nowrap;
+        }
+
+        .markdown-body td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: var(--bubble-bot-text, #e4e4e7);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .markdown-body tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Modo Cartões em Telas Pequenas (< 640px) */
+        @media (max-width: 640px) {
+            .table-responsive-wrapper {
+                background: transparent;
+                border: none;
+                overflow-x: visible;
+            }
+
+            .markdown-body table.responsive-card-table {
+                display: block;
+                width: 100%;
+            }
+
+            .markdown-body table.responsive-card-table thead {
+                display: none;
+            }
+
+            .markdown-body table.responsive-card-table tbody {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                width: 100%;
+            }
+
+            .markdown-body table.responsive-card-table tr {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                padding: 12px 14px;
+                background: rgba(255, 255, 255, 0.04);
+                border: 1px solid rgba(255, 255, 255, 0.07);
+                border-radius: 14px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            }
+
+            .markdown-body table.responsive-card-table td {
+                display: flex;
+                justify-content: space-between;
+                align-items: baseline;
+                padding: 5px 0;
+                border: none;
+                border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
+                font-size: 13px !important;
+            }
+
+            .markdown-body table.responsive-card-table td:last-child {
+                border-bottom: none;
+            }
+
+            .markdown-body table.responsive-card-table td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                font-size: 11px;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                color: rgba(255, 255, 255, 0.55);
+                margin-right: 12px;
+                flex-shrink: 0;
+            }
+        }
     </style>
 </head>
 <body class="h-screen h-[100dvh] w-screen flex overflow-hidden relative select-none">
@@ -946,6 +1142,44 @@
                 </div>
             </div>
 
+            <!-- Estilo & Aparência do Chat (Temas: WhatsApp, Telegram, Montanha, Apple) -->
+            <div class="space-y-2.5 pt-2 border-t border-white/5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <label class="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider block">Estilo do Chat (Aparência & Cores)</label>
+                        <p class="text-[11px] text-zinc-400">Escolha o visual das conversas (balões, papéis de parede e acentos).</p>
+                    </div>
+                    <span id="settingChatThemeDisplay" class="text-xs font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-0.5 rounded-lg font-bold">WhatsApp</span>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                    <button type="button" onclick="setChatTheme('whatsapp')" id="btnThemeWhatsapp" class="min-h-[50px] p-2 rounded-xl border flex flex-col items-center justify-center gap-1 spring-transition active:scale-95 bg-[#0b141a] border-[#00a884] text-white shadow-sm">
+                        <div class="flex items-center gap-1.5 font-bold text-xs">
+                            <i class="fa-brands fa-whatsapp text-emerald-400 text-sm"></i> WhatsApp
+                        </div>
+                        <span class="text-[10px] text-zinc-400 text-center">Verde esmeralda</span>
+                    </button>
+                    <button type="button" onclick="setChatTheme('telegram')" id="btnThemeTelegram" class="min-h-[50px] p-2 rounded-xl border flex flex-col items-center justify-center gap-1 spring-transition active:scale-95 bg-[#0e1621] border-white/10 text-zinc-300 hover:text-white">
+                        <div class="flex items-center gap-1.5 font-bold text-xs">
+                            <i class="fa-brands fa-telegram text-sky-400 text-sm"></i> Telegram
+                        </div>
+                        <span class="text-[10px] text-zinc-400 text-center">Azul petróleo</span>
+                    </button>
+                    <button type="button" onclick="setChatTheme('montanha')" id="btnThemeMontanha" class="min-h-[50px] p-2 rounded-xl border flex flex-col items-center justify-center gap-1 spring-transition active:scale-95 bg-[#0a0c10] border-white/10 text-zinc-300 hover:text-white">
+                        <div class="flex items-center gap-1.5 font-bold text-xs">
+                            <i class="fa-solid fa-mountain text-purple-400 text-sm"></i> Montanha
+                        </div>
+                        <span class="text-[10px] text-zinc-400 text-center">Escuro padrão</span>
+                    </button>
+                    <button type="button" onclick="setChatTheme('apple')" id="btnThemeApple" class="min-h-[50px] p-2 rounded-xl border flex flex-col items-center justify-center gap-1 spring-transition active:scale-95 bg-black border-white/10 text-zinc-300 hover:text-white">
+                        <div class="flex items-center gap-1.5 font-bold text-xs">
+                            <i class="fa-brands fa-apple text-zinc-200 text-sm"></i> Apple
+                        </div>
+                        <span class="text-[10px] text-zinc-400 text-center">Preto OLED</span>
+                    </button>
+                </div>
+            </div>
+
             <!-- Gerenciador de Plugins -->
             <div class="space-y-3 pt-2 border-t border-white/5">
                 <label class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block">Plugins & Conectividade</label>
@@ -1373,12 +1607,14 @@
                 msgContainer.classList.remove('hidden');
                 chat.messages.forEach((m, idx) => {
                     if (m.role === 'user') {
-                        appendUserMessage(m.prompt, m.media || m.image, idx);
+                        appendUserMessage(m.prompt, m.media || m.image, idx, m.timestamp);
                     } else if (m.role === 'model') {
-                        if (m.audio_base64) {
-                            appendBotAudioMessage(m.audio_text || m.prompt_text || m.response, m.audio_base64, m.audio_url, m.voice_label, idx);
+                        if (m.image_url) {
+                            appendImageMessage(m.image_url, m.image_prompt || m.response, m.provider, m.timestamp);
+                        } else if (m.audio_base64) {
+                            appendBotAudioMessage(m.audio_text || m.prompt_text || m.response, m.audio_base64, m.audio_url, m.voice_label, idx, m.timestamp, m.updated, m.updatedAt);
                         } else {
-                            appendBotMessage(m.response, m.sources, idx);
+                            appendBotMessage(m.response, m.sources, idx, m.timestamp, m.updated, m.updatedAt);
                         }
                     }
                 });
@@ -1791,12 +2027,19 @@
                 isImage: attachedImageMime.startsWith('image/')
             } : null;
 
-            currentChatObj.messages.push({ role: 'user', prompt: finalPrompt, media: mediaData, image: !!attachedImageBase64 });
+            const userNowIso = new Date().toISOString();
+            currentChatObj.messages.push({
+                role: 'user',
+                prompt: finalPrompt,
+                media: mediaData,
+                image: !!attachedImageBase64,
+                timestamp: userNowIso
+            });
             const userMsgIdx = currentChatObj.messages.length - 1;
             saveLocalChat(currentChatId, currentChatObj.title, currentChatObj.messages);
             updateMemoryBadge();
 
-            appendUserMessage(finalPrompt, mediaData, userMsgIdx);
+            appendUserMessage(finalPrompt, mediaData, userMsgIdx, userNowIso);
             appendLoadingSkeleton();
 
             const skill = document.getElementById('selectSkill').value;
@@ -1845,9 +2088,15 @@
                 removeLoadingSkeleton();
 
                 if (data.status === 'success') {
-                    currentChatObj.messages.push({ role: 'model', response: data.response, sources: data.sources });
+                    const botNowIso = new Date().toISOString();
+                    currentChatObj.messages.push({
+                        role: 'model',
+                        response: data.response,
+                        sources: data.sources,
+                        timestamp: botNowIso
+                    });
                     const botMsgIdx = currentChatObj.messages.length - 1;
-                    appendBotMessage(data.response, data.sources, botMsgIdx);
+                    appendBotMessage(data.response, data.sources, botMsgIdx, botNowIso);
                     updateMemoryBadge();
                     saveLocalChat(currentChatId, currentChatObj.title, currentChatObj.messages);
                     loadChatsIndex();
@@ -1889,10 +2138,163 @@
             }
         }
 
-        function appendUserMessage(text, mediaInfo, msgIndex) {
+        // ==========================================
+        // UTILITÁRIOS VISUAIS & FORMATAÇÃO (/a-impeccable)
+        // ==========================================
+        function formatMessageTime(isoString) {
+            if (!isoString) {
+                return new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            }
+            try {
+                const d = new Date(isoString);
+                if (isNaN(d.getTime())) return "";
+                const now = new Date();
+                const isToday = d.toDateString() === now.toDateString();
+                const timeStr = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                if (isToday) return timeStr;
+                const dateStr = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                return `${dateStr} ${timeStr}`;
+            } catch(e) {
+                return "";
+            }
+        }
+
+        function processMarkdownTables(container) {
+            if (!container) return;
+            container.querySelectorAll('table').forEach(table => {
+                if (!table.parentElement.classList.contains('table-responsive-wrapper')) {
+                    const wrap = document.createElement('div');
+                    wrap.className = 'table-responsive-wrapper';
+                    table.parentNode.insertBefore(wrap, table);
+                    wrap.appendChild(table);
+                }
+                const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.innerText.trim());
+                table.querySelectorAll('tbody tr').forEach(row => {
+                    row.querySelectorAll('td').forEach((td, idx) => {
+                        if (headers[idx]) {
+                            td.setAttribute('data-label', headers[idx]);
+                        }
+                    });
+                });
+                table.classList.add('responsive-card-table');
+            });
+        }
+
+        function setChatTheme(themeName, persist = true) {
+            const validThemes = ['whatsapp', 'telegram', 'montanha', 'apple'];
+            const theme = validThemes.includes(themeName) ? themeName : 'whatsapp';
+            
+            document.documentElement.classList.remove('theme-whatsapp', 'theme-telegram', 'theme-montanha', 'theme-apple');
+            document.documentElement.classList.add(`theme-${theme}`);
+            
+            if (persist) {
+                localStorage.setItem('montanha_chat_theme', theme);
+                syncVaultToDevice('montanha_chat_theme', theme);
+            }
+            
+            validThemes.forEach(t => {
+                const btn = document.getElementById(`btnTheme${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                if (btn) {
+                    if (t === theme) {
+                        btn.classList.add('border-apple-blue', 'text-white', 'shadow-sm');
+                        btn.classList.remove('border-white/10', 'text-zinc-300');
+                    } else {
+                        btn.classList.remove('border-apple-blue', 'text-white', 'shadow-sm');
+                        btn.classList.add('border-white/10', 'text-zinc-300');
+                    }
+                }
+            });
+            
+            const displayEl = document.getElementById('settingChatThemeDisplay');
+            if (displayEl) {
+                const labels = {
+                    whatsapp: 'WhatsApp',
+                    telegram: 'Telegram',
+                    montanha: 'Montanha',
+                    apple: 'Apple'
+                };
+                displayEl.textContent = labels[theme] || theme;
+            }
+        }
+
+        async function regenerateBotMessage(botIndex) {
+            if (!currentChatId || typeof botIndex !== 'number') return;
+            const localChats = getLocalChats();
+            const currentChatObj = localChats[currentChatId];
+            if (!currentChatObj || !currentChatObj.messages || botIndex < 0 || botIndex >= currentChatObj.messages.length) return;
+
+            let userPrompt = "";
+            for (let i = botIndex - 1; i >= 0; i--) {
+                if (currentChatObj.messages[i].role === 'user') {
+                    userPrompt = currentChatObj.messages[i].prompt;
+                    break;
+                }
+            }
+            if (!userPrompt) return;
+
+            showToast("🔄 Atualizando resposta da IA...");
+            appendLoadingSkeleton();
+
+            const skill = document.getElementById('selectSkill').value;
+            const engine = document.getElementById('selectModelEngine').value;
+            const historyToSend = currentChatObj.messages.slice(0, botIndex).map(m => ({
+                role: m.role === 'model' ? 'model' : 'user',
+                content: m.role === 'model' ? (m.response || '') : (m.prompt || '')
+            }));
+
+            const payload = {
+                chat_id: currentChatId,
+                prompt: userPrompt,
+                history: historyToSend,
+                skill: skill,
+                engine: engine,
+                live_call: false,
+                plugins: appPreferences.plugins,
+                permanent_skills: appPreferences.permanent_skills,
+                image_base64: "",
+                media_base64: "",
+                mime_type: "text/plain"
+            };
+
+            const headers = { 'Content-Type': 'application/json' };
+            if (localKeys.gemini) headers['X-Gemini-Key'] = localKeys.gemini;
+            if (localKeys.groq) headers['X-Groq-Key'] = localKeys.groq;
+            if (localKeys.openrouter) headers['X-OpenRouter-Key'] = localKeys.openrouter;
+
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                removeLoadingSkeleton();
+
+                if (data.status === 'success') {
+                    const nowIso = new Date().toISOString();
+                    currentChatObj.messages[botIndex] = {
+                        ...currentChatObj.messages[botIndex],
+                        response: data.response,
+                        sources: data.sources,
+                        updated: true,
+                        updatedAt: nowIso
+                    };
+                    saveLocalChat(currentChatId, currentChatObj.title, currentChatObj.messages);
+                    selectChat(currentChatId, currentChatObj.title);
+                    showToast("✅ Resposta atualizada com sucesso!");
+                } else {
+                    showToast("⚠️ Não foi possível atualizar: " + (data.message || "Erro desconhecido"));
+                }
+            } catch(e) {
+                removeLoadingSkeleton();
+                showToast("⚠️ Falha de comunicação ao atualizar resposta.");
+            }
+        }
+
+        function appendUserMessage(text, mediaInfo, msgIndex, timestamp) {
             const list = document.getElementById('messagesList');
             const div = document.createElement('div');
-            div.className = "flex items-center justify-end w-full group relative mb-2";
+            div.className = "flex items-center justify-end w-full group relative mb-2.5";
             const deleteBtn = (typeof msgIndex === 'number' && msgIndex >= 0) ? `
                 <button onclick="deleteSingleMessage(${msgIndex})" class="opacity-0 group-hover:opacity-100 hover:text-red-400 p-1.5 text-zinc-500 spring-transition self-center mr-1.5" title="Excluir mensagem da memória">
                     <i class="fa-regular fa-trash-can text-xs"></i>
@@ -1916,11 +2318,17 @@
                 }
             }
 
+            const timeFormatted = formatMessageTime(timestamp);
+
             div.innerHTML = `
                 ${deleteBtn}
-                <div class="max-w-[85%] sm:max-w-[75%] rounded-2xl rounded-tr-sm bg-white/10 border border-white/10 px-4 py-3 text-white shadow-sm chat-bubble-content">
+                <div class="chat-bubble-user max-w-[85%] sm:max-w-[75%] px-4 py-2.5 shadow-sm chat-bubble-content flex flex-col">
                     ${mediaBadgeHtml}
-                    <div>${escapeHtml(text)}</div>
+                    <div class="select-text whitespace-pre-wrap break-words leading-relaxed">${escapeHtml(text)}</div>
+                    <div class="flex items-center justify-end gap-1 mt-1 text-[10px] opacity-75 font-mono select-none self-end">
+                        <span>${timeFormatted}</span>
+                        <i class="fa-solid fa-check-double text-[10px] text-emerald-300"></i>
+                    </div>
                 </div>
             `;
             list.appendChild(div);
@@ -1930,7 +2338,7 @@
             }, 50);
         }
 
-        function appendBotMessage(markdownText, sources, msgIndex) {
+        function appendBotMessage(markdownText, sources, msgIndex, timestamp, updated, updatedAt) {
             const list = document.getElementById('messagesList');
             const div = document.createElement('div');
             div.className = "flex justify-start w-full group mb-3";
@@ -1941,7 +2349,7 @@
                 sourcesHtml = '<div class="mt-3 pt-2.5 border-t border-white/5"><div class="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 mb-1.5 flex items-center gap-1"><i class="fa-solid fa-link text-[10px]"></i> Fontes Reais Grounding:</div><div class="flex flex-wrap gap-1.5">';
                 sources.forEach(s => {
                     sourcesHtml += `
-                        <a href="javascript:void(0)" onclick="openInInternalBrowser('${s.url.replace(/'/g, "\'")}')" class="text-[10px] bg-white/5 hover:bg-white/10 border border-white/5 px-2 py-1 rounded-lg text-zinc-300 flex items-center gap-1.5 truncate max-w-[240px] spring-transition" title="${s.title}">
+                        <a href="javascript:void(0)" onclick="openInInternalBrowser('${s.url.replace(/'/g, "\\'")}')" class="text-[10px] bg-white/5 hover:bg-white/10 border border-white/5 px-2 py-1 rounded-lg text-zinc-300 flex items-center gap-1.5 truncate max-w-[240px] spring-transition" title="${s.title}">
                             <i class="fa-solid fa-globe text-[9px] text-apple-blue"></i>
                             <span class="truncate">${s.title}</span>
                         </a>
@@ -1973,12 +2381,23 @@
                 </button>
             ` : '';
 
+            const regenAction = (typeof msgIndex === 'number' && msgIndex >= 0) ? `
+                <button onclick="regenerateBotMessage(${msgIndex})" class="hover:text-white spring-transition flex items-center gap-1 py-1 px-1.5 rounded-md hover:bg-white/5 text-zinc-500" title="Atualizar / Regenerar Resposta">
+                    <i class="fa-solid fa-rotate text-xs"></i>
+                    <span class="text-[11px]">Atualizar</span>
+                </button>
+            ` : '';
+
+            const timeFormatted = formatMessageTime(timestamp);
+            const updatedTimeFormatted = updatedAt ? formatMessageTime(updatedAt) : timeFormatted;
+            const updatedBadge = updated ? `<span class="text-[9px] font-sans px-1.5 py-0.2 rounded bg-white/10 text-emerald-300 border border-emerald-500/30 flex items-center gap-1"><i class="fa-solid fa-clock-rotate-left text-[8px]"></i> atualizada (${updatedTimeFormatted})</span>` : '';
+
             div.innerHTML = `
-                <div class="max-w-[95%] sm:max-w-[85%] rounded-2xl rounded-tl-sm bg-[#12141a] border border-white/5 px-4 py-3.5 text-zinc-200 shadow-md chat-bubble-content">
+                <div class="chat-bubble-bot max-w-[95%] sm:max-w-[85%] px-4 py-3.5 shadow-md chat-bubble-content flex flex-col">
                     <div class="markdown-body select-text">${marked.parse(markdownText || '')}</div>
                     ${sourcesHtml}
                     ${googleActionHtml}
-                    <div class="mt-3 pt-2 border-t border-white/5 flex items-center justify-between text-zinc-500 text-xs">
+                    <div class="mt-3 pt-2 border-t border-white/5 flex items-center justify-between text-zinc-500 text-xs gap-2">
                         <div class="flex items-center space-x-1 sm:space-x-2 flex-wrap gap-y-1">
                             <button onclick="speakMessageFromBubble(this)" class="hover:text-white spring-transition flex items-center gap-1 py-1 px-1.5 rounded-md hover:bg-white/5" title="Ouvir em Voz Alta">
                                 <i class="fa-solid fa-volume-high text-xs"></i>
@@ -1992,13 +2411,22 @@
                                 <i class="fa-solid fa-file-pdf text-xs"></i>
                                 <span class="text-[11px]">PDF</span>
                             </button>
+                            ${regenAction}
                             ${deleteAction}
                         </div>
-                        <span class="text-[10px] font-mono text-zinc-600">Montanha AI</span>
+                        <div class="flex items-center space-x-1.5 font-mono text-[10px] text-zinc-400 flex-shrink-0">
+                            ${updatedBadge}
+                            <span>${timeFormatted}</span>
+                            <span class="text-zinc-500 opacity-60">•</span>
+                            <span class="font-medium text-zinc-300">Montanha AI</span>
+                        </div>
                     </div>
                 </div>
             `;
             list.appendChild(div);
+
+            // Transforma tabelas em cartões responsivos anti-overflow (Padrão /a-impeccable)
+            processMarkdownTables(div);
 
             // Rolar suavemente para o INÍCIO da resposta, alinhado logo abaixo da pergunta do usuário!
             setTimeout(() => {
@@ -2006,12 +2434,13 @@
             }, 60);
         }
 
-        function appendImageMessage(imageUrl, prompt, provider) {
+        function appendImageMessage(imageUrl, prompt, provider, timestamp) {
             const list = document.getElementById('messagesList');
             const div = document.createElement('div');
-            div.className = "flex justify-start w-full";
+            div.className = "flex justify-start w-full mb-3";
+            const timeFormatted = formatMessageTime(timestamp);
             div.innerHTML = `
-                <div class="max-w-[95%] sm:max-w-[85%] rounded-2xl rounded-tl-sm bg-[#12141a] border border-white/5 p-3 text-zinc-200 shadow-md">
+                <div class="chat-bubble-bot max-w-[95%] sm:max-w-[85%] p-3 text-zinc-200 shadow-md chat-bubble-content flex flex-col">
                     <div class="relative rounded-xl overflow-hidden border border-white/10 group bg-black">
                         <img src="${imageUrl}" class="w-full max-h-[460px] object-contain rounded-xl" alt="${escapeHtml(prompt)}">
                         <div class="absolute bottom-2 right-2 flex items-center space-x-2">
@@ -2021,9 +2450,12 @@
                             </a>
                         </div>
                     </div>
-                    <div class="mt-2 text-xs text-zinc-400 flex items-center justify-between">
+                    <div class="mt-2 text-xs text-zinc-400 flex items-center justify-between gap-2">
                         <span class="truncate max-w-xs font-medium">${escapeHtml(prompt)}</span>
-                        <span class="text-[10px] font-mono text-zinc-500 bg-white/5 px-2 py-0.5 rounded border border-white/5">${provider || 'IA'}</span>
+                        <div class="flex items-center space-x-1.5 font-mono text-[10px] text-zinc-400 flex-shrink-0">
+                            <span class="bg-white/5 px-2 py-0.5 rounded border border-white/5">${provider || 'IA'}</span>
+                            <span>${timeFormatted}</span>
+                        </div>
                     </div>
                 </div>
             `;
@@ -2080,7 +2512,17 @@
             document.getElementById('messagesList').classList.remove('hidden');
 
             const cmdLabel = `/imagem [${engine}]`;
-            appendUserMessage(`${cmdLabel} ${prompt}`, false);
+            const userNowIso = new Date().toISOString();
+            const localChats = getLocalChats();
+            const currentChatObj = localChats[currentChatId] || { id: currentChatId, title: "Geração de Imagem", messages: [] };
+            currentChatObj.messages.push({
+                role: 'user',
+                prompt: `${cmdLabel} ${prompt}`,
+                timestamp: userNowIso
+            });
+            saveLocalChat(currentChatId, currentChatObj.title, currentChatObj.messages);
+
+            appendUserMessage(`${cmdLabel} ${prompt}`, false, currentChatObj.messages.length - 1, userNowIso);
             appendLoadingSkeleton(`🎨 Gerando imagem com ${engine === 'gemini' ? 'Google Imagen 3' : (engine === 'flux' ? 'Flux.1 HD' : engine.toUpperCase())}...`);
 
             try {
@@ -2096,7 +2538,17 @@
                 removeLoadingSkeleton();
 
                 if (data.status === 'success') {
-                    appendImageMessage(data.image_url, prompt, data.provider);
+                    const botNowIso = new Date().toISOString();
+                    currentChatObj.messages.push({
+                        role: 'model',
+                        image_url: data.image_url,
+                        image_prompt: prompt,
+                        provider: data.provider,
+                        timestamp: botNowIso
+                    });
+                    saveLocalChat(currentChatId, currentChatObj.title, currentChatObj.messages);
+                    loadChatsIndex();
+                    appendImageMessage(data.image_url, prompt, data.provider, botNowIso);
                 } else {
                     appendBotMessage("⚠️ " + (data.message || "Erro ao gerar imagem."));
                 }
@@ -2846,22 +3298,24 @@
 
             // Se o usuário digitou apenas /text-voice sem texto, orienta com ajuda
             if (!text) {
-                currentChatObj.messages.push({ role: 'user', prompt: "/text-voice" });
+                const nowIso = new Date().toISOString();
+                currentChatObj.messages.push({ role: 'user', prompt: "/text-voice", timestamp: nowIso });
                 const uIdx = currentChatObj.messages.length - 1;
-                appendUserMessage("/text-voice", null, uIdx);
+                appendUserMessage("/text-voice", null, uIdx, nowIso);
 
                 const helpMsg = `🎙️ **Comando /text-voice Ativo!**\n\nEscreva qualquer texto ou roteiro após o comando para que a IA gere o áudio neural e leia para você.\n\n**Exemplos rápidos:**\n- \`/text-voice Olá Alberto! Aqui é a Francisca, sua voz feminina no Montanha Studio.\`\n- \`/text-voice Aquecimento: 3 rounds de 10 agachamentos com pausa e 15 flexões.\`\n\n*Você pode trocar para outra voz feminina ou masculina a qualquer momento no seletor do topo ou nos Ajustes.*`;
-                currentChatObj.messages.push({ role: 'model', response: helpMsg });
+                currentChatObj.messages.push({ role: 'model', response: helpMsg, timestamp: nowIso });
                 const bIdx = currentChatObj.messages.length - 1;
-                appendBotMessage(helpMsg, null, bIdx);
+                appendBotMessage(helpMsg, null, bIdx, nowIso);
                 saveLocalChat(currentChatId, currentChatObj.title, currentChatObj.messages);
                 loadChatsIndex();
                 return;
             }
 
-            currentChatObj.messages.push({ role: 'user', prompt: `/text-voice ${text}` });
+            const voiceUserIso = new Date().toISOString();
+            currentChatObj.messages.push({ role: 'user', prompt: `/text-voice ${text}`, timestamp: voiceUserIso });
             const userMsgIdx = currentChatObj.messages.length - 1;
-            appendUserMessage(`/text-voice ${text}`, null, userMsgIdx);
+            appendUserMessage(`/text-voice ${text}`, null, userMsgIdx, voiceUserIso);
             appendLoadingSkeleton();
 
             const selectedVoice = localStorage.getItem('montanha_selected_voice') || 'pt-BR-FranciscaNeural';
@@ -2890,6 +3344,7 @@
                 if (data.status === 'success' && data.audio_base64) {
                     const voiceLabel = getVoiceLabel(data.voice || selectedVoice);
                     const botResponse = `🎙️ **Áudio Gerado com Sucesso** (${voiceLabel})\n\n> "${text}"`;
+                    const botVoiceIso = new Date().toISOString();
                     
                     currentChatObj.messages.push({
                         role: 'model',
@@ -2897,11 +3352,12 @@
                         audio_base64: data.audio_base64,
                         audio_url: data.audio_url || "",
                         audio_text: text,
-                        voice_label: voiceLabel
+                        voice_label: voiceLabel,
+                        timestamp: botVoiceIso
                     });
                     const botMsgIdx = currentChatObj.messages.length - 1;
 
-                    appendBotAudioMessage(text, data.audio_base64, data.audio_url, voiceLabel, botMsgIdx);
+                    appendBotAudioMessage(text, data.audio_base64, data.audio_url, voiceLabel, botMsgIdx, botVoiceIso);
                     saveLocalChat(currentChatId, currentChatObj.title, currentChatObj.messages);
                     loadChatsIndex();
 
@@ -2910,21 +3366,23 @@
                 } else {
                     speakText(text);
                     const botResponse = `🔊 **Áudio Reproduzido via Síntese Local**\n\n> "${text}"`;
-                    currentChatObj.messages.push({ role: 'model', response: botResponse });
-                    appendBotMessage(botResponse, null, currentChatObj.messages.length - 1);
+                    const botVoiceIso = new Date().toISOString();
+                    currentChatObj.messages.push({ role: 'model', response: botResponse, timestamp: botVoiceIso });
+                    appendBotMessage(botResponse, null, currentChatObj.messages.length - 1, botVoiceIso);
                     saveLocalChat(currentChatId, currentChatObj.title, currentChatObj.messages);
                 }
             } catch (e) {
                 removeLoadingSkeleton();
                 speakText(text);
                 const botResponse = `🔊 **Áudio Reproduzido via Síntese Local (Offline)**\n\n> "${text}"`;
-                currentChatObj.messages.push({ role: 'model', response: botResponse });
-                appendBotMessage(botResponse, null, currentChatObj.messages.length - 1);
+                const botVoiceIso = new Date().toISOString();
+                currentChatObj.messages.push({ role: 'model', response: botResponse, timestamp: botVoiceIso });
+                appendBotMessage(botResponse, null, currentChatObj.messages.length - 1, botVoiceIso);
                 saveLocalChat(currentChatId, currentChatObj.title, currentChatObj.messages);
             }
         }
 
-        function appendBotAudioMessage(text, audioBase64, audioUrl, voiceLabel, msgIndex) {
+        function appendBotAudioMessage(text, audioBase64, audioUrl, voiceLabel, msgIndex, timestamp, updated, updatedAt) {
             const list = document.getElementById('messagesList');
             const div = document.createElement('div');
             div.className = "flex justify-start w-full group mb-3";
@@ -2938,9 +3396,12 @@
             ` : '';
 
             const directDownload = audioUrl || audioBase64;
+            const timeFormatted = formatMessageTime(timestamp);
+            const updatedTimeFormatted = updatedAt ? formatMessageTime(updatedAt) : timeFormatted;
+            const updatedBadge = updated ? `<span class="text-[9px] font-sans px-1.5 py-0.2 rounded bg-white/10 text-emerald-300 border border-emerald-500/30 flex items-center gap-1"><i class="fa-solid fa-clock-rotate-left text-[8px]"></i> atualizada (${updatedTimeFormatted})</span>` : '';
 
             div.innerHTML = `
-                <div class="max-w-[95%] sm:max-w-[85%] rounded-2xl rounded-tl-sm bg-[#12141a] border border-white/5 p-4 text-zinc-200 shadow-md chat-bubble-content">
+                <div class="chat-bubble-bot max-w-[95%] sm:max-w-[85%] p-4 text-zinc-200 shadow-md chat-bubble-content flex flex-col">
                     <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/5">
                         <div class="flex items-center space-x-2">
                             <span class="w-7 h-7 rounded-lg bg-apple-blue/20 text-apple-blue flex items-center justify-center text-xs">
@@ -2961,7 +3422,7 @@
                         <audio controls src="${audioBase64}" class="w-full h-9 rounded-lg outline-none"></audio>
                     </div>
 
-                    <div class="mt-3 pt-2 border-t border-white/5 flex items-center justify-between text-zinc-500 text-xs">
+                    <div class="mt-3 pt-2 border-t border-white/5 flex items-center justify-between text-zinc-500 text-xs gap-2">
                         <div class="flex items-center space-x-1 sm:space-x-2 flex-wrap gap-y-1">
                             <button onclick="playAudioDataUri('${audioBase64}')" class="hover:text-white spring-transition flex items-center gap-1 py-1 px-2 rounded-md hover:bg-white/5 text-apple-blue" title="Ouvir Novamente">
                                 <i class="fa-solid fa-play text-xs"></i>
@@ -2973,7 +3434,12 @@
                             </a>
                             ${deleteAction}
                         </div>
-                        <span class="text-[10px] font-mono text-zinc-600">Montanha Voice</span>
+                        <div class="flex items-center space-x-1.5 font-mono text-[10px] text-zinc-400 flex-shrink-0">
+                            ${updatedBadge}
+                            <span>${timeFormatted}</span>
+                            <span class="text-zinc-500 opacity-60">•</span>
+                            <span class="font-medium text-zinc-300">Montanha Voice</span>
+                        </div>
                     </div>
                 </div>
             `;
@@ -3468,6 +3934,9 @@
             if (vault.voice) {
                 changeVoiceSetting(vault.voice);
             }
+            if (vault.chatTheme) {
+                setChatTheme(vault.chatTheme, true);
+            }
             updateKeyStatuses();
         }
 
@@ -3485,6 +3954,7 @@
                 fontSize: currentFontSize || 15,
                 engine: appPreferences.engine || 'auto-omniroute',
                 voice: localStorage.getItem('montanha_selected_voice') || 'pt-BR-FranciscaNeural',
+                chatTheme: localStorage.getItem('montanha_chat_theme') || 'whatsapp',
                 plugins: appPreferences.plugins || {},
                 syncedAt: new Date().toISOString()
             };
@@ -3596,6 +4066,7 @@
 
         window.onload = function() {
             setThemeMode(getStoredTheme());
+            setChatTheme(localStorage.getItem('montanha_chat_theme') || 'whatsapp', false);
             applyFontSize(currentFontSize);
             loadChatsIndex();
             refreshAuthUI();
