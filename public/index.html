@@ -43,17 +43,17 @@
     </script>
     <style>
         :root {
-            --chat-font-size: 15px;
-            --bg-base: #090a0f;
-            --bg-surface: #12141a;
-            --bg-elevated: #1a1c24;
+            --chat-font-size: 17px;
+            --bg-base: #0b141a;
+            --bg-surface: #111b21;
+            --bg-elevated: #202c33;
             --border-subtle: rgba(255, 255, 255, 0.08);
             --apple-blue: #0071e3;
         }
 
-        /* Apple HIG Light & Dark Theme */
+        /* Apple HIG Light & Dark Theme Base */
         html.light {
-            --bg-base: #f5f5f7;
+            --bg-base: #f0f2f5;
             --bg-surface: #ffffff;
             --bg-elevated: #e8e8ed;
             --border-subtle: rgba(0, 0, 0, 0.08);
@@ -61,22 +61,22 @@
         }
 
         html.light body {
-            background-color: #f5f5f7 !important;
+            background-color: var(--bg-base, #f0f2f5) !important;
             color: #1d1d1f !important;
         }
 
         html.light aside,
         html.light .bg-\[\#12141a\],
         html.light .bg-\[\#171922\] {
-            background-color: #ffffff !important;
-            border-color: rgba(0, 0, 0, 0.08) !important;
+            background-color: var(--bg-surface, #ffffff) !important;
+            border-color: var(--border-subtle, rgba(0, 0, 0, 0.08)) !important;
             color: #1d1d1f !important;
         }
 
         html.light header,
         html.light .bg-\[\#090a0f\]\/90 {
-            background-color: rgba(245, 245, 247, 0.92) !important;
-            border-color: rgba(0, 0, 0, 0.08) !important;
+            background-color: var(--bg-surface, #ffffff) !important;
+            border-color: var(--border-subtle, rgba(0, 0, 0, 0.08)) !important;
         }
 
         html.light .text-white {
@@ -253,70 +253,121 @@
         /* ======================================================= */
         :root, html.theme-whatsapp {
             --chat-bg: #0b141a;
+            --bg-base: #0b141a;
+            --bg-surface: #111b21;
+            --bg-elevated: #202c33;
+            --border-subtle: rgba(255, 255, 255, 0.08);
             --bubble-user-bg: #005c4b;
             --bubble-user-text: #e9edef;
-            --bubble-user-border: rgba(0, 92, 75, 0.4);
+            --bubble-user-border: rgba(0, 92, 75, 0.45);
             --bubble-bot-bg: #202c33;
-            --bubble-bot-text: #d1d7db;
-            --bubble-bot-border: rgba(255, 255, 255, 0.05);
+            --bubble-bot-text: #e9edef;
+            --bubble-bot-border: rgba(255, 255, 255, 0.06);
             --theme-accent: #00a884;
-            --chat-wallpaper-doodle: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2300a884' fill-opacity='0.025' fill-rule='evenodd'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");
+            --chat-wallpaper-doodle: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2300a884' fill-opacity='0.08' fill-rule='evenodd'%3E%3Cpath d='M40 38v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V4h-2v4h-4v2h4v4h2V10h4V8h-4zM8 38v-4H6v4H2v2h4v4h2v-4h4v-2H8zM8 8V4H6v4H2v2h4v4h2V10h4V8H8zM60 60a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-40 0a4 4 0 1 0 0-8 4 4 0 0 0 0 8z'/%3E%3C/g%3E%3C/svg%3E");
         }
 
         html.theme-telegram {
-            --chat-bg: #0e1621;
+            --chat-bg: #0f1926;
+            --bg-base: #0e1621;
+            --bg-surface: #17212b;
+            --bg-elevated: #242f3d;
+            --border-subtle: rgba(82, 136, 193, 0.2);
             --bubble-user-bg: #2b5278;
             --bubble-user-text: #ffffff;
-            --bubble-user-border: rgba(43, 82, 120, 0.4);
+            --bubble-user-border: rgba(82, 136, 193, 0.4);
             --bubble-bot-bg: #182533;
-            --bubble-bot-text: #e4ecf2;
-            --bubble-bot-border: rgba(255, 255, 255, 0.05);
-            --theme-accent: #5288c1;
-            --chat-wallpaper-doodle: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%235288c1' fill-opacity='0.02' fill-rule='evenodd'%3E%3Ccircle cx='20' cy='20' r='1.5'/%3E%3C/g%3E%3C/svg%3E");
+            --bubble-bot-text: #f0f4f8;
+            --bubble-bot-border: rgba(255, 255, 255, 0.06);
+            --theme-accent: #2481cc;
+            --chat-wallpaper-doodle: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%232481cc' fill-opacity='0.06' fill-rule='evenodd'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3Ccircle cx='10' cy='10' r='1'/%3E%3Ccircle cx='50' cy='10' r='1'/%3E%3C/g%3E%3C/svg%3E");
         }
 
         html.theme-montanha {
-            --chat-bg: #0a0c10;
-            --bubble-user-bg: #1e1b38;
+            --chat-bg: #161922;
+            --bg-base: #13161d;
+            --bg-surface: #1b202c;
+            --bg-elevated: #242a3a;
+            --border-subtle: rgba(105, 88, 226, 0.25);
+            --bubble-user-bg: #1e293b;
             --bubble-user-text: #ffffff;
-            --bubble-user-border: rgba(105, 88, 226, 0.35);
-            --bubble-bot-bg: #12141a;
-            --bubble-bot-text: #e4e4e7;
-            --bubble-bot-border: rgba(255, 255, 255, 0.06);
+            --bubble-user-border: rgba(105, 88, 226, 0.4);
+            --bubble-bot-bg: #222634;
+            --bubble-bot-text: #f8fafc;
+            --bubble-bot-border: rgba(255, 255, 255, 0.08);
             --theme-accent: #6958e2;
             --chat-wallpaper-doodle: none;
         }
 
         html.theme-apple {
-            --chat-bg: #000000;
+            --chat-bg: #1c1c1e;
+            --bg-base: #141416;
+            --bg-surface: #242426;
+            --bg-elevated: #2c2c2e;
+            --border-subtle: rgba(255, 255, 255, 0.1);
             --bubble-user-bg: #0071e3;
             --bubble-user-text: #ffffff;
             --bubble-user-border: rgba(0, 113, 227, 0.4);
-            --bubble-bot-bg: #1c1c1e;
+            --bubble-bot-bg: #2c2c2e;
             --bubble-bot-text: #f2f2f7;
             --bubble-bot-border: rgba(255, 255, 255, 0.08);
             --theme-accent: #0071e3;
             --chat-wallpaper-doodle: none;
         }
 
+        /* MODO CLARO (WhatsApp / Telegram / Papel Aveludado) */
         html.light.theme-whatsapp {
             --chat-bg: #efeae2;
+            --bg-base: #f0f2f5;
+            --bg-surface: #ffffff;
+            --bg-elevated: #f0f2f5;
+            --border-subtle: rgba(0, 0, 0, 0.08);
             --bubble-user-bg: #d9fdd3;
             --bubble-user-text: #111b21;
-            --bubble-user-border: rgba(0, 0, 0, 0.05);
+            --bubble-user-border: rgba(0, 0, 0, 0.06);
             --bubble-bot-bg: #ffffff;
             --bubble-bot-text: #111b21;
-            --bubble-bot-border: rgba(0, 0, 0, 0.06);
+            --bubble-bot-border: rgba(0, 0, 0, 0.08);
+            --theme-accent: #00a884;
+            --chat-wallpaper-doodle: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2354656f' fill-opacity='0.06' fill-rule='evenodd'%3E%3Cpath d='M40 38v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V4h-2v4h-4v2h4v4h2V10h4V8h-4zM8 38v-4H6v4H2v2h4v4h2v-4h4v-2H8zM8 8V4H6v4H2v2h4v4h2V10h4V8H8z'/%3E%3C/g%3E%3C/svg%3E");
         }
 
         html.light.theme-telegram {
-            --chat-bg: #8ca8bf;
-            --bubble-user-bg: #eef3f7;
-            --bubble-user-text: #222222;
-            --bubble-user-border: rgba(0, 0, 0, 0.06);
+            --chat-bg: #e4ecf2;
+            --bg-base: #f0f4f7;
+            --bg-surface: #ffffff;
+            --bg-elevated: #e4ecf2;
+            --border-subtle: rgba(0, 0, 0, 0.08);
+            --bubble-user-bg: #2481cc;
+            --bubble-user-text: #ffffff;
+            --bubble-user-border: rgba(36, 129, 204, 0.4);
             --bubble-bot-bg: #ffffff;
             --bubble-bot-text: #222222;
-            --bubble-bot-border: rgba(0, 0, 0, 0.06);
+            --bubble-bot-border: rgba(0, 0, 0, 0.08);
+            --theme-accent: #2481cc;
+        }
+
+        html.light.theme-apple, html.light.theme-montanha {
+            --chat-bg: #f6f4ee;
+            --bg-base: #f2efe9;
+            --bg-surface: #ffffff;
+            --bg-elevated: #ebe6dc;
+            --border-subtle: rgba(0, 0, 0, 0.08);
+            --bubble-user-bg: #0071e3;
+            --bubble-user-text: #ffffff;
+            --bubble-user-border: rgba(0, 113, 227, 0.3);
+            --bubble-bot-bg: #ffffff;
+            --bubble-bot-text: #1e293b;
+            --bubble-bot-border: rgba(0, 0, 0, 0.08);
+        }
+
+        .welcome-card {
+            background-color: var(--bg-surface, #12141a) !important;
+            border: 1px solid var(--border-subtle, rgba(255,255,255,0.08)) !important;
+            color: var(--bubble-bot-text, #ffffff) !important;
+        }
+        .welcome-card:hover {
+            background-color: var(--bg-elevated, #1a1c24) !important;
         }
 
         .chat-bubble-user {
@@ -338,6 +389,8 @@
         #chatMainArea {
             background-color: var(--chat-bg, #0b141a);
             background-image: var(--chat-wallpaper-doodle, none);
+            background-repeat: repeat;
+        }
             background-repeat: repeat;
         }
 
@@ -547,17 +600,17 @@
 
                 <!-- Bento Quick Action Grid (Apple Minimalist) -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 w-full max-w-lg pt-2 text-left">
-                    <button onclick="openImageGeneratorModal()" class="p-3.5 rounded-2xl bg-[#12141a] hover:bg-[#1a1c24] border border-white/5 text-xs text-white spring-transition active:scale-[0.99] flex items-start space-x-3">
+                    <button onclick="openImageGeneratorModal()" class="p-3.5 rounded-2xl welcome-card text-xs spring-transition active:scale-[0.99] flex items-start space-x-3">
                         <div class="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
                             <i class="fa-solid fa-image text-zinc-300 text-xs"></i>
                         </div>
                         <div>
-                            <span class="font-semibold block text-white">Gerar Imagens (Gemini / Flux / SDXL)</span>
+                            <span class="font-semibold block text-white">Gerar Imagens (Meta AI / Flux / SDXL)</span>
                             <span class="text-[11px] text-zinc-400">Seleção de motores gratuitos e oficiais</span>
                         </div>
                     </button>
 
-                    <button onclick="openBrowserModal()" class="p-3.5 rounded-2xl bg-[#12141a] hover:bg-[#1a1c24] border border-white/5 text-xs text-white spring-transition active:scale-[0.99] flex items-start space-x-3">
+                    <button onclick="openBrowserModal()" class="p-3.5 rounded-2xl welcome-card text-xs spring-transition active:scale-[0.99] flex items-start space-x-3">
                         <div class="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
                             <i class="fa-solid fa-compass text-zinc-300 text-xs"></i>
                         </div>
@@ -567,7 +620,7 @@
                         </div>
                     </button>
 
-                    <button onclick="openGoogleHubModal()" class="p-3.5 rounded-2xl bg-[#12141a] hover:bg-[#1a1c24] border border-white/5 text-xs text-white spring-transition active:scale-[0.99] flex items-start space-x-3">
+                    <button onclick="openGoogleHubModal()" class="p-3.5 rounded-2xl welcome-card text-xs spring-transition active:scale-[0.99] flex items-start space-x-3">
                         <div class="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
                             <i class="fa-brands fa-google text-zinc-300 text-xs"></i>
                         </div>
@@ -577,7 +630,7 @@
                         </div>
                     </button>
 
-                    <button onclick="setPrompt('Escreva uma prescrição de treino funcional com blocos estruturados e esteira de progressão de carga.')" class="p-3.5 rounded-2xl bg-[#12141a] hover:bg-[#1a1c24] border border-white/5 text-xs text-white spring-transition active:scale-[0.99] flex items-start space-x-3">
+                    <button onclick="setPrompt('Escreva uma prescrição de treino funcional com blocos estruturados e esteira de progressão de carga.')" class="p-3.5 rounded-2xl welcome-card text-xs spring-transition active:scale-[0.99] flex items-start space-x-3">
                         <div class="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
                             <i class="fa-solid fa-dumbbell text-zinc-300 text-xs"></i>
                         </div>
@@ -1054,14 +1107,14 @@
                         <label class="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider block">Tamanho da Fonte da Conversa</label>
                         <p class="text-[11px] text-zinc-400">Ajuste a escala visual do chat para leitura confortável no seu dispositivo.</p>
                     </div>
-                    <span id="settingFontDisplay" class="text-xs font-mono bg-apple-blue/20 text-apple-blue border border-apple-blue/30 px-2.5 py-0.5 rounded-lg font-bold">15px</span>
+                    <span id="settingFontDisplay" class="text-xs font-mono bg-apple-blue/20 text-apple-blue border border-apple-blue/30 px-2.5 py-0.5 rounded-lg font-bold">17px</span>
                 </div>
 
                 <div class="flex items-center space-x-2 bg-[#171922] p-2 rounded-xl border border-white/5">
                     <button type="button" onclick="changeFontSize(-1)" class="min-h-[36px] px-3 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-200 hover:text-white font-bold text-xs spring-transition flex items-center gap-1 active:scale-95" title="Diminuir fonte">
                         <i class="fa-solid fa-minus text-[10px]"></i> A-
                     </button>
-                    <input type="range" id="settingFontSlider" min="12" max="26" step="1" value="15" oninput="applyFontSize(parseInt(this.value, 10))" class="flex-1 accent-apple-blue cursor-pointer">
+                    <input type="range" id="settingFontSlider" min="13" max="26" step="1" value="17" oninput="applyFontSize(parseInt(this.value, 10))" class="flex-1 accent-apple-blue cursor-pointer">
                     <button type="button" onclick="changeFontSize(1)" class="min-h-[36px] px-3 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-200 hover:text-white font-bold text-sm spring-transition flex items-center gap-1 active:scale-95" title="Aumentar fonte">
                         A+ <i class="fa-solid fa-plus text-[10px]"></i>
                     </button>
@@ -1069,16 +1122,16 @@
 
                 <!-- Presets Rápidos -->
                 <div class="grid grid-cols-4 gap-1.5 text-center font-mono text-[11px]">
-                    <button type="button" onclick="applyFontSize(13)" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/5 spring-transition">13px (P)</button>
-                    <button type="button" onclick="applyFontSize(15)" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/5 spring-transition">15px (M)</button>
-                    <button type="button" onclick="applyFontSize(18)" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/5 spring-transition">18px (G)</button>
+                    <button type="button" onclick="applyFontSize(15)" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/5 spring-transition">15px (P)</button>
+                    <button type="button" onclick="applyFontSize(17)" class="p-1.5 rounded-lg bg-apple-blue/20 text-apple-blue border border-apple-blue/30 font-bold spring-transition">17px (Padrão)</button>
+                    <button type="button" onclick="applyFontSize(19)" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/5 spring-transition">19px (G)</button>
                     <button type="button" onclick="applyFontSize(22)" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/5 spring-transition">22px (GG)</button>
                 </div>
 
                 <!-- Prévia em Tempo Real -->
-                <div class="p-2.5 rounded-xl bg-black/30 border border-white/5 text-zinc-300">
-                    <div class="text-[10px] text-zinc-500 font-mono mb-1">Prévia de leitura:</div>
-                    <div id="fontPreviewSample" class="chat-bubble-content leading-relaxed">
+                <div class="p-3 rounded-xl bg-black/40 border border-white/10 text-zinc-200">
+                    <div class="text-[10px] text-zinc-400 font-mono mb-1">Prévia de leitura nítida:</div>
+                    <div id="fontPreviewSample" class="chat-bubble-content leading-relaxed" style="font-size: 17px;">
                         Exemplo de leitura nítida: <em>παρρησία (parrēsia)</em> e tabelas mantêm proporção vetorial perfeita.
                     </div>
                 </div>
@@ -1153,29 +1206,29 @@
                 </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                    <button type="button" onclick="setChatTheme('whatsapp')" id="btnThemeWhatsapp" class="min-h-[50px] p-2 rounded-xl border flex flex-col items-center justify-center gap-1 spring-transition active:scale-95 bg-[#0b141a] border-[#00a884] text-white shadow-sm">
+                    <button type="button" onclick="setChatTheme('whatsapp')" id="btnThemeWhatsapp" class="min-h-[52px] p-2 rounded-xl border flex flex-col items-center justify-center gap-1 spring-transition active:scale-95 bg-[#0b141a] border-[#00a884] text-white shadow-sm">
                         <div class="flex items-center gap-1.5 font-bold text-xs">
                             <i class="fa-brands fa-whatsapp text-emerald-400 text-sm"></i> WhatsApp
                         </div>
-                        <span class="text-[10px] text-zinc-400 text-center">Verde esmeralda</span>
+                        <span class="text-[10px] text-zinc-300 text-center">Verde & Areia</span>
                     </button>
-                    <button type="button" onclick="setChatTheme('telegram')" id="btnThemeTelegram" class="min-h-[50px] p-2 rounded-xl border flex flex-col items-center justify-center gap-1 spring-transition active:scale-95 bg-[#0e1621] border-white/10 text-zinc-300 hover:text-white">
+                    <button type="button" onclick="setChatTheme('telegram')" id="btnThemeTelegram" class="min-h-[52px] p-2 rounded-xl border flex flex-col items-center justify-center gap-1 spring-transition active:scale-95 bg-[#0e1621] border-white/10 text-zinc-300 hover:text-white">
                         <div class="flex items-center gap-1.5 font-bold text-xs">
                             <i class="fa-brands fa-telegram text-sky-400 text-sm"></i> Telegram
                         </div>
-                        <span class="text-[10px] text-zinc-400 text-center">Azul petróleo</span>
+                        <span class="text-[10px] text-zinc-300 text-center">Azul Petróleo</span>
                     </button>
-                    <button type="button" onclick="setChatTheme('montanha')" id="btnThemeMontanha" class="min-h-[50px] p-2 rounded-xl border flex flex-col items-center justify-center gap-1 spring-transition active:scale-95 bg-[#0a0c10] border-white/10 text-zinc-300 hover:text-white">
+                    <button type="button" onclick="setChatTheme('montanha')" id="btnThemeMontanha" class="min-h-[52px] p-2 rounded-xl border flex flex-col items-center justify-center gap-1 spring-transition active:scale-95 bg-[#161922] border-white/10 text-zinc-300 hover:text-white">
                         <div class="flex items-center gap-1.5 font-bold text-xs">
                             <i class="fa-solid fa-mountain text-purple-400 text-sm"></i> Montanha
                         </div>
-                        <span class="text-[10px] text-zinc-400 text-center">Escuro padrão</span>
+                        <span class="text-[10px] text-zinc-300 text-center">Ardósia Grafite</span>
                     </button>
-                    <button type="button" onclick="setChatTheme('apple')" id="btnThemeApple" class="min-h-[50px] p-2 rounded-xl border flex flex-col items-center justify-center gap-1 spring-transition active:scale-95 bg-black border-white/10 text-zinc-300 hover:text-white">
+                    <button type="button" onclick="setChatTheme('apple')" id="btnThemeApple" class="min-h-[52px] p-2 rounded-xl border flex flex-col items-center justify-center gap-1 spring-transition active:scale-95 bg-[#1c1c1e] border-white/10 text-zinc-300 hover:text-white">
                         <div class="flex items-center gap-1.5 font-bold text-xs">
-                            <i class="fa-brands fa-apple text-zinc-200 text-sm"></i> Apple
+                            <i class="fa-solid fa-book-open text-amber-300 text-sm"></i> Leitura
                         </div>
-                        <span class="text-[10px] text-zinc-400 text-center">Preto OLED</span>
+                        <span class="text-[10px] text-zinc-300 text-center">Papel / Eye-Care</span>
                     </button>
                 </div>
             </div>
@@ -1434,10 +1487,37 @@
             }
         };
 
-        // Gerenciamento Local de Chats
+        // Gerenciamento Local e Anti-Ressurreição de Chats (/a-healing)
+        function getDeletedChatIds() {
+            try {
+                return JSON.parse(localStorage.getItem('montanha_deleted_chats') || '[]');
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function markChatAsDeleted(chatId) {
+            if (!chatId) return;
+            const deleted = getDeletedChatIds();
+            if (!deleted.includes(chatId)) {
+                deleted.push(chatId);
+                // Mantém os últimos 200 IDs excluídos para evitar crescimento infinito
+                if (deleted.length > 200) deleted.shift();
+                localStorage.setItem('montanha_deleted_chats', JSON.stringify(deleted));
+                syncVaultToDevice('montanha_deleted_chats', JSON.stringify(deleted));
+            }
+        }
+
         function getLocalChats() {
             try {
-                return JSON.parse(localStorage.getItem('montanha_local_chats') || '{}');
+                const chats = JSON.parse(localStorage.getItem('montanha_local_chats') || '{}');
+                const deleted = getDeletedChatIds();
+                if (deleted.length > 0) {
+                    deleted.forEach(id => {
+                        delete chats[id];
+                    });
+                }
+                return chats;
             } catch (e) {
                 return {};
             }
@@ -1461,16 +1541,31 @@
         }
 
         function deleteLocalChat(chatId) {
+            if (!chatId) return;
+            markChatAsDeleted(chatId);
             const chats = getLocalChats();
             delete chats[chatId];
             localStorage.setItem('montanha_local_chats', JSON.stringify(chats));
             syncVaultToDevice('montanha_local_chats', JSON.stringify(chats));
+
+            // Expurga definitivamente no backend e nuvem (Anti-Ressurreição /a-healing)
+            const user = getStoredUser();
+            fetch('/api/chats/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    user_id: user ? (user.id || user.login) : null
+                })
+            }).catch(() => {});
+
             scheduleCloudChatSync();
             if (currentChatId === chatId) {
                 createNewChat();
             } else {
                 loadChatsIndex();
             }
+            showToast("Conversa excluída.", "info");
         }
 
         function deleteCurrentChat() {
@@ -1536,19 +1631,25 @@
 
             try {
                 const localChats = getLocalChats();
+                const deletedIds = getDeletedChatIds();
                 const res = await fetch('/api/chats/sync', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         user_id: user.id || user.login,
                         login: user.login || user.email,
-                        chats: localChats
+                        chats: localChats,
+                        deleted_chat_ids: deletedIds
                     })
                 });
 
                 if (res.ok) {
                     const data = await res.json();
                     if (data.status === 'success' && data.chats) {
+                        // Purga incondicionalmente qualquer chat excluído
+                        deletedIds.forEach(id => {
+                            delete data.chats[id];
+                        });
                         localStorage.setItem('montanha_local_chats', JSON.stringify(data.chats));
                         syncVaultToDevice('montanha_local_chats', JSON.stringify(data.chats));
                         localStorage.removeItem('montanha_chats_need_sync');
@@ -3958,7 +4059,7 @@
                 gemini: localKeys.gemini || '',
                 groq: localKeys.groq || '',
                 openrouter: localKeys.openrouter || '',
-                fontSize: currentFontSize || 15,
+                fontSize: currentFontSize || 17,
                 engine: appPreferences.engine || 'auto-omniroute',
                 voice: localStorage.getItem('montanha_selected_voice') || 'pt-BR-FranciscaNeural',
                 chatTheme: localStorage.getItem('montanha_chat_theme') || 'whatsapp',
@@ -4010,7 +4111,7 @@
 
         // Controle de Escalonamento da Fonte
         const FONT_SIZES = [12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 24, 26];
-        let currentFontSize = parseInt(localStorage.getItem('montanha_chat_font_size') || '15', 10);
+        let currentFontSize = parseInt(localStorage.getItem('montanha_chat_font_size') || '17', 10);
 
         function applyFontSize(size) {
             size = Math.max(12, Math.min(26, parseInt(size, 10)));

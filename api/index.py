@@ -602,14 +602,21 @@ def fetch_cloud_chats(user_id):
         pass
     return {}
 
-def sync_cloud_chats(user_id, local_chats):
+def sync_cloud_chats(user_id, local_chats, deleted_ids=None):
     if not user_id:
         return local_chats or {}
     if not isinstance(local_chats, dict):
         local_chats = {}
 
+    deleted_set = set(deleted_ids) if (deleted_ids and isinstance(deleted_ids, list)) else set()
+
     cloud_chats = fetch_cloud_chats(user_id)
-    all_keys = set(local_chats.keys()).union(set(cloud_chats.keys()))
+    # Remove definitivamente qualquer conversa excluída (Anti-Ressurreição /a-healing)
+    for d_id in deleted_set:
+        cloud_chats.pop(d_id, None)
+        local_chats.pop(d_id, None)
+
+    all_keys = (set(local_chats.keys()).union(set(cloud_chats.keys()))) - deleted_set
     merged = {}
     for k in all_keys:
         loc = local_chats.get(k)
@@ -656,6 +663,36 @@ def sync_cloud_chats(user_id, local_chats):
         pass
 
     return merged
+
+def delete_cloud_chat(user_id, chat_id):
+    if not user_id or not chat_id:
+        return {"status": "error", "message": "user_id e chat_id obrigatorios"}
+    cloud_chats = fetch_cloud_chats(user_id)
+    if chat_id in cloud_chats:
+        del cloud_chats[chat_id]
+        safe_uid = re.sub(r'[^a-zA-Z0-9_\-]', '_', str(user_id))
+        now_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        payload = json.dumps({"updated_at": now_iso, "chats": cloud_chats}).encode("utf-8")
+        try:
+            url = f"{SUPABASE_URL}/storage/v1/object/studio-forms-backup/chats/{safe_uid}.json"
+            req = urllib.request.Request(url, data=payload, headers={
+                "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                "Content-Type": "application/json",
+                "x-upsert": "true"
+            }, method="POST")
+            with urllib.request.urlopen(req, timeout=6):
+                pass
+        except Exception:
+            pass
+        try:
+            STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+            local_f = STORAGE_DIR / f"chats_{safe_uid}.json"
+            with open(local_f, "w", encoding="utf-8") as f:
+                f.write(json.dumps({"updated_at": now_iso, "chats": cloud_chats}, ensure_ascii=False, indent=2))
+        except Exception:
+            pass
+    return {"status": "success", "deleted": chat_id}
 
 class handler(BaseHTTPRequestHandler):
     def _send_json(self, data, status=200):
@@ -746,11 +783,20 @@ class handler(BaseHTTPRequestHandler):
         elif any(p in all_routes for p in ["/chats/sync", "chats/sync"]):
             user_id = body.get("user_id") or body.get("login")
             local_chats = body.get("chats", {})
+            deleted_ids = body.get("deleted_chat_ids", [])
             if not user_id:
                 self._send_json({"status": "error", "message": "user_id obrigatorio"}, 400)
                 return
-            merged_chats = sync_cloud_chats(user_id, local_chats)
+            merged_chats = sync_cloud_chats(user_id, local_chats, deleted_ids)
             self._send_json({"status": "success", "chats": merged_chats})
+            return
+
+        elif any(p in all_routes for p in ["/chats/delete", "chats/delete"]):
+            user_id = body.get("user_id") or body.get("login")
+            chat_id = body.get("chat_id")
+            if user_id and chat_id:
+                delete_cloud_chat(user_id, chat_id)
+            self._send_json({"status": "success", "message": "Chat excluído"})
             return
 
         # 1. Leitura e Extração de PDF (Resiliente)

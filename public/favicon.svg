@@ -1,10 +1,52 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#0e0d1c"/>
-  <rect x="16" y="16" width="480" height="480" rx="98" fill="none" stroke="#6958e2" stroke-width="8"/>
-  <polygon points="92,379 184,143 256,266 328,112 420,379 379,379 328,174 256,307 184,194 133,379" fill="#6958e2"/>
-  <polygon points="256,266 328,112 420,379 330,379" fill="#a89bff" fill-opacity="0.85"/>
-  
-  <rect x="133" y="390" width="246" height="20" rx="6" fill="#ffffff"/>
-  <rect x="112" y="377" width="21" height="46" rx="6" fill="#a89bff"/>
-  <rect x="379" y="377" width="21" height="46" rx="6" fill="#a89bff"/>
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b101d"/>
+      <stop offset="100%" stop-color="#04060a"/>
+    </linearGradient>
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f5a0" stop-opacity="0.8"/>
+      <stop offset="50%" stop-color="#00b4d8" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0.6"/>
+    </linearGradient>
+    <linearGradient id="peakLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f5a0"/>
+      <stop offset="100%" stop-color="#0077b6"/>
+    </linearGradient>
+    <linearGradient id="peakRight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00b4d8"/>
+      <stop offset="100%" stop-color="#7928ca"/>
+    </linearGradient>
+    <linearGradient id="subPeak" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00d2ff"/>
+      <stop offset="100%" stop-color="#3a86ff"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="28%" r="35%">
+      <stop offset="0%" stop-color="#00f5a0" stop-opacity="0.45"/>
+      <stop offset="60%" stop-color="#00b4d8" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Squircle Background -->
+  <rect width="512" height="512" rx="118" fill="url(#bgGrad)"/>
+  <rect x="14" y="14" width="484" height="484" rx="104" fill="none" stroke="url(#borderGrad)" stroke-width="8"/>
+  <!-- Ambient Glow -->
+  <circle cx="280" cy="180" r="140" fill="url(#glow)"/>
+  <!-- Secondary Peak (Left) -->
+  <polygon points="110,390 195,210 285,390" fill="url(#subPeak)" opacity="0.85"/>
+  <!-- Main Mountain Peak Facets -->
+  <polygon points="170,390 280,130 310,390" fill="url(#peakLeft)"/>
+  <polygon points="280,130 420,390 310,390" fill="url(#peakRight)"/>
+  <!-- Ridge Line -->
+  <polyline points="280,130 310,390" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+  <!-- Constellation AI Network -->
+  <line x1="280" y1="130" x2="195" y2="210" stroke="#ffffff" stroke-width="2" stroke-dasharray="4,4" opacity="0.6"/>
+  <line x1="280" y1="130" x2="360" y2="275" stroke="#ffffff" stroke-width="2" stroke-dasharray="4,4" opacity="0.6"/>
+  <circle cx="195" cy="210" r="7" fill="#00d2ff"/>
+  <circle cx="360" cy="275" r="6" fill="#8b5cf6"/>
+  <!-- AI Summit Spark -->
+  <circle cx="280" cy="130" r="14" fill="#00f5a0" opacity="0.8"/>
+  <circle cx="280" cy="130" r="7" fill="#ffffff"/>
+  <line x1="280" y1="110" x2="280" y2="150" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="260" y1="130" x2="300" y2="130" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
 </svg>
