@@ -1291,6 +1291,8 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
                     if scripts_dir not in sys.path:
                         sys.path.insert(0, scripts_dir)
                     import meta_ai_bridge
+                    import importlib
+                    importlib.reload(meta_ai_bridge)
                     m_res = meta_ai_bridge.generate_image(prompt, headless=True)
                     if m_res.get("status") == "success":
                         self._send_json(m_res)
