@@ -391,8 +391,6 @@
             background-image: var(--chat-wallpaper-doodle, none);
             background-repeat: repeat;
         }
-            background-repeat: repeat;
-        }
 
         /* ======================================================= */
         /* TABELAS ADAPTATIVAS ANTI-OVERFLOW (Impeccable Cards)    */
@@ -498,288 +496,326 @@
         }
     </style>
 </head>
-<body class="h-screen h-[100dvh] w-screen flex overflow-hidden relative select-none">
+<body class="h-screen h-[100dvh] w-screen flex overflow-hidden relative select-none bg-[#0b141b] text-[#e9edef] font-sans">
 
     <!-- Mobile Backdrop -->
     <div id="sidebarBackdrop" onclick="closeSidebarMobile()" class="hidden md:hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-30 transition-opacity"></div>
 
-    <!-- Sidebar: Multi-Chat & Context Memory (Apple Style) -->
-    <aside id="sidebar" class="fixed md:static inset-y-0 left-0 w-72 bg-[#12141a] border-r border-white/5 flex flex-col flex-shrink-0 transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0 z-40">
-        <!-- Sidebar Header -->
-        <div class="h-14 border-b border-white/5 flex items-center justify-between px-3">
-            <button onclick="createNewChat()" class="flex-1 min-h-[44px] flex items-center justify-center space-x-2 py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-semibold border border-white/10 spring-transition active:scale-[0.98]">
-                <i class="fa-solid fa-plus text-apple-blue"></i>
-                <span>Novo Chat</span>
+    <!-- 1. LEFT NAVIGATION RAIL (60px) - Ícones Verticais Exatos do ZapFast / WhatsApp Desktop -->
+    <nav id="leftRail" class="hidden md:flex flex-col items-center justify-between py-3.5 w-16 bg-[#111b21] border-r border-[#222d34] flex-shrink-0 z-30 select-none">
+        <!-- Topo do Rail -->
+        <div class="flex flex-col items-center space-y-4">
+            <!-- Botão de Conversas (Ativo) -->
+            <button onclick="createNewChat()" title="Conversas" class="w-10 h-10 rounded-full flex items-center justify-center bg-[#202c33] text-[#00a884] spring-transition shadow-sm">
+                <i class="fa-solid fa-message text-base"></i>
             </button>
-            <button onclick="closeSidebarMobile()" class="ml-2 min-h-[44px] min-w-[44px] rounded-xl hover:bg-white/10 text-white/50 hover:text-white flex items-center justify-center md:hidden spring-transition">
-                <i class="fa-solid fa-xmark text-sm"></i>
+
+            <!-- Botão Chamadas de Voz / Live Call -->
+            <button id="liveAudioCallBtn" onclick="openLiveCallOverlay()" title="Chamada de Voz em Tempo Real (Live Call)" class="w-10 h-10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/5 spring-transition">
+                <i id="liveAudioIcon" class="fa-solid fa-phone text-base"></i>
+                <span id="liveAudioText" class="hidden">Live</span>
+            </button>
+
+            <!-- Botão Gerador de Imagens (/imagine) -->
+            <button onclick="openImageGeneratorModal()" title="Gerar Imagens (Meta AI / Flux / SDXL)" class="w-10 h-10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/5 spring-transition">
+                <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
+            </button>
+
+            <!-- Botão Navegador Web Interno -->
+            <button onclick="openBrowserModal()" title="Navegador Interno & Pesquisa" class="w-10 h-10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/5 spring-transition">
+                <i class="fa-solid fa-compass text-base"></i>
+            </button>
+
+            <!-- Botão Google Apps & Workspace -->
+            <button onclick="openGoogleHubModal()" title="Google Calendar, Docs & Drive" class="w-10 h-10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/5 spring-transition">
+                <i class="fa-brands fa-google text-base"></i>
             </button>
         </div>
 
-        <!-- Chats List -->
-        <div class="flex-1 overflow-y-auto p-2 space-y-1" id="chatsListContainer"></div>
-
-        <!-- Sidebar Footer Tools -->
-        <div class="p-3 border-t border-white/5 bg-black/30 flex items-center justify-between text-xs text-white/60">
-            <button onclick="openSettingsModal()" class="min-h-[44px] flex items-center space-x-2 hover:text-white spring-transition px-2 py-1 rounded-lg">
-                <i class="fa-solid fa-gear text-white/70"></i>
-                <span>Ajustes & Plugins</span>
+        <!-- Rodapé do Rail -->
+        <div class="flex flex-col items-center space-y-3.5">
+            <!-- Alternar Modo Claro / Escuro -->
+            <button onclick="toggleTheme()" id="headerThemeBtn" title="Alternar Modo Claro / Escuro" class="w-10 h-10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/5 spring-transition">
+                <i id="headerThemeIcon" class="fa-solid fa-moon text-base"></i>
             </button>
-            <span class="text-[10px] uppercase font-mono tracking-wider bg-white/5 px-2 py-1 rounded-md text-white/50 border border-white/5">v5.0 Pro</span>
+
+            <!-- Botão Instalar PWA -->
+            <button id="pwaInstallBtn" onclick="triggerPwaInstall()" title="Instalar como Aplicativo PWA" class="hidden w-10 h-10 rounded-full flex items-center justify-center text-purple-400 hover:text-purple-300 hover:bg-white/5 spring-transition">
+                <i class="fa-solid fa-download text-base"></i>
+            </button>
+
+            <!-- Botão de Ajustes & Configurações -->
+            <button onclick="openSettingsModal()" title="Ajustes & Configurações" class="w-10 h-10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/5 spring-transition">
+                <i class="fa-solid fa-gear text-base"></i>
+            </button>
+
+            <!-- Avatar do Usuário & Sincronização em Nuvem -->
+            <button id="headerUserAuthBtn" onclick="openSettingsModal('account-section')" title="Conta & Sincronização em Nuvem" class="w-9 h-9 rounded-full bg-[#00a884] text-white flex items-center justify-center font-bold text-xs shadow-md spring-transition hover:scale-105 overflow-hidden">
+                <i id="headerUserIcon" class="fa-solid fa-user text-xs"></i>
+                <span id="headerUserName" class="hidden">Perfil</span>
+            </button>
         </div>
+    </nav>
+
+    <!-- 2. SIDEBAR DE CONVERSAS (Coluna de Chats do ZapFast / WhatsApp, ~340px) -->
+    <aside id="sidebar" class="fixed md:static inset-y-0 left-0 w-full md:w-80 lg:w-96 bg-[#111b21] border-r border-[#222d34] flex flex-col flex-shrink-0 transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0 z-40">
+        <!-- Topo da Sidebar: Título Conversas + Ações -->
+        <div class="h-16 px-4 flex items-center justify-between border-b border-[#222d34]/60 bg-[#111b21] flex-shrink-0">
+            <h2 class="text-xl font-bold text-white tracking-tight">Conversas</h2>
+            <div class="flex items-center space-x-1 text-zinc-400">
+                <button onclick="createNewChat()" title="Nova Conversa" class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-white/10 hover:text-white spring-transition">
+                    <i class="fa-regular fa-pen-to-square text-base"></i>
+                </button>
+                <button onclick="openSettingsModal()" title="Opções" class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-white/10 hover:text-white spring-transition">
+                    <i class="fa-solid fa-ellipsis-vertical text-base"></i>
+                </button>
+                <button onclick="closeSidebarMobile()" class="md:hidden w-9 h-9 rounded-full flex items-center justify-center hover:bg-white/10 text-white/50 hover:text-white spring-transition">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Campo de Pesquisa (Pílula arredondada do WhatsApp) -->
+        <div class="px-3 py-2 border-b border-[#222d34]/40 bg-[#111b21] flex-shrink-0">
+            <div class="flex items-center bg-[#202c33] rounded-lg px-3 py-1.5 focus-within:ring-1 focus-within:ring-[#00a884]/40">
+                <i class="fa-solid fa-magnifying-glass text-xs text-zinc-400 mr-2.5"></i>
+                <input id="chatSearchInput" oninput="filterChats(this.value)" type="text" placeholder="Buscar" class="bg-transparent text-xs text-white placeholder-zinc-500 focus:outline-none w-full">
+            </div>
+        </div>
+
+        <!-- Pílulas de Filtro (Todas, Não lidas, Privadas, Favoritas) -->
+        <div class="px-3 py-2 flex items-center space-x-1.5 border-b border-[#222d34]/40 bg-[#111b21] flex-shrink-0 select-none overflow-x-auto no-scrollbar">
+            <button onclick="filterChatsByTab('all')" data-tab="all" class="chat-tab-pill px-3 py-1 rounded-full text-xs font-semibold bg-[#0a332c] text-[#00a884] spring-transition">Todas</button>
+            <button onclick="filterChatsByTab('unread')" data-tab="unread" class="chat-tab-pill px-3 py-1 rounded-full text-xs font-medium bg-[#202c33] text-zinc-400 hover:text-white spring-transition">Não lidas</button>
+            <button onclick="filterChatsByTab('private')" data-tab="private" class="chat-tab-pill px-3 py-1 rounded-full text-xs font-medium bg-[#202c33] text-zinc-400 hover:text-white spring-transition">Privadas</button>
+            <button onclick="filterChatsByTab('favorites')" data-tab="favorites" class="chat-tab-pill px-3 py-1 rounded-full text-xs font-medium bg-[#202c33] text-zinc-400 hover:text-white spring-transition">Favoritas</button>
+        </div>
+
+        <!-- Lista de Conversas com Scroll -->
+        <div class="flex-1 overflow-y-auto no-scrollbar" id="chatsListContainer"></div>
     </aside>
 
-    <!-- Main Workspace -->
-    <div class="flex-1 flex flex-col h-full w-full overflow-hidden relative min-w-0">
-
-        <!-- Top Header (Apple HIG Frosted Glass) -->
-        <header class="h-14 border-b border-white/5 flex items-center justify-between px-2.5 sm:px-4 bg-[#090a0f]/90 backdrop-blur-xl z-20 w-full overflow-hidden">
-            <div class="flex items-center space-x-2 min-w-0 flex-1 mr-2">
-                <button onclick="toggleSidebar()" class="min-h-[40px] min-w-[40px] rounded-xl hover:bg-white/10 text-white/70 hover:text-white flex items-center justify-center spring-transition flex-shrink-0" title="Menu lateral">
-                    <i class="fa-solid fa-bars text-sm"></i>
+    <!-- 3. ÁREA PRINCIPAL DO CHAT (ZapFast / WhatsApp Desktop Viewport) -->
+    <div id="chatMainArea" class="flex-1 flex flex-col h-full w-full overflow-hidden relative min-w-0 bg-[#0b141b]">
+        <!-- Cabeçalho do Chat (ZapFast Style) -->
+        <header id="chatHeader" class="h-16 px-4 flex items-center justify-between bg-[#202c33] border-b border-[#222d34] z-20 flex-shrink-0 select-none">
+            <!-- Esquerda: Avatar + Nome + Status -->
+            <div class="flex items-center space-x-3 min-w-0 flex-1 mr-2">
+                <!-- Botão Voltar (Mobile) -->
+                <button onclick="toggleSidebar()" class="md:hidden text-zinc-400 hover:text-white mr-1 p-1">
+                    <i class="fa-solid fa-arrow-left text-sm"></i>
                 </button>
-                <div class="w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white shadow-sm flex-shrink-0 hidden xs:flex">
-                    <i class="fa-solid fa-sparkles text-xs text-apple-blue"></i>
+
+                <!-- Avatar Circular com Ponto Online -->
+                <div class="relative flex-shrink-0">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-[#00a884] to-[#005c4b] flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-[#202c33]"></span>
                 </div>
+
+                <!-- Info do Chat Ativo -->
                 <div class="min-w-0 flex-1">
-                    <h1 class="text-xs sm:text-sm font-semibold tracking-tight flex items-center space-x-1.5 truncate">
-                        <span id="currentChatTitle" class="truncate max-w-[110px] xs:max-w-[150px] sm:max-w-[200px] md:max-w-[300px]">Montanha AI Studio</span>
-                        <span id="keyStatusBadge" class="hidden md:inline-flex text-[10px] font-mono tracking-wider bg-white/5 px-2 py-0.5 rounded-full text-zinc-400 border border-white/5 flex-shrink-0">Zero-Leak</span>
-                        <span id="memoryStatusBadge" class="hidden lg:inline-flex items-center gap-1 text-[10px] font-mono bg-purple-500/15 text-purple-300 border border-purple-500/25 px-2 py-0.5 rounded-full shadow-sm flex-shrink-0" title="Memória Contínua Graphify Ativa"><i class="fa-solid fa-brain text-[9px] text-purple-400"></i> <span id="memoryTurnsCount">0 msgs</span></span>
-                        <span id="cloudSyncStatusBadge" onclick="syncChatsWithCloud(false)" class="hidden xs:inline-flex items-center gap-1 text-[10px] font-mono bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded-full text-zinc-400 border border-white/5 cursor-pointer spring-transition flex-shrink-0" title="Sincronização em Nuvem (Toque para sincronizar agora)"><i id="cloudSyncStatusIcon" class="fa-solid fa-cloud text-[10px] text-zinc-400"></i> <span id="cloudSyncStatusText" class="hidden md:inline">Nuvem</span></span>
-                    </h1>
+                    <div class="flex items-center space-x-2">
+                        <h1 id="currentChatTitle" class="text-sm font-semibold text-white truncate max-w-[140px] xs:max-w-[200px] sm:max-w-xs md:max-w-md">Montanha AI Studio</h1>
+                        <span id="keyStatusBadge" class="hidden xl:inline-flex text-[9px] font-mono tracking-wider bg-white/5 px-2 py-0.2 rounded-full text-zinc-400 border border-white/5">Zero-Leak</span>
+                        <span id="memoryStatusBadge" class="hidden xl:inline-flex items-center gap-1 text-[9px] font-mono bg-purple-500/15 text-purple-300 border border-purple-500/25 px-2 py-0.2 rounded-full"><i class="fa-solid fa-brain text-[8px]"></i> <span id="memoryTurnsCount">0 msgs</span></span>
+                        <span id="cloudSyncStatusBadge" onclick="syncChatsWithCloud(false)" class="hidden xs:inline-flex items-center gap-1 text-[9px] font-mono bg-white/5 hover:bg-white/10 px-2 py-0.2 rounded-full text-zinc-400 border border-white/5 cursor-pointer spring-transition" title="Sincronização em Nuvem"><i id="cloudSyncStatusIcon" class="fa-solid fa-cloud text-[9px]"></i> <span id="cloudSyncStatusText" class="hidden sm:inline">Nuvem</span></span>
+                    </div>
+                    <div class="flex items-center space-x-1.5 text-[11px] text-[#00a884] truncate">
+                        <span>online</span>
+                        <span class="text-zinc-600">•</span>
+                        <span id="currentEngineHeaderLabel" class="text-zinc-400 truncate">Meta AI (Llama 3.3 70B)</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="flex items-center space-x-1 sm:space-x-1.5 flex-shrink-0">
-                <!-- Theme Quick Toggle -->
-                <button onclick="toggleTheme()" id="headerThemeBtn" title="Alternar Modo Claro / Escuro" class="min-h-[36px] min-w-[36px] rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-zinc-300 hover:text-white flex items-center justify-center spring-transition flex-shrink-0">
-                    <i id="headerThemeIcon" class="fa-solid fa-moon text-xs"></i>
+            <!-- Direita: Ações do Cabeçalho (Motor, Lupa, Vídeo, Telefone, Menu 3 Pontos) -->
+            <div class="flex items-center space-x-1 sm:space-x-2 text-zinc-300 flex-shrink-0">
+                <!-- Seletor Rápido de Motor de IA (Pílula discreta no cabeçalho) -->
+                <div class="hidden lg:flex items-center bg-[#111b21] border border-[#222d34] rounded-lg px-2 py-1 text-xs">
+                    <span class="text-zinc-500 text-[11px] mr-1">Motor:</span>
+                    <select id="selectModelEngine" onchange="updateEngineDisplay(this.value)" class="bg-transparent text-zinc-200 text-xs font-medium focus:outline-none cursor-pointer pr-1">
+                        <option value="meta-llama-3.3-70b" class="bg-[#111b21] text-white" selected>🦙 Meta AI (Llama 3.3 70B)</option>
+                        <option value="auto-omniroute" class="bg-[#111b21] text-white">⚡ Auto (OmniRoute)</option>
+                        <option value="gemini-flash-lite-latest" class="bg-[#111b21] text-white">Gemini Flash Lite</option>
+                        <option value="groq-llama-3.3-70b" class="bg-[#111b21] text-white">Groq Llama 3.3</option>
+                        <option value="openrouter" class="bg-[#111b21] text-white">OpenRouter</option>
+                    </select>
+                </div>
+
+                <!-- Seletor Rápido de Skill (Oculto ou compacto) -->
+                <select id="selectSkill" class="hidden">
+                    <option value="auto" selected>Auto</option>
+                    <option value="coach">@coach</option>
+                    <option value="criador">@criador</option>
+                    <option value="dev">@dev</option>
+                    <option value="negocios">@negocios</option>
+                </select>
+                <select id="selectAudioSpeed" class="hidden"><option value="1.06" selected>1.06x</option></select>
+                <select id="quickVoiceSelect" class="hidden"><option value="pt-BR-FranciscaNeural" selected>Francisca</option></select>
+
+                <button onclick="document.getElementById('chatSearchInput')?.focus()" title="Pesquisar conversa" class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-white/10 hover:text-white spring-transition">
+                    <i class="fa-solid fa-magnifying-glass text-sm"></i>
                 </button>
 
-                <!-- Botão de Conta & Sincronização em Nuvem (Notebook & Celular) -->
-                <button id="headerUserAuthBtn" onclick="openSettingsModal('account-section')" title="Conta e Sincronização em Nuvem" class="min-h-[36px] px-2 sm:px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-zinc-300 hover:text-white flex items-center space-x-1 sm:space-x-1.5 spring-transition flex-shrink-0">
-                    <i id="headerUserIcon" class="fa-solid fa-circle-user text-xs text-apple-blue"></i>
-                    <span id="headerUserName" class="hidden sm:inline font-medium">Entrar</span>
+                <button onclick="openLiveCallOverlay()" title="Chamada de Vídeo" class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-white/10 hover:text-white spring-transition">
+                    <i class="fa-solid fa-video text-sm"></i>
                 </button>
 
-                <!-- Botão Instalar PWA -->
-                <button id="pwaInstallBtn" onclick="triggerPwaInstall()" title="Instalar como Aplicativo PWA" class="hidden min-h-[36px] px-2 sm:px-2.5 py-1 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/30 text-xs font-semibold flex items-center space-x-1.5 spring-transition flex-shrink-0">
-                    <i class="fa-solid fa-download text-xs"></i>
-                    <span class="hidden md:inline">Instalar App</span>
+                <button onclick="openLiveCallOverlay()" title="Chamada de Voz" class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-white/10 hover:text-white spring-transition">
+                    <i class="fa-solid fa-phone text-sm"></i>
                 </button>
 
-                <!-- Live Voice Call Button -->
-                <button id="liveAudioCallBtn" onclick="openLiveCallOverlay()" title="Modo Conversa por Voz em Tempo Real (Gemini Live)" class="min-h-[36px] px-2.5 sm:px-3 py-1 rounded-xl bg-apple-blue hover:bg-apple-blueHover text-white text-xs font-semibold flex items-center space-x-1.5 shadow-sm spring-transition active:scale-[0.98] flex-shrink-0">
-                    <i id="liveAudioIcon" class="fa-solid fa-phone text-xs"></i>
-                    <span id="liveAudioText" class="hidden sm:inline">Conversa Live</span>
-                </button>
-
-                <!-- Delete Chat (FLEX-SHRINK-0: NUNCA DESAPARECE DO TOPO) -->
-                <button onclick="deleteCurrentChat()" title="Excluir este chat" class="min-h-[36px] min-w-[36px] rounded-xl hover:bg-white/10 text-white/50 hover:text-red-400 flex items-center justify-center spring-transition flex-shrink-0">
-                    <i class="fa-regular fa-trash-can text-sm"></i>
-                </button>
+                <!-- Menu de 3 Pontinhos do Cabeçalho -->
+                <div class="relative">
+                    <button onclick="toggleHeaderMenu()" title="Mais opções" class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-white/10 hover:text-white spring-transition">
+                        <i class="fa-solid fa-ellipsis-vertical text-sm"></i>
+                    </button>
+                    <div id="headerDropdownMenu" class="hidden absolute right-0 top-11 w-52 bg-[#202c33] border border-[#222d34] rounded-xl shadow-2xl py-1 z-30 text-xs text-zinc-200">
+                        <button onclick="deleteCurrentChat(); toggleHeaderMenu();" class="w-full px-3.5 py-2 text-left hover:bg-white/10 text-red-400 flex items-center space-x-2.5">
+                            <i class="fa-regular fa-trash-can w-4"></i>
+                            <span>Excluir este chat</span>
+                        </button>
+                        <button onclick="createNewChat(); toggleHeaderMenu();" class="w-full px-3.5 py-2 text-left hover:bg-white/10 flex items-center space-x-2.5">
+                            <i class="fa-solid fa-plus w-4"></i>
+                            <span>Nova conversa</span>
+                        </button>
+                        <button onclick="openImageGeneratorModal(); toggleHeaderMenu();" class="w-full px-3.5 py-2 text-left hover:bg-white/10 flex items-center space-x-2.5">
+                            <i class="fa-solid fa-wand-magic-sparkles text-amber-400 w-4"></i>
+                            <span>Gerar Imagem (/imagine)</span>
+                        </button>
+                        <button onclick="openPdfModal(); toggleHeaderMenu();" class="w-full px-3.5 py-2 text-left hover:bg-white/10 flex items-center space-x-2.5">
+                            <i class="fa-solid fa-file-pdf text-red-400 w-4"></i>
+                            <span>Ler Artigo ou Livro PDF</span>
+                        </button>
+                        <button onclick="openSettingsModal(); toggleHeaderMenu();" class="w-full px-3.5 py-2 text-left hover:bg-white/10 flex items-center space-x-2.5 border-t border-[#222d34]">
+                            <i class="fa-solid fa-gear w-4"></i>
+                            <span>Ajustes & Plugins</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </header>
 
-        <!-- Messages Scroll Area -->
-        <main class="flex-1 overflow-y-auto p-3 sm:p-4 md:px-0 flex flex-col items-center select-text" id="scrollContainer">
-            <!-- Welcome Screen (Apple Bento Minimalist) -->
-            <div id="welcomeScreen" class="w-full max-w-3xl flex-1 flex flex-col items-center justify-center text-center my-auto py-8 sm:py-12 space-y-5">
-                <div class="w-16 h-16 rounded-3xl flex items-center justify-center bg-white/5 border border-white/10 shadow-lg text-white">
-                    <i class="fa-solid fa-sparkles text-2xl text-apple-blue"></i>
+        <!-- Área de Rolagem de Mensagens (Preenche a largura inteira com doodle) -->
+        <main class="flex-1 overflow-y-auto px-4 sm:px-8 md:px-12 lg:px-16 py-4 flex flex-col justify-start select-text" id="scrollContainer">
+            <!-- Tela de Boas-Vindas Estilo ZapFast -->
+            <div id="welcomeScreen" class="my-auto mx-auto max-w-lg text-center py-8 space-y-4">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#202c33] text-[#00a884] shadow-sm border border-[#222d34]">
+                    <i class="fa-solid fa-lock text-xs"></i>
+                    <span class="text-xs font-medium text-zinc-300">Mensagens processadas com privacidade Zero-Leak</span>
+                </div>
+                <div class="w-16 h-16 mx-auto rounded-full bg-gradient-to-tr from-[#00a884] to-[#005c4b] flex items-center justify-center text-white text-2xl shadow-lg">
+                    <i class="fa-solid fa-robot"></i>
                 </div>
                 <div>
-                    <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-white">
-                        Montanha AI Studio
-                    </h2>
-                    <p class="text-xs sm:text-sm text-zinc-400 mt-1 max-w-md mx-auto">
-                        Inteligência multimodal de alta precisão, busca web ativa e integração Google Workspace.
+                    <h2 class="text-lg font-bold text-white">Montanha AI Studio</h2>
+                    <p class="text-xs text-zinc-400 mt-1 max-w-sm mx-auto">
+                        Inteligência multimodal ativa: envie mensagens de texto, áudios por microfone, documentos PDF ou gere imagens com Meta AI.
                     </p>
                 </div>
-
-                <!-- Bento Quick Action Grid (Apple Minimalist) -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 w-full max-w-lg pt-2 text-left">
-                    <button onclick="openImageGeneratorModal()" class="p-3.5 rounded-2xl welcome-card text-xs spring-transition active:scale-[0.99] flex items-start space-x-3">
-                        <div class="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
-                            <i class="fa-solid fa-image text-zinc-300 text-xs"></i>
-                        </div>
-                        <div>
-                            <span class="font-semibold block text-white">Gerar Imagens (Meta AI / Flux / SDXL)</span>
-                            <span class="text-[11px] text-zinc-400">Seleção de motores gratuitos e oficiais</span>
-                        </div>
+                <!-- Pílulas de Sugestão Rápida no Chat -->
+                <div class="flex flex-wrap items-center justify-center gap-2 pt-2">
+                    <button onclick="setPrompt('/imagine astronauta treinando na lua')" class="px-3 py-1.5 rounded-full bg-[#202c33] hover:bg-[#2a3942] border border-[#222d34] text-xs text-zinc-300 spring-transition">
+                        🎨 /imagine astronauta na lua
                     </button>
-
-                    <button onclick="openBrowserModal()" class="p-3.5 rounded-2xl welcome-card text-xs spring-transition active:scale-[0.99] flex items-start space-x-3">
-                        <div class="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
-                            <i class="fa-solid fa-compass text-zinc-300 text-xs"></i>
-                        </div>
-                        <div>
-                            <span class="font-semibold block text-white">Browser & Pesquisa Web</span>
-                            <span class="text-[11px] text-zinc-400">Navegue e pesquise direto no app</span>
-                        </div>
+                    <button onclick="setPrompt('Consolide uma tabela de treino com cargas progressivas e descanso.')" class="px-3 py-1.5 rounded-full bg-[#202c33] hover:bg-[#2a3942] border border-[#222d34] text-xs text-zinc-300 spring-transition">
+                        📋 Tabela de progressão de carga
                     </button>
-
-                    <button onclick="openGoogleHubModal()" class="p-3.5 rounded-2xl welcome-card text-xs spring-transition active:scale-[0.99] flex items-start space-x-3">
-                        <div class="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
-                            <i class="fa-brands fa-google text-zinc-300 text-xs"></i>
-                        </div>
-                        <div>
-                            <span class="font-semibold block text-white">Google Apps & Notas</span>
-                            <span class="text-[11px] text-zinc-400">Calendar, Docs, Sheets, Keep e Notas</span>
-                        </div>
-                    </button>
-
-                    <button onclick="setPrompt('Escreva uma prescrição de treino funcional com blocos estruturados e esteira de progressão de carga.')" class="p-3.5 rounded-2xl welcome-card text-xs spring-transition active:scale-[0.99] flex items-start space-x-3">
-                        <div class="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
-                            <i class="fa-solid fa-dumbbell text-zinc-300 text-xs"></i>
-                        </div>
-                        <div>
-                            <span class="font-semibold block text-white">Prescrição & Fisiologia</span>
-                            <span class="text-[11px] text-zinc-400">Tom direto Coach Montanha sem clichês</span>
-                        </div>
+                    <button onclick="setPrompt('Pesquise as últimas notícias de tecnologia e resuma em 3 pontos.')" class="px-3 py-1.5 rounded-full bg-[#202c33] hover:bg-[#2a3942] border border-[#222d34] text-xs text-zinc-300 spring-transition">
+                        🔍 Pesquisar na web
                     </button>
                 </div>
             </div>
 
-            <!-- Messages List -->
-            <div class="w-full max-w-3xl flex flex-col justify-start space-y-4 pb-28 hidden" id="messagesList"></div>
+            <!-- Lista de Mensagens do Chat -->
+            <div class="w-full flex flex-col space-y-2.5 pb-6 hidden" id="messagesList"></div>
         </main>
 
-        <!-- Bottom Input Dock (Ergonomic Thumb Zone) -->
-        <div class="w-full max-w-3xl mx-auto px-3 sm:px-4 pb-2 sm:pb-3" style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0.5rem))">
-            <!-- Multimodal Media Attachment Preview (Imagens, Vídeos, Áudios Whisper, Documentos) -->
-            <div id="imagePreviewBar" class="hidden mb-2 p-2.5 rounded-2xl bg-[#12141a] border border-white/10 flex items-center justify-between shadow-xl">
+        <!-- BARRA INFERIOR DE DIGITAÇÃO (Idêntica à Imagem 1 do ZapFast) -->
+        <div class="bg-[#202c33] px-3 sm:px-4 py-2 border-t border-[#222d34] flex-shrink-0">
+            <!-- Barra de Prévia de Mídia Anexada -->
+            <div id="imagePreviewBar" class="hidden mb-2 p-2 rounded-xl bg-[#111b21] border border-[#222d34] flex items-center justify-between shadow-lg">
                 <div class="flex items-center space-x-2.5 min-w-0 flex-1 mr-2">
-                    <div id="mediaPreviewIconBox" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    <div id="mediaPreviewIconBox" class="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
                         <img id="imgPreviewThumb" class="w-full h-full object-cover hidden" src="">
                         <i id="mediaPreviewIcon" class="fa-solid fa-file text-sm text-zinc-300"></i>
                     </div>
                     <div class="min-w-0 flex-1">
                         <div id="imgPreviewName" class="text-xs text-zinc-200 font-medium truncate font-mono">arquivo</div>
                         <div class="text-[10px] text-zinc-400 font-mono flex items-center gap-1.5 truncate">
-                            <span id="mediaTypeLabel" class="text-apple-blue font-semibold">Multimídia</span>
+                            <span id="mediaTypeLabel" class="text-[#00a884] font-semibold">Multimídia</span>
                             <span class="text-zinc-600">•</span>
                             <span id="mediaActionHint" class="text-zinc-400 truncate">Pronto para Whisper & Processamento</span>
                         </div>
                     </div>
                 </div>
-                <button onclick="removeAttachedImage()" class="min-h-[36px] min-w-[36px] rounded-xl hover:bg-white/10 text-zinc-400 hover:text-red-400 flex items-center justify-center flex-shrink-0" title="Remover anexo">
+                <button onclick="removeAttachedImage()" class="w-8 h-8 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-red-400 flex items-center justify-center flex-shrink-0" title="Remover anexo">
                     <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
 
-            <!-- Main Input Bar -->
-            <div class="relative bg-[#12141a] rounded-2xl border border-white/10 focus-within:border-white/20 transition-all shadow-xl p-2 flex items-end space-x-1.5 sm:space-x-2">
+            <!-- Linha de Entrada Principal do ZapFast -->
+            <div class="flex items-center space-x-2">
                 <input type="file" id="fileInput" accept="image/*,audio/*,video/*,application/pdf,text/*,.json,.csv" class="hidden" onchange="handleFileSelect(event)">
 
-                <!-- Botão '+' Menu Rápido -->
+                <!-- Botão '+' Menu de Anexos -->
                 <div class="relative">
-                    <button id="addContextBtn" onclick="toggleContextDropdown()" title="Adicionar arquivo ou ferramenta" class="min-h-[44px] min-w-[44px] rounded-xl hover:bg-white/10 text-zinc-300 hover:text-white flex items-center justify-center spring-transition text-base font-semibold">
+                    <button id="addContextBtn" onclick="toggleContextDropdown()" title="Anexar arquivo ou mídia" class="w-10 h-10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 spring-transition text-base font-semibold">
                         <i class="fa-solid fa-plus"></i>
                     </button>
-                    <!-- Context Menu Dropdown (Apple Popover) -->
-                    <div id="contextDropdown" class="hidden absolute bottom-12 left-0 w-56 bg-[#12141a] border border-white/10 rounded-2xl shadow-2xl py-2 z-30 text-xs">
-                        <button onclick="document.getElementById('fileInput').click(); toggleContextDropdown();" class="w-full min-h-[44px] px-3.5 py-2 text-left hover:bg-white/10 text-zinc-200 hover:text-white flex items-center space-x-3 spring-transition">
-                            <i class="fa-solid fa-photo-film text-apple-blue w-4"></i>
-                            <span>Anexar Foto, Áudio ou Vídeo</span>
+                    <!-- Popover de Anexos (Estilo WhatsApp) -->
+                    <div id="contextDropdown" class="hidden absolute bottom-12 left-0 w-56 bg-[#202c33] border border-[#222d34] rounded-2xl shadow-2xl py-2 z-30 text-xs text-zinc-200">
+                        <button onclick="document.getElementById('fileInput').click(); toggleContextDropdown();" class="w-full px-3.5 py-2.5 text-left hover:bg-white/10 flex items-center space-x-3 spring-transition">
+                            <i class="fa-solid fa-image text-emerald-400 w-4 text-sm"></i>
+                            <span>Fotos e vídeos</span>
                         </button>
-                        <button onclick="triggerAudioRecordMemo(); toggleContextDropdown();" class="w-full min-h-[44px] px-3.5 py-2 text-left hover:bg-white/10 text-zinc-200 hover:text-white flex items-center space-x-3 spring-transition">
-                            <i class="fa-solid fa-microphone-lines text-purple-400 w-4"></i>
-                            <span>Gravar Áudio (Whisper / JSON)</span>
+                        <button onclick="document.getElementById('fileInput').click(); toggleContextDropdown();" class="w-full px-3.5 py-2.5 text-left hover:bg-white/10 flex items-center space-x-3 spring-transition">
+                            <i class="fa-solid fa-file-pdf text-red-400 w-4 text-sm"></i>
+                            <span>Documento / PDF</span>
                         </button>
-                        <button onclick="openImageGeneratorModal(); toggleContextDropdown();" class="w-full min-h-[44px] px-3.5 py-2 text-left hover:bg-white/10 text-zinc-200 hover:text-white flex items-center space-x-3 spring-transition">
-                            <i class="fa-solid fa-wand-magic-sparkles text-amber-400 w-4"></i>
-                            <span>Gerar Imagem com IA</span>
+                        <button onclick="triggerAudioRecordMemo(); toggleContextDropdown();" class="w-full px-3.5 py-2.5 text-left hover:bg-white/10 flex items-center space-x-3 spring-transition">
+                            <i class="fa-solid fa-microphone-lines text-purple-400 w-4 text-sm"></i>
+                            <span>Gravar Áudio (Whisper)</span>
                         </button>
-                        <button onclick="openPdfModal(); toggleContextDropdown();" class="w-full min-h-[44px] px-3.5 py-2 text-left hover:bg-white/10 text-zinc-200 hover:text-white flex items-center space-x-3 spring-transition">
-                            <i class="fa-solid fa-file-pdf text-red-400 w-4"></i>
-                            <span>Ler Livro / Artigo PDF</span>
+                        <button onclick="openImageGeneratorModal(); toggleContextDropdown();" class="w-full px-3.5 py-2.5 text-left hover:bg-white/10 flex items-center space-x-3 spring-transition border-t border-[#222d34]/60">
+                            <i class="fa-solid fa-wand-magic-sparkles text-amber-400 w-4 text-sm"></i>
+                            <span>Gerar Imagem (/imagine)</span>
                         </button>
-                        <button onclick="openBrowserModal(); toggleContextDropdown();" class="w-full min-h-[44px] px-3.5 py-2 text-left hover:bg-white/10 text-zinc-200 hover:text-white flex items-center space-x-3 spring-transition">
-                            <i class="fa-solid fa-compass text-teal-400 w-4"></i>
-                            <span>Abrir Navegador Interno</span>
-                        </button>
-                        <button onclick="openGoogleHubModal(); toggleContextDropdown();" class="w-full min-h-[44px] px-3.5 py-2 text-left hover:bg-white/10 text-zinc-200 hover:text-white flex items-center space-x-3 spring-transition">
-                            <i class="fa-brands fa-google text-zinc-400 w-4"></i>
-                            <span>Google Apps & Notas</span>
-                        </button>
-                        <button onclick="insertPrompt('/graphify'); toggleContextDropdown();" class="w-full min-h-[44px] px-3.5 py-2 text-left hover:bg-white/10 text-purple-300 hover:text-white flex items-center space-x-3 spring-transition border-t border-white/5">
-                            <i class="fa-solid fa-diagram-project text-purple-400 w-4"></i>
-                            <span>Mapear Grafo Mental (/graphify)</span>
+                        <button onclick="openBrowserModal(); toggleContextDropdown();" class="w-full px-3.5 py-2.5 text-left hover:bg-white/10 flex items-center space-x-3 spring-transition">
+                            <i class="fa-solid fa-compass text-teal-400 w-4 text-sm"></i>
+                            <span>Navegador Interno</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Textarea -->
-                <textarea id="promptInput" rows="1" placeholder="Mensagem, pesquisa web ou comando..." onkeydown="handleKeyDown(event)" oninput="autoGrow(this)" class="flex-1 bg-transparent border-0 text-white placeholder-zinc-500 text-sm focus:outline-none resize-none max-h-40 leading-relaxed py-2 px-1"></textarea>
-
-                <!-- Microfone -->
-                <button id="micBtn" onclick="toggleSpeechRecognition()" title="Falar por Voz (Microfone)" class="min-h-[44px] min-w-[44px] rounded-xl hover:bg-white/10 text-zinc-300 hover:text-white flex items-center justify-center spring-transition">
-                    <i id="micIcon" class="fa-solid fa-microphone text-sm"></i>
+                <!-- Botão Emoji 😊 -->
+                <button onclick="insertPrompt('😊 ')" title="Emojis" class="w-10 h-10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 spring-transition">
+                    <i class="fa-regular fa-face-smile text-base"></i>
                 </button>
 
-                <!-- Botão Enviar (Apple Blue) -->
-                <button id="sendBtn" onclick="sendMessage()" class="min-h-[44px] min-w-[44px] rounded-xl bg-apple-blue hover:bg-apple-blueHover text-white flex items-center justify-center spring-transition disabled:opacity-30 disabled:cursor-not-allowed shadow-sm active:scale-[0.98]">
-                    <i class="fa-solid fa-arrow-up text-sm"></i>
+                <!-- Input Textarea (Campo Arredondado ZapFast) -->
+                <div class="flex-1 bg-[#2a3942] rounded-lg px-3.5 py-2 flex items-center">
+                    <textarea id="promptInput" rows="1" placeholder="Digite uma mensagem" onkeydown="handleKeyDown(event)" oninput="autoGrow(this)" class="w-full bg-transparent text-white placeholder-zinc-400 text-sm focus:outline-none resize-none max-h-36 leading-relaxed"></textarea>
+                </div>
+
+                <!-- Botão Microfone 🎙️ -->
+                <button id="micBtn" onclick="toggleSpeechRecognition()" title="Mensagem de voz" class="w-10 h-10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 spring-transition">
+                    <i id="micIcon" class="fa-solid fa-microphone text-base"></i>
+                </button>
+
+                <!-- Botão Enviar Verde WhatsApp ✈️ -->
+                <button id="sendBtn" onclick="sendMessage()" class="w-10 h-10 rounded-full bg-[#00a884] hover:bg-[#00a884]/90 text-white flex items-center justify-center spring-transition shadow-sm active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed">
+                    <i class="fa-solid fa-paper-plane text-sm"></i>
                 </button>
             </div>
 
-            <!-- Controles Inferiores (Apple Monocromático) -->
-            <div class="mt-2 px-1 flex flex-row items-center justify-between gap-2 text-xs overflow-x-auto no-scrollbar">
-                <div class="flex items-center space-x-2 flex-nowrap">
-                    <!-- Engine Selector -->
-                    <div class="flex items-center bg-[#12141a] border border-white/5 rounded-xl px-2.5 py-1">
-                        <span class="text-zinc-500 text-[11px] mr-1 hidden xs:inline">Motor:</span>
-                        <select id="selectModelEngine" onchange="updateEngineDisplay(this.value)" class="bg-transparent text-zinc-200 text-[11px] font-medium focus:outline-none cursor-pointer pr-1 truncate">
-                            <option value="auto-omniroute" class="bg-[#12141a] text-white">Auto (OmniRoute Inteligente)</option>
-                            <option value="meta-llama-3.3-70b" class="bg-[#12141a] text-white">🦙 Meta AI — Llama 3.3 (Ultra-Rápido)</option>
-                            <option value="meta-llama-vision" class="bg-[#12141a] text-white">🦙 Meta Llama Vision (Fotos & OCR)</option>
-                            <option value="nex-n2.5-pro" class="bg-[#12141a] text-white">⚡ Nex N2.5 Pro (Agêntico 262k)</option>
-                            <option value="nex-n2.5-mini" class="bg-[#12141a] text-white">⚡ Nex N2.5 Mini (Rápido 262k)</option>
-                            <option value="gemini-flash-lite-latest" class="bg-[#12141a] text-white">Gemini Flash Lite (Oficial)</option>
-                            <option value="gemini-3.1-flash-lite-preview" class="bg-[#12141a] text-white">Gemini 3.1 Flash Lite</option>
-                            <option value="gemini-3-flash-preview" class="bg-[#12141a] text-white">Gemini 3 Flash</option>
-                            <option value="groq-llama-3.3-70b" class="bg-[#12141a] text-white">Groq (Ultra-Rápido)</option>
-                            <option value="openrouter" class="bg-[#12141a] text-white">OpenRouter (Llama 3.3 / DeepSeek)</option>
-                        </select>
-                    </div>
-
-                    <!-- Skill Selector -->
-                    <div class="flex items-center bg-[#12141a] border border-white/5 rounded-xl px-2.5 py-1">
-                        <span class="text-zinc-500 text-[11px] mr-1 hidden xs:inline">Skill:</span>
-                        <select id="selectSkill" class="bg-transparent text-zinc-200 text-[11px] font-medium focus:outline-none cursor-pointer pr-1 truncate">
-                            <option value="auto" class="bg-[#12141a] text-white" selected>🌟 Auto (Orquestrador Inteligente)</option>
-                            <option value="coach" class="bg-[#12141a] text-white">🏋️ @coach (Fisiologia, Treino & Nutrição)</option>
-                            <option value="criador" class="bg-[#12141a] text-white">🎬 @criador (Conteúdo, Vídeo & Copy)</option>
-                            <option value="dev" class="bg-[#12141a] text-white">💻 @dev (Engenharia de Software & Bugs)</option>
-                            <option value="negocios" class="bg-[#12141a] text-white">💼 @negocios (Gestão, Comercial & Anti-SaaS)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Voice & Speed Control (/text-voice) -->
-                <div class="flex items-center bg-[#12141a] border border-white/5 rounded-xl px-2 py-1 flex-shrink-0 gap-1.5">
-                    <span class="text-zinc-500 text-[11px] hidden xs:inline" title="Voz para /text-voice e leitura">🎙️ Voz:</span>
-                    <select id="quickVoiceSelect" onchange="changeVoiceSetting(this.value)" class="bg-transparent text-zinc-200 text-[11px] font-medium focus:outline-none cursor-pointer max-w-[130px] sm:max-w-[160px] truncate" title="Escolha a voz da IA (/text-voice)">
-                        <option value="pt-BR-FranciscaNeural" class="bg-[#12141a] text-white" selected>👩 Francisca (Mulher Padrão)</option>
-                        <option value="pt-BR-ThalitaNeural" class="bg-[#12141a] text-white">👩 Thalita (Mulher Jovem)</option>
-                        <option value="pt-BR-YaraNeural" class="bg-[#12141a] text-white">👩 Yara (Mulher Calma)</option>
-                        <option value="pt-BR-AntonioNeural" class="bg-[#12141a] text-white">👨 Antônio (Homem Coach)</option>
-                        <option value="pt-BR-FabioNeural" class="bg-[#12141a] text-white">👨 Fábio (Homem Conversa)</option>
-                    </select>
-                    <span class="text-zinc-600 text-[11px]">|</span>
-                    <select id="selectAudioSpeed" class="bg-transparent text-zinc-400 text-[11px] font-mono focus:outline-none cursor-pointer" title="Velocidade de reprodução">
-                        <option value="0.9" class="bg-[#12141a] text-white">0.9x</option>
-                        <option value="1.0" class="bg-[#12141a] text-white">1.0x</option>
-                        <option value="1.06" class="bg-[#12141a] text-white" selected>1.06x</option>
-                        <option value="1.15" class="bg-[#12141a] text-white">1.15x</option>
-                        <option value="1.25" class="bg-[#12141a] text-white">1.25x</option>
-                    </select>
-                </div>
+            <!-- Legenda Exata da Imagem 1 do ZapFast -->
+            <div class="mt-1.5 text-center text-[11px] text-zinc-500 font-sans select-none">
+                Enter envia • Shift+Enter para nova linha • *negrito* _itálico_ ~riscado~ • Ctrl+V cola uma imagem
             </div>
         </div>
-
     </div>
 
     <!-- ======================================================= -->
@@ -1730,30 +1766,98 @@
             scrollToBottom();
         }
 
+        let activeChatFilterTab = 'all';
+        let chatSearchQuery = '';
+
+        function toggleHeaderMenu() {
+            const menu = document.getElementById('headerDropdownMenu');
+            if (menu) menu.classList.toggle('hidden');
+        }
+
+        function filterChats(query) {
+            chatSearchQuery = (query || '').toLowerCase().trim();
+            loadChatsIndex();
+        }
+
+        function filterChatsByTab(tab) {
+            activeChatFilterTab = tab;
+            document.querySelectorAll('.chat-tab-pill').forEach(el => {
+                if (el.dataset.tab === tab) {
+                    el.className = 'chat-tab-pill px-3 py-1 rounded-full text-xs font-semibold bg-[#0a332c] text-[#00a884] spring-transition';
+                } else {
+                    el.className = 'chat-tab-pill px-3 py-1 rounded-full text-xs font-medium bg-[#202c33] text-zinc-400 hover:text-white spring-transition';
+                }
+            });
+            loadChatsIndex();
+        }
+
         function loadChatsIndex() {
             const container = document.getElementById('chatsListContainer');
             if (!container) return;
             const chats = getLocalChats();
-            const ids = Object.keys(chats).reverse();
+            let ids = Object.keys(chats).reverse();
+
+            if (chatSearchQuery) {
+                ids = ids.filter(id => {
+                    const c = chats[id];
+                    return (c.title || '').toLowerCase().includes(chatSearchQuery);
+                });
+            }
 
             if (ids.length === 0) {
-                container.innerHTML = '<div class="p-3 text-center text-xs text-zinc-500">Nenhum histórico recente.</div>';
+                container.innerHTML = '<div class="p-6 text-center text-xs text-zinc-500 font-sans">Nenhuma conversa recente.</div>';
                 return;
             }
 
+            const avatarGradients = [
+                'from-[#00a884] to-[#005c4b]',
+                'from-sky-600 to-blue-800',
+                'from-indigo-600 to-purple-800',
+                'from-amber-600 to-orange-800',
+                'from-rose-600 to-pink-800'
+            ];
+
             let html = '';
-            ids.forEach(id => {
+            ids.forEach((id, idx) => {
                 const c = chats[id];
                 const active = (id === currentChatId);
-                const activeCls = active ? 'bg-white/10 text-white font-semibold border-white/10' : 'text-zinc-400 hover:bg-white/5 hover:text-white border-transparent';
+                const activeCls = active 
+                    ? 'bg-[#202c33] border-l-4 border-l-[#00a884]' 
+                    : 'hover:bg-[#202c33]/70 border-l-4 border-l-transparent';
+                
+                const grad = avatarGradients[idx % avatarGradients.length];
+                const initial = (c.title || 'M').charAt(0).toUpperCase();
+
+                let lastPreview = 'Toque para conversar';
+                let lastTime = c.updated_at || 'Ontem';
+                if (c.messages && c.messages.length > 0) {
+                    const lm = c.messages[c.messages.length - 1];
+                    lastPreview = lm.prompt || lm.response || lastPreview;
+                    if (lm.timestamp) lastTime = formatMessageTime(lm.timestamp);
+                }
+
                 html += `
-                    <div class="group flex items-center justify-between px-2.5 py-2 rounded-xl text-xs border ${activeCls} spring-transition cursor-pointer" onclick="selectChat('${id}', '${(c.title || 'Chat').replace(/'/g, "\'")}')">
-                        <div class="flex items-center space-x-2 truncate flex-1 min-w-0 mr-1">
-                            <i class="fa-regular fa-message text-[10px] text-zinc-500"></i>
-                            <span class="truncate">${c.title || 'Chat sem título'}</span>
+                    <div class="group relative flex items-center px-3.5 py-3 transition-colors cursor-pointer border-b border-[#222d34]/50 ${activeCls}" onclick="selectChat('${id}', '${(c.title || 'Chat').replace(/'/g, "\\'")}')">
+                        <!-- Avatar Circular 44px (ZapFast Style) -->
+                        <div class="w-11 h-11 rounded-full bg-gradient-to-tr ${grad} flex items-center justify-center text-white font-bold text-sm shadow-sm flex-shrink-0 mr-3">
+                            ${initial}
                         </div>
-                        <button onclick="event.stopPropagation(); deleteLocalChat('${id}')" class="opacity-0 group-hover:opacity-100 hover:text-red-400 p-1 text-zinc-500 spring-transition" title="Excluir">
-                            <i class="fa-solid fa-xmark text-xs"></i>
+                        
+                        <!-- Conteúdo Central -->
+                        <div class="flex-1 min-w-0 pr-1">
+                            <div class="flex items-center justify-between mb-0.5">
+                                <h3 class="text-sm font-medium text-white truncate">${escapeHtml(c.title || 'Nova Conversa')}</h3>
+                                <span class="text-[11px] text-zinc-400 font-sans flex-shrink-0 ml-1.5">${lastTime}</span>
+                            </div>
+                            <div class="flex items-center text-xs text-zinc-400 truncate">
+                                <i class="fa-solid fa-check-double text-[11px] text-[#53bdeb] mr-1.5 flex-shrink-0"></i>
+                                <span class="truncate text-[12px] text-zinc-400">${escapeHtml(lastPreview)}</span>
+                            </div>
+                        </div>
+
+                        <!-- Botão Excluir -->
+                        <button onclick="event.stopPropagation(); deleteLocalChat('${id}')" class="opacity-0 group-hover:opacity-100 hover:text-red-400 p-1.5 text-zinc-500 hover:bg-white/5 rounded-lg spring-transition ml-1" title="Excluir conversa">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
                         </button>
                     </div>
                 `;
@@ -2429,11 +2533,12 @@
 
             div.innerHTML = `
                 ${deleteBtn}
-                <div class="chat-bubble-user max-w-[85%] sm:max-w-[75%] px-4 py-2.5 shadow-sm chat-bubble-content flex flex-col">
+                <div class="chat-bubble-user max-w-[85%] sm:max-w-[75%] px-3.5 py-2.5 shadow-sm chat-bubble-content flex flex-col rounded-2xl rounded-tr-sm">
                     ${mediaBadgeHtml}
                     <div class="select-text whitespace-pre-wrap break-words leading-relaxed">${escapeHtml(text)}</div>
-                    <div class="flex items-center justify-end mt-1 text-[10px] opacity-75 font-mono select-none self-end">
+                    <div class="flex items-center justify-end mt-1 text-[11px] text-emerald-200/90 font-sans select-none self-end gap-1">
                         <span>${timeFormatted}</span>
+                        <i class="fa-solid fa-check-double text-[11px] text-[#53bdeb]"></i>
                     </div>
                 </div>
             `;
@@ -2499,7 +2604,7 @@
             const updatedBadge = updated ? `<span class="text-[9px] font-sans px-1.5 py-0.2 rounded bg-white/10 text-emerald-300 border border-emerald-500/30 flex items-center gap-1"><i class="fa-solid fa-clock-rotate-left text-[8px]"></i> atualizada (${updatedTimeFormatted})</span>` : '';
 
             div.innerHTML = `
-                <div class="chat-bubble-bot max-w-[95%] sm:max-w-[85%] px-4 py-3.5 shadow-md chat-bubble-content flex flex-col">
+                <div class="chat-bubble-bot max-w-[90%] sm:max-w-[80%] px-4 py-3 shadow-sm chat-bubble-content flex flex-col rounded-2xl rounded-tl-sm">
                     <div class="markdown-body select-text">${marked.parse(markdownText || '')}</div>
                     ${sourcesHtml}
                     ${googleActionHtml}
@@ -3819,6 +3924,18 @@
 
         function updateEngineDisplay(val) {
             localStorage.setItem('montanha_engine', val);
+            const labelMap = {
+                'meta-llama-3.3-70b': 'Meta AI (Llama 3.3 70B)',
+                'auto-omniroute': 'Auto (OmniRoute Inteligente)',
+                'gemini-flash-lite-latest': 'Gemini Flash Lite',
+                'groq-llama-3.3-70b': 'Groq (Llama 3.3 70B)',
+                'openrouter': 'OpenRouter'
+            };
+            const label = labelMap[val] || val;
+            const h1 = document.getElementById('currentEngineHeaderLabel');
+            if (h1) h1.textContent = label;
+            const h2 = document.getElementById('currentEngineLabel');
+            if (h2) h2.textContent = label;
         }
 
         // Fechar dropdowns ao clicar fora
@@ -3827,6 +3944,12 @@
             const dd = document.getElementById('contextDropdown');
             if (btn && dd && !btn.contains(e.target) && !dd.contains(e.target)) {
                 dd.classList.add('hidden');
+            }
+
+            const headerMenu = document.getElementById('headerDropdownMenu');
+            const headerBtn = e.target.closest('button[onclick*="toggleHeaderMenu"]');
+            if (headerMenu && !headerMenu.contains(e.target) && !headerBtn) {
+                headerMenu.classList.add('hidden');
             }
         });
 
