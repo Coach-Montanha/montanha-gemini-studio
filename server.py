@@ -49,8 +49,11 @@ import re
 import hashlib
 import urllib.request
 import urllib.parse
+import threading
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
+
+IMAGE_GEN_LOCK = threading.Lock()
 
 BASE_DIR = Path(__file__).resolve().parent
 PUBLIC_DIR = BASE_DIR / "public"
@@ -851,7 +854,11 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
             return
 
         req_path = parsed.path.lstrip("/") or "index.html"
-        file_path = PUBLIC_DIR / req_path
+        if parsed.path.startswith("/storage/"):
+            file_path = BASE_DIR / req_path
+        else:
+            file_path = PUBLIC_DIR / req_path
+
         if file_path.exists() and file_path.is_file():
             mime = "text/html"
             if file_path.suffix == ".css": mime = "text/css"
@@ -859,10 +866,13 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
             elif file_path.suffix == ".json": mime = "application/json"
             elif file_path.suffix == ".svg": mime = "image/svg+xml"
             elif file_path.suffix in [".png", ".jpg", ".jpeg"]: mime = f"image/{file_path.suffix.lstrip('.')}"
+            elif file_path.suffix == ".webp": mime = "image/webp"
+            elif file_path.suffix == ".ico": mime = "image/x-icon"
             content = file_path.read_bytes()
             self.send_response(200)
             self.send_header("Content-Type", f"{mime}; charset=utf-8" if "text" in mime or "svg" in mime else mime)
             self.send_header("Content-Length", str(len(content)))
+            self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
             self.wfile.write(content)
             return
@@ -1293,7 +1303,8 @@ class GeminiStudioHandler(BaseHTTPRequestHandler):
                     import meta_ai_bridge
                     import importlib
                     importlib.reload(meta_ai_bridge)
-                    m_res = meta_ai_bridge.generate_image(prompt, headless=True)
+                    with IMAGE_GEN_LOCK:
+                        m_res = meta_ai_bridge.generate_image(prompt, headless=True)
                     if m_res.get("status") == "success":
                         self._send_json(m_res)
                         return
