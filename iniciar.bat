@@ -1,5 +1,5 @@
 @echo off
-title Montanha Gemini Studio
+title Montanha AI
 cd /d "%~dp0"
 
 :: Verificar se já está rodando na porta 4192

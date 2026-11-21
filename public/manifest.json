@@ -1,12 +1,12 @@
 {
-  "name": "Montanha AI Studio",
+  "name": "Montanha AI",
   "short_name": "Montanha AI",
-  "description": "Estúdio de IA com busca web invisível, memória contínua Graphify e orquestração autônoma.",
+  "description": "Inteligência Artificial Multimodal com busca web, memória de contexto contínua e orquestração de ferramentas.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#0a0c10",
-  "theme_color": "#0a0c10",
+  "background_color": "#0b141b",
+  "theme_color": "#111b21",
   "scope": "/",
   "categories": ["productivity", "utilities"],
   "icons": [
@@ -23,9 +23,9 @@
       "purpose": "any maskable"
     },
     {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
+      "src": "/favicon.png",
+      "sizes": "32x32",
+      "type": "image/png"
     }
   ]
 }

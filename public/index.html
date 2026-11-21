@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Montanha AI Studio</title>
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>Montanha AI</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
     <!-- Progressive Web App (PWA) Tags -->
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0a0c10">
+    <meta name="theme-color" content="#111b21">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Montanha AI">
-    <link rel="apple-touch-icon" href="/icon-192.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -503,8 +505,13 @@
 
     <!-- 1. LEFT NAVIGATION RAIL (60px) - Ícones Verticais Exatos do ZapFast / WhatsApp Desktop -->
     <nav id="leftRail" class="hidden md:flex flex-col items-center justify-between py-3.5 w-16 bg-[#111b21] border-r border-[#222d34] flex-shrink-0 z-30 select-none">
-        <!-- Topo do Rail -->
-        <div class="flex flex-col items-center space-y-4">
+        <!-- Topo do Rail: Logo Montanha AI + Ícones -->
+        <div class="flex flex-col items-center space-y-3.5">
+            <!-- Logo Oficial Montanha AI -->
+            <div onclick="createNewChat()" title="Montanha AI" class="w-10 h-10 rounded-xl overflow-hidden shadow-lg border border-purple-500/40 flex-shrink-0 cursor-pointer hover:scale-105 spring-transition">
+                <img src="/icon-192.png" alt="Montanha AI" class="w-full h-full object-cover">
+            </div>
+
             <!-- Botão de Conversas (Ativo) -->
             <button onclick="createNewChat()" title="Conversas" class="w-10 h-10 rounded-full flex items-center justify-center bg-[#202c33] text-[#00a884] spring-transition shadow-sm">
                 <i class="fa-solid fa-message text-base"></i>
@@ -606,18 +613,18 @@
                     <i class="fa-solid fa-arrow-left text-sm"></i>
                 </button>
 
-                <!-- Avatar Circular com Ponto Online -->
+                <!-- Avatar Squircle do App com Ponto Online -->
                 <div class="relative flex-shrink-0">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-[#00a884] to-[#005c4b] flex items-center justify-center text-white font-bold text-sm shadow-sm">
-                        <i class="fa-solid fa-robot"></i>
+                    <div class="w-10 h-10 rounded-xl overflow-hidden border border-purple-500/40 shadow-md">
+                        <img src="/icon-192.png" alt="Montanha AI" class="w-full h-full object-cover">
                     </div>
-                    <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-[#202c33]"></span>
+                    <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-[#202c33]"></span>
                 </div>
 
                 <!-- Info do Chat Ativo -->
                 <div class="min-w-0 flex-1">
                     <div class="flex items-center space-x-2">
-                        <h1 id="currentChatTitle" class="text-sm font-semibold text-white truncate max-w-[140px] xs:max-w-[200px] sm:max-w-xs md:max-w-md">Montanha AI Studio</h1>
+                        <h1 id="currentChatTitle" class="text-sm font-semibold text-white truncate max-w-[140px] xs:max-w-[200px] sm:max-w-xs md:max-w-md">Montanha AI</h1>
                         <span id="keyStatusBadge" class="hidden xl:inline-flex text-[9px] font-mono tracking-wider bg-white/5 px-2 py-0.2 rounded-full text-zinc-400 border border-white/5">Zero-Leak</span>
                         <span id="memoryStatusBadge" class="hidden xl:inline-flex items-center gap-1 text-[9px] font-mono bg-purple-500/15 text-purple-300 border border-purple-500/25 px-2 py-0.2 rounded-full"><i class="fa-solid fa-brain text-[8px]"></i> <span id="memoryTurnsCount">0 msgs</span></span>
                         <span id="cloudSyncStatusBadge" onclick="syncChatsWithCloud(false)" class="hidden xs:inline-flex items-center gap-1 text-[9px] font-mono bg-white/5 hover:bg-white/10 px-2 py-0.2 rounded-full text-zinc-400 border border-white/5 cursor-pointer spring-transition" title="Sincronização em Nuvem"><i id="cloudSyncStatusIcon" class="fa-solid fa-cloud text-[9px]"></i> <span id="cloudSyncStatusText" class="hidden sm:inline">Nuvem</span></span>
@@ -706,13 +713,13 @@
                     <i class="fa-solid fa-lock text-xs"></i>
                     <span class="text-xs font-medium text-zinc-300">Mensagens processadas com privacidade Zero-Leak</span>
                 </div>
-                <div class="w-16 h-16 mx-auto rounded-full bg-gradient-to-tr from-[#00a884] to-[#005c4b] flex items-center justify-center text-white text-2xl shadow-lg">
-                    <i class="fa-solid fa-robot"></i>
+                <div class="w-20 h-20 mx-auto rounded-2xl overflow-hidden shadow-2xl border border-purple-500/40 p-0.5 bg-[#111b21] hover:scale-105 spring-transition">
+                    <img src="/icon-512.png" alt="Montanha AI" class="w-full h-full object-cover rounded-xl">
                 </div>
                 <div>
-                    <h2 class="text-lg font-bold text-white">Montanha AI Studio</h2>
+                    <h2 class="text-xl font-bold text-white tracking-tight">Montanha AI</h2>
                     <p class="text-xs text-zinc-400 mt-1 max-w-sm mx-auto">
-                        Inteligência multimodal ativa: envie mensagens de texto, áudios por microfone, documentos PDF ou gere imagens com Meta AI.
+                        Inteligência multimodal ativa: cite mensagens anteriores, converse por voz, processe documentos e gere imagens oficiais no Meta AI.
                     </p>
                 </div>
                 <!-- Pílulas de Sugestão Rápida no Chat -->
@@ -735,6 +742,25 @@
 
         <!-- BARRA INFERIOR DE DIGITAÇÃO (Idêntica à Imagem 1 do ZapFast) -->
         <div class="bg-[#202c33] px-3 sm:px-4 py-2 border-t border-[#222d34] flex-shrink-0">
+            <!-- Barra de Prévia de Citação / Resposta (Estilo WhatsApp Desktop) -->
+            <div id="quotePreviewBar" class="hidden mb-2 p-2.5 rounded-xl bg-[#111b21] border border-[#222d34] flex items-center justify-between shadow-lg border-l-4 border-l-[#00a884] animate-fadeIn">
+                <div class="flex items-center space-x-2.5 min-w-0 flex-1 mr-2">
+                    <div class="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0 text-[#00a884]">
+                        <i class="fa-solid fa-reply text-xs"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center space-x-2">
+                            <span id="quoteAuthor" class="text-xs font-semibold text-[#00a884]">Montanha AI</span>
+                            <span class="text-[10px] text-zinc-500">• Citando mensagem</span>
+                        </div>
+                        <div id="quoteSnippet" class="text-xs text-zinc-300 truncate font-sans mt-0.5">Texto citado...</div>
+                    </div>
+                </div>
+                <button onclick="cancelQuote()" class="w-7 h-7 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center flex-shrink-0" title="Cancelar citação">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
             <!-- Barra de Prévia de Mídia Anexada -->
             <div id="imagePreviewBar" class="hidden mb-2 p-2 rounded-xl bg-[#111b21] border border-[#222d34] flex items-center justify-between shadow-lg">
                 <div class="flex items-center space-x-2.5 min-w-0 flex-1 mr-2">
@@ -1297,7 +1323,7 @@
                 <label class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block">Download do Aplicativo Android (APK)</label>
                 <div class="p-3 rounded-xl bg-[#171922] border border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div>
-                        <div class="text-xs font-semibold text-white">Montanha AI Studio Oficial</div>
+                        <div class="text-xs font-semibold text-white">Montanha AI Oficial</div>
                         <div class="text-[11px] text-zinc-400 mt-0.5">Versão nativa com ponte de voz e áudio contínuo.</div>
                     </div>
                     <a href="https://github.com/Coach-Montanha/montanha-gemini-studio/releases/download/v1.0.5/MontanhaGeminiStudio.apk" target="_blank" rel="noopener noreferrer" class="min-h-[40px] px-3.5 py-2 rounded-xl bg-apple-blue hover:bg-apple-blueHover text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm spring-transition active:scale-[0.98]">
@@ -1726,6 +1752,7 @@
             document.getElementById('messagesList').classList.add('hidden');
             document.getElementById('welcomeScreen').classList.remove('hidden');
             removeAttachedImage();
+            cancelQuote();
             loadChatsIndex();
             closeSidebarMobile();
         }
@@ -1735,6 +1762,7 @@
             document.getElementById('currentChatTitle').innerText = title || "Chat";
             const chats = getLocalChats();
             const chat = chats[chatId];
+            cancelQuote();
 
             const msgContainer = document.getElementById('messagesList');
             msgContainer.innerHTML = '';
@@ -1744,7 +1772,7 @@
                 msgContainer.classList.remove('hidden');
                 chat.messages.forEach((m, idx) => {
                     if (m.role === 'user') {
-                        appendUserMessage(m.prompt, m.media || m.image, idx, m.timestamp);
+                        appendUserMessage(m.prompt, m.media || m.image, idx, m.timestamp, m.quoted_message);
                     } else if (m.role === 'model') {
                         if (m.image_url) {
                             appendImageMessage(m.image_url, m.image_prompt || m.response, m.provider, m.timestamp);
@@ -2217,7 +2245,16 @@
                 content: m.role === 'model' ? (m.response || '') : (m.prompt || '')
             }));
 
+            // Captura e consome a citação ativa vinculando à mensagem e ao contexto da IA
+            const quoteSnapshot = activeQuoteData ? { ...activeQuoteData } : null;
+            cancelQuote();
+
             let finalPrompt = prompt;
+            let promptToSendToAi = finalPrompt;
+            if (quoteSnapshot && quoteSnapshot.text) {
+                promptToSendToAi = `> [Citando ${quoteSnapshot.author}: "${quoteSnapshot.text.replace(/\n+/g, ' ').substring(0, 250)}"]\n\n${finalPrompt}`;
+            }
+
             if (!finalPrompt && attachedImageBase64) {
                 if (attachedImageMime && attachedImageMime.startsWith('audio/')) {
                     finalPrompt = "Por favor, transcreva este áudio com fidelidade rigorosa (Whisper-grade), identifique os tópicos principais e extraia os pontos-chave ou dados estruturados em JSON caso aplicável.";
@@ -2228,6 +2265,7 @@
                 } else {
                     finalPrompt = "Analise o conteúdo deste arquivo e extraia as informações estruturadas principais.";
                 }
+                promptToSendToAi = finalPrompt;
             }
 
             const mediaData = attachedImageBase64 ? {
@@ -2244,13 +2282,14 @@
                 prompt: finalPrompt,
                 media: mediaData,
                 image: !!attachedImageBase64,
-                timestamp: userNowIso
+                timestamp: userNowIso,
+                quoted_message: quoteSnapshot
             });
             const userMsgIdx = currentChatObj.messages.length - 1;
             saveLocalChat(currentChatId, currentChatObj.title, currentChatObj.messages);
             updateMemoryBadge();
 
-            appendUserMessage(finalPrompt, mediaData, userMsgIdx, userNowIso);
+            appendUserMessage(finalPrompt, mediaData, userMsgIdx, userNowIso, quoteSnapshot);
             appendLoadingSkeleton();
 
             const skill = document.getElementById('selectSkill').value;
@@ -2258,7 +2297,9 @@
 
             const payload = {
                 chat_id: currentChatId,
-                prompt: finalPrompt,
+                prompt: promptToSendToAi,
+                raw_prompt: finalPrompt,
+                quoted_message: quoteSnapshot,
                 history: historyToSend,
                 skill: skill,
                 engine: engine,
@@ -2502,15 +2543,89 @@
             }
         }
 
-        function appendUserMessage(text, mediaInfo, msgIndex, timestamp) {
+        // ==========================================
+        // SISTEMA DE CITAÇÃO & RESPOSTA (MEMÓRIA DIRETA DE CONTEXTO)
+        // ==========================================
+        let activeQuoteData = null;
+
+        function quoteMessage(btn, defaultAuthor, msgId) {
+            let text = '';
+            const bubble = btn.closest('.chat-bubble-content') || btn.closest('.chat-bubble-user') || btn.closest('.chat-bubble-bot');
+            if (bubble) {
+                const textEl = bubble.querySelector('.markdown-body') || bubble.querySelector('.whitespace-pre-wrap') || bubble;
+                text = textEl.innerText.trim();
+            }
+
+            // Remove rótulos de botões da cópia do texto
+            text = text.replace(/^(Ouvir|Copiar|PDF|Atualizar|Excluir|Citar|Tocar|Baixar MP3)\s*/gim, '').trim();
+            if (text.length > 250) {
+                text = text.substring(0, 250) + '...';
+            }
+
+            const parentDiv = btn.closest('[id^="user-msg-"]') || btn.closest('[id^="bot-msg-"]') || btn.closest('[id^="bot-audio-"]') || btn.closest('.group');
+            const targetId = parentDiv ? parentDiv.id : (msgId || 'msg-' + Date.now());
+
+            activeQuoteData = {
+                author: defaultAuthor || 'Montanha AI',
+                text: text,
+                msgId: targetId,
+                role: defaultAuthor === 'Você' ? 'user' : 'model'
+            };
+
+            const bar = document.getElementById('quotePreviewBar');
+            const authorEl = document.getElementById('quoteAuthor');
+            const snippetEl = document.getElementById('quoteSnippet');
+
+            if (bar && authorEl && snippetEl) {
+                authorEl.innerText = activeQuoteData.author;
+                authorEl.className = activeQuoteData.author === 'Você' ? 'text-xs font-semibold text-emerald-300' : 'text-xs font-semibold text-[#00a884]';
+                snippetEl.innerText = activeQuoteData.text || 'Mensagem citada';
+                bar.classList.remove('hidden');
+            }
+
+            const input = document.getElementById('promptInput');
+            if (input) {
+                input.focus();
+                input.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        function cancelQuote() {
+            activeQuoteData = null;
+            const bar = document.getElementById('quotePreviewBar');
+            if (bar) bar.classList.add('hidden');
+        }
+
+        function scrollToQuotedMessage(msgId) {
+            if (!msgId) return;
+            const target = document.getElementById(msgId);
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const bubble = target.querySelector('.chat-bubble-content') || target;
+                bubble.classList.add('ring-4', 'ring-[#00a884]', 'transition-all', 'duration-500');
+                setTimeout(() => {
+                    bubble.classList.remove('ring-4', 'ring-[#00a884]');
+                }, 1500);
+            }
+        }
+
+        function appendUserMessage(text, mediaInfo, msgIndex, timestamp, quotedMessage) {
             const list = document.getElementById('messagesList');
             const div = document.createElement('div');
+            const msgId = 'user-msg-' + (msgIndex !== undefined ? msgIndex : Date.now());
+            div.id = msgId;
             div.className = "flex items-center justify-end w-full group relative mb-2.5";
             const deleteBtn = (typeof msgIndex === 'number' && msgIndex >= 0) ? `
-                <button onclick="deleteSingleMessage(${msgIndex})" class="opacity-0 group-hover:opacity-100 hover:text-red-400 p-1.5 text-zinc-500 spring-transition self-center mr-1.5" title="Excluir mensagem da memória">
+                <button onclick="deleteSingleMessage(${msgIndex})" class="opacity-0 group-hover:opacity-100 hover:text-red-400 p-1.5 text-zinc-500 spring-transition self-center mr-1" title="Excluir mensagem da memória">
                     <i class="fa-regular fa-trash-can text-xs"></i>
                 </button>
             ` : '';
+
+            const quoteBtn = `
+                <button onclick="quoteMessage(this, 'Você', '${msgId}')" class="opacity-0 group-hover:opacity-100 hover:text-[#00a884] p-1.5 text-zinc-400 hover:bg-white/10 rounded-md spring-transition self-center mr-1" title="Citar esta mensagem">
+                    <i class="fa-solid fa-reply text-xs"></i>
+                </button>
+            `;
 
             let mediaBadgeHtml = '';
             if (mediaInfo) {
@@ -2529,11 +2644,27 @@
                 }
             }
 
+            let quoteBlockHtml = '';
+            if (quotedMessage && quotedMessage.text) {
+                const qAuthor = quotedMessage.author || (quotedMessage.role === 'user' ? 'Você' : 'Montanha AI');
+                quoteBlockHtml = `
+                    <div onclick="scrollToQuotedMessage('${escapeHtml(quotedMessage.msgId || '')}')" class="mb-2 p-2 rounded-lg bg-black/35 border-l-4 border-l-[#00a884] cursor-pointer hover:bg-black/50 spring-transition select-none">
+                        <div class="text-[11px] font-semibold text-emerald-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-reply text-[9px]"></i>
+                            <span>${escapeHtml(qAuthor)}</span>
+                        </div>
+                        <div class="text-xs text-zinc-300 truncate font-sans mt-0.5">${escapeHtml(quotedMessage.text)}</div>
+                    </div>
+                `;
+            }
+
             const timeFormatted = formatMessageTime(timestamp);
 
             div.innerHTML = `
+                ${quoteBtn}
                 ${deleteBtn}
                 <div class="chat-bubble-user max-w-[85%] sm:max-w-[75%] px-3.5 py-2.5 shadow-sm chat-bubble-content flex flex-col rounded-2xl rounded-tr-sm">
+                    ${quoteBlockHtml}
                     ${mediaBadgeHtml}
                     <div class="select-text whitespace-pre-wrap break-words leading-relaxed">${escapeHtml(text)}</div>
                     <div class="flex items-center justify-end mt-1 text-[11px] text-emerald-200/90 font-sans select-none self-end gap-1">
@@ -2553,7 +2684,8 @@
             const list = document.getElementById('messagesList');
             const div = document.createElement('div');
             div.className = "flex justify-start w-full group mb-3";
-            div.id = 'bot-msg-' + Date.now();
+            const botMsgId = 'bot-msg-' + (msgIndex !== undefined ? msgIndex : Date.now());
+            div.id = botMsgId;
 
             let sourcesHtml = '';
             if (sources && sources.length > 0) {
@@ -2599,6 +2731,13 @@
                 </button>
             ` : '';
 
+            const quoteAction = `
+                <button onclick="quoteMessage(this, 'Montanha AI', '${botMsgId}')" class="hover:text-[#00a884] spring-transition flex items-center gap-1 py-1 px-1.5 rounded-md hover:bg-emerald-500/10 text-zinc-400" title="Citar esta resposta no contexto">
+                    <i class="fa-solid fa-reply text-xs text-[#00a884]"></i>
+                    <span class="text-[11px] font-medium text-emerald-300">Citar</span>
+                </button>
+            `;
+
             const timeFormatted = formatMessageTime(timestamp);
             const updatedTimeFormatted = updatedAt ? formatMessageTime(updatedAt) : timeFormatted;
             const updatedBadge = updated ? `<span class="text-[9px] font-sans px-1.5 py-0.2 rounded bg-white/10 text-emerald-300 border border-emerald-500/30 flex items-center gap-1"><i class="fa-solid fa-clock-rotate-left text-[8px]"></i> atualizada (${updatedTimeFormatted})</span>` : '';
@@ -2622,6 +2761,7 @@
                                 <i class="fa-solid fa-file-pdf text-xs"></i>
                                 <span class="text-[11px]">PDF</span>
                             </button>
+                            ${quoteAction}
                             ${regenAction}
                             ${deleteAction}
                         </div>
@@ -2648,6 +2788,8 @@
         function appendImageMessage(imageUrl, prompt, provider, timestamp) {
             const list = document.getElementById('messagesList');
             const div = document.createElement('div');
+            const imgMsgId = 'bot-img-' + Date.now();
+            div.id = imgMsgId;
             div.className = "flex justify-start w-full mb-3";
             const timeFormatted = formatMessageTime(timestamp);
             div.innerHTML = `
@@ -2655,6 +2797,10 @@
                     <div class="relative rounded-xl overflow-hidden border border-white/10 group bg-black">
                         <img src="${imageUrl}" class="w-full max-h-[460px] object-contain rounded-xl" alt="${escapeHtml(prompt)}">
                         <div class="absolute bottom-2 right-2 flex items-center space-x-2">
+                            <button onclick="quoteMessage(this, 'Montanha AI (Imagem)', '${imgMsgId}')" class="px-2.5 py-1.5 rounded-lg bg-black/70 backdrop-blur text-white text-xs font-semibold flex items-center gap-1.5 hover:bg-black spring-transition" title="Citar esta imagem">
+                                <i class="fa-solid fa-reply text-xs text-[#00a884]"></i>
+                                <span>Citar</span>
+                            </button>
                             <a href="${imageUrl}" download="imagem_montanha_ai.jpg" target="_blank" class="px-3 py-1.5 rounded-lg bg-black/70 backdrop-blur text-white text-xs font-semibold flex items-center gap-1.5 hover:bg-black spring-transition">
                                 <i class="fa-solid fa-download text-xs"></i>
                                 <span>Baixar Imagem</span>
@@ -3641,6 +3787,10 @@
                                 <i class="fa-solid fa-play text-xs"></i>
                                 <span class="text-[11px] font-medium">Tocar</span>
                             </button>
+                            <button onclick="quoteMessage(this, 'Montanha AI (Áudio)', '${div.id}')" class="hover:text-[#00a884] spring-transition flex items-center gap-1 py-1 px-2 rounded-md hover:bg-emerald-500/10 text-zinc-400" title="Citar este áudio no contexto">
+                                <i class="fa-solid fa-reply text-xs text-[#00a884]"></i>
+                                <span class="text-[11px] font-medium text-emerald-300">Citar</span>
+                            </button>
                             <a href="${directDownload}" download="audio_montanha_${Date.now()}.mp3" class="hover:text-white spring-transition flex items-center gap-1 py-1 px-2 rounded-md hover:bg-white/5 text-zinc-400" title="Baixar Arquivo MP3">
                                 <i class="fa-solid fa-download text-xs"></i>
                                 <span class="text-[11px]">Baixar MP3</span>
@@ -3697,7 +3847,7 @@
                 const res = await fetch('/api/export-pdf', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ text: text, title: "Montanha AI Studio - Documento" })
+                    body: JSON.stringify({ text: text, title: "Montanha AI - Documento" })
                 });
                 const d = await res.json();
                 if (d.status === 'success') {
